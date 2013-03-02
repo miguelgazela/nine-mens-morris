@@ -1,9 +1,8 @@
 package GameLogic;
 
 public class Board {
-	private static final int NUMBER_POSITIONS = 24;
-	private Position[] boardPositions;
-	private int numberPiecesOnBoard;
+	public Position[] boardPositions;
+	public int numberPiecesOnBoard;
 	
 	public Board() {
 		boardPositions = new Position[24];
@@ -46,19 +45,6 @@ public class Board {
 		boardPositions[16].addAdjacentPositions(15,17,19);
 		boardPositions[17].addAdjacentPositions(12,16);
 	}
-	
-	public boolean validMove(int currentPositionIndex, int nextPositionIndex) {
-		for(int i = 0; i < boardPositions[currentPositionIndex].adjacentPositions.length; i++) {
-			if(boardPositions[currentPositionIndex].adjacentPositions[i] == nextPositionIndex) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-	public boolean positionIsAvailable(int index) {
-		return !boardPositions[index].isOccupied;
-	}
 
 	public void printBoard() {
 		System.out.println(showPos(0)+" - - - - - "+showPos(1)+" - - - - - "+showPos(2));
@@ -85,15 +71,5 @@ public class Board {
 		default:
 			return "*";
 		}
-	}
-
-	public void setPositionAsPlayer(int index, int player) {
-		boardPositions[index].playerOccupying = player;
-		boardPositions[index].isOccupied = true;
-		numberPiecesOnBoard++;
-	}
-	
-	public int getNumberPiecesOnBoard() {
-		return numberPiecesOnBoard;
 	}
 }

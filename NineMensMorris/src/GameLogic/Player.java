@@ -5,12 +5,12 @@ public abstract class Player {
 	public static final int PLAYER_2 = 2;
 	protected String name;
 	protected int score;
-	protected int nPieces;
+	protected int numPieces;
 	
 	protected Player() {
 		System.out.println("Player constructor");
 		score = 0;
-		nPieces = 9;
+		numPieces = 9;
 	}
 	
 	protected Player(String name) {
@@ -20,5 +20,9 @@ public abstract class Player {
 	
 	protected String getName() {
 		return name;
+	}
+	
+	protected int getNumPieces() {
+		return numPieces;
 	}
 }

@@ -1,6 +1,7 @@
 package GameLogic;
 
 public abstract class Game {
+	private static final int MIN_NUM_PIECES = 2;
 	protected Board gameBoard;
 	protected Player player1;
 	protected Player player2;
@@ -37,15 +38,38 @@ public abstract class Game {
 		}
 	}
 	
-	public boolean validPlacing(int index) {
-		return gameBoard.positionIsAvailable(index);
+	public void setPositionAsPlayer(int index, int player) {
+		gameBoard.boardPositions[index].playerOccupying = player;
+		gameBoard.boardPositions[index].isOccupied = true;
+		gameBoard.numberPiecesOnBoard++;
+	}
+	
+	public boolean positionIsAvailable(int index) {
+		return !gameBoard.boardPositions[index].isOccupied;
+	}
+	
+	public boolean validMove(int currentPositionIndex, int nextPositionIndex) {
+		for(int i = 0; i < gameBoard.boardPositions[currentPositionIndex].adjacentPositions.length; i++) {
+			if(gameBoard.boardPositions[currentPositionIndex].adjacentPositions[i] == nextPositionIndex) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public void movePieceFromTo(int src, int dest) {
+		int player = (currentTurnPlayer.equals(player1)) ? Player.PLAYER_1 : Player.PLAYER_2;
+		gameBoard.boardPositions[src].isOccupied = false;
+		gameBoard.boardPositions[src].playerOccupying = -1;
+		gameBoard.boardPositions[dest].isOccupied = true;
+		gameBoard.boardPositions[dest].playerOccupying = player; 
 	}
 	
 	public boolean setPiece(int index) {
-		if(gameBoard.positionIsAvailable(index)) {
+		if(positionIsAvailable(index)) {
 			int player = currentTurnPlayer.equals(player1) ? Player.PLAYER_1 : Player.PLAYER_2;
-			gameBoard.setPositionAsPlayer(index, player);
-			if(gameBoard.getNumberPiecesOnBoard() == 18) {
+			setPositionAsPlayer(index, player);
+			if(gameBoard.numberPiecesOnBoard == 18) {
 				placingPhase = false;
 			}
 			return true;
@@ -56,8 +80,26 @@ public abstract class Game {
 	public void printGameBoard() { // TODO this won't be used with a GUI
 		gameBoard.printBoard();
 	}
+	
+	public void checkGameIsOver() {
+		if(player1.getNumPieces() == MIN_NUM_PIECES || player2.getNumPieces() == MIN_NUM_PIECES) {
+			gameIsOver = true;
+		}
+	}
 
 	public boolean gameIsOver() {
 		return gameIsOver;
+	}
+
+	public boolean positionHasPieceOfPlayer(int index) {
+		Position pos = gameBoard.boardPositions[index];
+		if(pos.isOccupied) {
+			int player = pos.playerOccupying;
+			if( (player == Player.PLAYER_1 && currentTurnPlayer.equals(player1)) ||
+					player == Player.PLAYER_2 && currentTurnPlayer.equals(player2)) {
+				return true;
+			}
+		}
+		return false;
 	}
 }

@@ -71,6 +71,23 @@ public class Main {
 				int initialIndex = Integer.parseInt(positions[0]);
 				int finalIndex = Integer.parseInt(positions[1]);
 				System.out.println(initialIndex+" : "+finalIndex);
+				if(maingame.game.positionHasPieceOfPlayer(initialIndex)) {
+					if(maingame.game.validMove(initialIndex, finalIndex)) {
+						if(maingame.game.positionIsAvailable(finalIndex) && maingame.game.validMove(initialIndex, finalIndex)) {
+							maingame.game.movePieceFromTo(initialIndex, finalIndex);
+							maingame.game.updateCurrentTurnPlayer();
+							maingame.game.printGameBoard();
+							maingame.game.checkGameIsOver();
+							if(maingame.game.gameIsOver()) {
+								break;
+							}
+						} else {
+							System.out.println("That's not a valid move");
+						}
+					}
+				} else {
+					System.out.println("No piece on that position or it isn't yours");
+				}
 			}
 		}
 	}
