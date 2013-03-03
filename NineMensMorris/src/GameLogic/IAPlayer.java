@@ -19,10 +19,9 @@ public class IAPlayer extends Player {
 		"Terminator", "Tom Cruise", "Will Smith", "Nelson Mandela", "Iron Man", "Hulk", "Thor",
 		"Loki", "Captain America", "Black Widow", "Phil Coulson"};
 	
-	public IAPlayer() {
-		super();
+	public IAPlayer(int playerId) {
+		super(playerId);
 		setName();
-		
 	}
 	
 	private void setName() {
