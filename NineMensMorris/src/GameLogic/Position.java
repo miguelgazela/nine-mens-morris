@@ -1,6 +1,7 @@
 package GameLogic;
 
 public class Position {
+	public static final int NO_PLAYER = -1;
 	public boolean isOccupied;
 	public int position;
 	public int playerOccupying;
@@ -9,7 +10,7 @@ public class Position {
 	public Position(int position) {
 		isOccupied = false;
 		this.position = position;
-		playerOccupying = -1;
+		playerOccupying = Position.NO_PLAYER;
 		adjacentPositions = new int[4];
 	}
 	

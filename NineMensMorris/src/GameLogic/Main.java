@@ -39,13 +39,27 @@ public class Main {
 		}
 		
 		((LocalGame)game).setPlayers(p1, p2);
-		while(game.inPlacingPhase()) {
+		while(game.getGamePhase() == Game.PLACING_PHASE) {
 			while(true) {
 				int player = ((LocalGame)game).getCurrentTurnPlayer().getPlayerId();
 				System.out.println(((LocalGame)game).getCurrentTurnPlayer().getName()+" place a piece on: ");
 				userInput = input.readLine();
 				int boardIndex = Integer.parseInt(userInput);
 				if(game.setPiece(boardIndex, player)) {
+					if(game.madeAMill(boardIndex, player)) {
+						int tempPlayer = (player == Player.PLAYER_1) ? Player.PLAYER_2 : Player.PLAYER_1;
+						while(true) {
+							System.out.println("You made a mill! You can remove a piece of your oponent: ");
+							userInput = input.readLine();
+							boardIndex = Integer.parseInt(userInput);
+							if(game.removePiece(boardIndex, tempPlayer)) {
+								break;
+							} else {
+								System.out.println("It couldn't be done! Try again");
+							}
+						}
+						
+					}
 					((LocalGame)game).updateCurrentTurnPlayer();
 					break;
 				}

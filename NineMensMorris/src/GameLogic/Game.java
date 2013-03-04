@@ -2,45 +2,23 @@ package GameLogic;
 
 public abstract class Game {
 	protected static final int MIN_NUM_PIECES = 2;
+	protected static final int PLACING_PHASE = 1;
+	protected static final int MOVING_PHASE = 2;
+	protected static final int FLYING_PHASE = 3;
+	
 	protected Board gameBoard;
-	//protected Player player1;
-	//protected Player player2;
-	protected boolean placingPhase;
+	protected int gamePhase;
 	protected boolean gameIsOver;
-	//protected Player currentTurnPlayer;
 	
 	public Game() {
 		gameBoard = new Board();
-		placingPhase = true;
+		gamePhase = Game.PLACING_PHASE;
 		gameIsOver = false;
 	}
 	
-	/*
-	public void setPlayers(Player p1, Player p2) {
-		System.out.println("Setting game players");
-		player1 = p1;
-		player2 = p2;
-		currentTurnPlayer = player1;
+	public int getGamePhase() {
+		return gamePhase;
 	}
-	*/
-	
-	public boolean inPlacingPhase() {
-		return placingPhase;
-	}
-	
-	/*
-	public Player getCurrentTurnPlayer() {
-		return currentTurnPlayer;
-	}
-	
-	public void updateCurrentTurnPlayer() {
-		if(currentTurnPlayer.equals(player1)) {
-			currentTurnPlayer = player2;
-		} else {
-			currentTurnPlayer = player1;
-		}
-	}
-	*/
 	
 	public void setPositionAsPlayer(int index, int player) {
 		gameBoard.boardPositions[index].playerOccupying = player;
@@ -72,11 +50,46 @@ public abstract class Game {
 		if(positionIsAvailable(index)) {
 			setPositionAsPlayer(index, playerId);
 			if(gameBoard.numberPiecesOnBoard == 18) {
-				placingPhase = false;
+				gamePhase = Game.MOVING_PHASE;
 			}
 			return true;
 		}
 		return false;
+	}
+	
+	public boolean madeAMill(int dest, int playerId) {
+		int maxPiecesInRow = 0;
+		for(int i = 0; i < gameBoard.winningPositions.length; i++) {
+			for(int j = 0; j < gameBoard.winningPositions[i].length; j++) {
+				if(gameBoard.winningPositions[i][j].position == dest) {
+					int thisRow = fromPlayerInRow(gameBoard.winningPositions[i], playerId);
+					if(thisRow > maxPiecesInRow) {
+						maxPiecesInRow = thisRow;
+					}
+				}
+			}
+		}
+		return maxPiecesInRow == 3;
+	}
+	
+	public boolean removePiece(int index, int playerId) {
+		if(!positionIsAvailable(index) && positionHasPieceOfPlayer(index, playerId)) {
+			gameBoard.boardPositions[index].playerOccupying = Position.NO_PLAYER;
+			gameBoard.boardPositions[index].isOccupied = false;
+			gameBoard.numberPiecesOnBoard--;
+			return true;
+		}
+		return false;
+	}
+	
+	private int fromPlayerInRow(Position[] pos, int playerId) {
+		int counter = 0;
+		for(int i = 0; i < pos.length; i++) {
+			if(pos[i].playerOccupying == playerId) {
+				counter++;
+			}
+		}
+		return counter;
 	}
 	
 	public void printGameBoard() { // TODO this won't be used with a GUI
