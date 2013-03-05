@@ -27,5 +27,21 @@ public class RandomIAPlayer extends IAPlayer {
 		}
 	}
 
+	@Override
+	public Move getPieceMove(Board gameBoard) {
+		while(true) {
+			int index = rand.nextInt(24);
+			Position position = gameBoard.boardPositions[index];
+			if(position.playerOccupying == this.playerId) {
+				int[] adjacents = position.adjacentPositions;
+				for(int i = 0; i < adjacents.length; i++) {
+					if(!gameBoard.boardPositions[adjacents[i]].isOccupied) {
+						return new Move(index, adjacents[i]);
+					}
+				}
+			}
+		}
+	}
+
 	
 }

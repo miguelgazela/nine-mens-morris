@@ -11,24 +11,23 @@ public class Position {
 		isOccupied = false;
 		this.position = position;
 		playerOccupying = Position.NO_PLAYER;
-		adjacentPositions = new int[4];
 	}
 	
 	public void addAdjacentPositions(int pos1, int pos2) {
+		adjacentPositions = new int[2];
 		adjacentPositions[0] = pos1;
 		adjacentPositions[1] = pos2;
-		adjacentPositions[2] = -1;
-		adjacentPositions[3] = -1;
 	}
 	
 	public void addAdjacentPositions(int pos1, int pos2, int pos3) {
+		adjacentPositions = new int[3];
 		adjacentPositions[0] = pos1;
 		adjacentPositions[1] = pos2;
 		adjacentPositions[2] = pos3;
-		adjacentPositions[3] = -1;
 	}
 	
 	public void addAdjacentPositions(int pos1, int pos2, int pos3, int pos4) {
+		adjacentPositions = new int[4];
 		adjacentPositions[0] = pos1;
 		adjacentPositions[1] = pos2;
 		adjacentPositions[2] = pos3;

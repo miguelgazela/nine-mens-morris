@@ -7,6 +7,8 @@ import java.lang.management.ManagementFactory;
 
 import javax.management.InstanceAlreadyExistsException;
 
+import GameLogic.IAPlayer.Move;
+
 public class Main {
 	public Game game;
 	public BufferedReader input;
@@ -98,13 +100,18 @@ public class Main {
 		}
 		
 		System.out.println("The pieces are all placed. Starting the fun part...");
+		int numMoves = 0;
 		while(!game.gameIsOver()) {
 			while(true) {
 				Player p = ((LocalGame)game).getCurrentTurnPlayer();
 				int initialIndex, finalIndex;
 				if(p.isIA()) {
-					
+					Move move = ((IAPlayer)p).getPieceMove(game.gameBoard);
+					initialIndex = move.src;
+					finalIndex = move.dest;
+					System.out.println(p.getName()+" moved piece from "+initialIndex+" to "+finalIndex);
 				} else {
+					game.printGameBoard();
 					System.out.println(p.getName()+" it's your turn. Input PIECE_POS:PIECE_DEST");
 					userInput = input.readLine();
 					String[] positions = userInput.split(":");
@@ -115,13 +122,19 @@ public class Main {
 				if(game.positionHasPieceOfPlayer(initialIndex, p.getPlayerId())) {
 					if(game.positionIsAvailable(finalIndex) && (game.validMove(initialIndex, finalIndex) || p.canItFly())) {
 						game.movePieceFromTo(initialIndex, finalIndex, p.getPlayerId());
-						game.printGameBoard();
+						numMoves++;
 						if(game.madeAMill(finalIndex, p.getPlayerId())) {
 							int otherPlayerId = (p.getPlayerId() == Player.PLAYER_1) ? Player.PLAYER_2 : Player.PLAYER_1;
+							int boardIndex;
 							while(true) {
-								System.out.println("You made a mill! You can remove a piece of your oponent: ");
-								userInput = input.readLine();
-								int boardIndex = Integer.parseInt(userInput);
+								if(p.isIA()){
+									boardIndex = ((IAPlayer)p).getIndexToRemovePieceOfOpponent(game.gameBoard);
+									System.out.println(p.getName()+" removes opponent piece on "+boardIndex);
+								} else {
+									System.out.println("You made a mill! You can remove a piece of your oponent: ");
+									userInput = input.readLine();
+									boardIndex = Integer.parseInt(userInput);
+								}
 								if(game.removePiece(boardIndex, otherPlayerId)) {
 									break;
 								} else {
@@ -143,6 +156,7 @@ public class Main {
 				}
 			}
 		}
+		System.out.println("Num moves: "+numMoves);
 	}
 	
 	public void createNetworkGame() {
