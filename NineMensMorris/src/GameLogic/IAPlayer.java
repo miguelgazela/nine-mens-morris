@@ -2,9 +2,9 @@ package GameLogic;
 
 import java.util.Random;
 
-public class IAPlayer extends Player {
+public abstract class IAPlayer extends Player {
 	
-	private Random rand;
+	protected Random rand;
 	private static String[] randomNames = { "Albert Einstein",
 		"Stephen Hawking", "Sheldon Cooper", "Dr.House", "Michael Jackson",
 		"Michael Bay", "Mark Zuckerberg", "Alfred Hitchcock", "Amy Whinehouse",
@@ -29,4 +29,13 @@ public class IAPlayer extends Player {
 		name = randomNames[rand.nextInt(randomNames.length)];
 		System.out.println("Name of CPU: "+name);
 	}
+
+	@Override
+	public boolean isIA() {
+		return true;
+	}
+	
+	public abstract int getIndexToPlacePiece(Board gameBoard);
+	
+	public abstract int getIndexToRemovePieceOfOpponent(Board gameBoard);
 }

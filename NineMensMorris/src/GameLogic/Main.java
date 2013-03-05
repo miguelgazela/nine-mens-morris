@@ -23,9 +23,8 @@ public class Main {
 			maingame.createLocalGame();
 		} else if(userInput.compareTo("NETWORK") == 0) {
 			maingame.createNetworkGame();
-			//maingame.game = new NetworkGame();
 		} else {
-			System.out.println("Command unknown");
+			System.out.println("UNKNOWN COMMAND");
 			System.exit(-1);
 		}
 	}
@@ -39,7 +38,7 @@ public class Main {
 		if(userInput.compareTo("HUMAN") == 0) {
 			p1 = new HumanPlayer("Souto",Player.PLAYER_1);
 		} else if(userInput.compareTo("CPU") == 0) {
-			p1 = new IAPlayer(Player.PLAYER_1);
+			p1 = new RandomIAPlayer(Player.PLAYER_1);
 		} else {
 			System.out.println("Command unknown");
 			System.exit(-1);
@@ -51,7 +50,7 @@ public class Main {
 		if(userInput.compareTo("HUMAN") == 0) {
 			p2 = new HumanPlayer("Miguel", Player.PLAYER_2);
 		} else if(userInput.compareTo("CPU") == 0) {
-			p2 = new IAPlayer(Player.PLAYER_2);
+			p2 = new RandomIAPlayer(Player.PLAYER_2);
 		} else {
 			System.out.println("Command unknown");
 			System.exit(-1);
@@ -60,17 +59,27 @@ public class Main {
 		((LocalGame)game).setPlayers(p1, p2);
 		while(game.getGamePhase() == Game.PLACING_PHASE) {
 			while(true) {
-				int player = ((LocalGame)game).getCurrentTurnPlayer().getPlayerId();
-				System.out.println("\n"+((LocalGame)game).getCurrentTurnPlayer().getName()+" place a piece on: ");
-				userInput = input.readLine();
-				int boardIndex = Integer.parseInt(userInput);
-				if(game.setPiece(boardIndex, player)) {
-					if(game.madeAMill(boardIndex, player)) {
-						int otherPlayerId = (player == Player.PLAYER_1) ? Player.PLAYER_2 : Player.PLAYER_1;
+				Player p = ((LocalGame)game).getCurrentTurnPlayer();
+				int boardIndex;
+				if(p.isIA()) {
+					boardIndex = ((IAPlayer)p).getIndexToPlacePiece(game.gameBoard);
+				} else {
+					System.out.println("\n"+((LocalGame)game).getCurrentTurnPlayer().getName()+" place a piece on: ");
+					userInput = input.readLine();
+					boardIndex = Integer.parseInt(userInput);
+				}
+				if(game.setPiece(boardIndex, p.getPlayerId())) {
+					if(game.madeAMill(boardIndex, p.getPlayerId())) {
+						int otherPlayerId = (p.getPlayerId() == Player.PLAYER_1) ? Player.PLAYER_2 : Player.PLAYER_1;
 						while(true) {
-							System.out.println("You made a mill! You can remove a piece of your oponent: ");
-							userInput = input.readLine();
-							boardIndex = Integer.parseInt(userInput);
+							if(p.isIA()){
+								boardIndex = ((IAPlayer)p).getIndexToRemovePieceOfOpponent(game.gameBoard);
+								System.out.println("REMOVING!");
+							} else {
+								System.out.println("You made a mill! You can remove a piece of your oponent: ");
+								userInput = input.readLine();
+								boardIndex = Integer.parseInt(userInput);
+							}
 							if(game.removePiece(boardIndex, otherPlayerId)) {
 								break;
 							} else {

@@ -44,4 +44,6 @@ public abstract class Player {
 	public boolean canItFly() {
 		return canFly;
 	}
+	
+	public abstract boolean isIA();
 }
