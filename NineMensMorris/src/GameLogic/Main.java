@@ -63,8 +63,10 @@ public class Main {
 				int boardIndex;
 				if(p.isIA()) {
 					boardIndex = ((IAPlayer)p).getIndexToPlacePiece(game.gameBoard);
+					System.out.println(p.getName()+" placed piece on "+boardIndex);
 				} else {
-					System.out.println("\n"+((LocalGame)game).getCurrentTurnPlayer().getName()+" place a piece on: ");
+					game.printGameBoard();
+					System.out.println(((LocalGame)game).getCurrentTurnPlayer().getName()+" place piece on: ");
 					userInput = input.readLine();
 					boardIndex = Integer.parseInt(userInput);
 				}
@@ -74,36 +76,42 @@ public class Main {
 						while(true) {
 							if(p.isIA()){
 								boardIndex = ((IAPlayer)p).getIndexToRemovePieceOfOpponent(game.gameBoard);
-								System.out.println("REMOVING!");
+								System.out.println(p.getName()+" removes opponent piece on "+boardIndex);
 							} else {
-								System.out.println("You made a mill! You can remove a piece of your oponent: ");
+								System.out.println("You made a mill. You can remove a piece of your oponent: ");
 								userInput = input.readLine();
 								boardIndex = Integer.parseInt(userInput);
 							}
 							if(game.removePiece(boardIndex, otherPlayerId)) {
 								break;
 							} else {
-								System.out.println("It couldn't be done! Try again");
+								System.out.println("You can't remove a piece from there. Try again");
 							}
 						}
 					}
 					((LocalGame)game).updateCurrentTurnPlayer();
 					break;
+				} else {
+					System.out.println("You can't place a piece there. Try again");
 				}
 			}
-			game.printGameBoard();
 		}
 		
-		System.out.println("Pieces are all placed. Starting the fun part...");
+		System.out.println("The pieces are all placed. Starting the fun part...");
 		while(!game.gameIsOver()) {
 			while(true) {
 				Player p = ((LocalGame)game).getCurrentTurnPlayer();
-				System.out.println(p.getName()+" it's your turn. Input PIECE_POS:PIECE_DEST");
-				userInput = input.readLine();
-				String[] positions = userInput.split(":");
-				int initialIndex = Integer.parseInt(positions[0]);
-				int finalIndex = Integer.parseInt(positions[1]);
-				System.out.println("Move piece from "+initialIndex+" to "+finalIndex);
+				int initialIndex, finalIndex;
+				if(p.isIA()) {
+					
+				} else {
+					System.out.println(p.getName()+" it's your turn. Input PIECE_POS:PIECE_DEST");
+					userInput = input.readLine();
+					String[] positions = userInput.split(":");
+					initialIndex = Integer.parseInt(positions[0]);
+					finalIndex = Integer.parseInt(positions[1]);
+					System.out.println("Move piece from "+initialIndex+" to "+finalIndex);
+				}
 				if(game.positionHasPieceOfPlayer(initialIndex, p.getPlayerId())) {
 					if(game.positionIsAvailable(finalIndex) && (game.validMove(initialIndex, finalIndex) || p.canItFly())) {
 						game.movePieceFromTo(initialIndex, finalIndex, p.getPlayerId());
