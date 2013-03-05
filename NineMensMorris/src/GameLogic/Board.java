@@ -3,11 +3,11 @@ package GameLogic;
 public class Board {
 	public Position[] boardPositions;
 	public Position[][] winningPositions;
-	public int numberPiecesOnBoard;
+	public int numberPiecesPlaced;
 	
 	public Board() {
 		boardPositions = new Position[24];
-		numberPiecesOnBoard = 0;
+		numberPiecesPlaced = 0;
 		initBoard();
 		initWinningPositions();
 	}

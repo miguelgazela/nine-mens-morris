@@ -2,9 +2,9 @@ package GameLogic;
 
 public abstract class Game {
 	protected static final int MIN_NUM_PIECES = 2;
-	protected static final int PLACING_PHASE = 1;
-	protected static final int MOVING_PHASE = 2;
-	protected static final int FLYING_PHASE = 3;
+	public static final int PLACING_PHASE = 1;
+	public static final int MOVING_PHASE = 2;
+	public static final int FLYING_PHASE = 3;
 	
 	protected Board gameBoard;
 	protected int gamePhase;
@@ -20,10 +20,9 @@ public abstract class Game {
 		return gamePhase;
 	}
 	
-	public void setPositionAsPlayer(int index, int player) {
-		gameBoard.boardPositions[index].playerOccupying = player;
+	public void setPositionAsPlayer(int index, int playerId) {
+		gameBoard.boardPositions[index].playerOccupying = playerId;
 		gameBoard.boardPositions[index].isOccupied = true;
-		gameBoard.numberPiecesOnBoard++;
 	}
 	
 	public boolean positionIsAvailable(int index) {
@@ -42,14 +41,13 @@ public abstract class Game {
 	public void movePieceFromTo(int src, int dest, int playerId) {
 		gameBoard.boardPositions[src].isOccupied = false;
 		gameBoard.boardPositions[src].playerOccupying = -1;
-		gameBoard.boardPositions[dest].isOccupied = true;
-		gameBoard.boardPositions[dest].playerOccupying = playerId; 
+		setPositionAsPlayer(dest, playerId);
 	}
 	
 	public boolean setPiece(int index, int playerId) {
 		if(positionIsAvailable(index)) {
 			setPositionAsPlayer(index, playerId);
-			if(gameBoard.numberPiecesOnBoard == 18) {
+			if(++gameBoard.numberPiecesPlaced == 18) {
 				gamePhase = Game.MOVING_PHASE;
 			}
 			return true;
@@ -62,7 +60,7 @@ public abstract class Game {
 		for(int i = 0; i < gameBoard.winningPositions.length; i++) {
 			for(int j = 0; j < gameBoard.winningPositions[i].length; j++) {
 				if(gameBoard.winningPositions[i][j].position == dest) {
-					int thisRow = fromPlayerInRow(gameBoard.winningPositions[i], playerId);
+					int thisRow = numPiecesFromPlayerInRow(gameBoard.winningPositions[i], playerId);
 					if(thisRow > maxPiecesInRow) {
 						maxPiecesInRow = thisRow;
 					}
@@ -72,17 +70,9 @@ public abstract class Game {
 		return maxPiecesInRow == 3;
 	}
 	
-	public boolean removePiece(int index, int playerId) {
-		if(!positionIsAvailable(index) && positionHasPieceOfPlayer(index, playerId)) {
-			gameBoard.boardPositions[index].playerOccupying = Position.NO_PLAYER;
-			gameBoard.boardPositions[index].isOccupied = false;
-			gameBoard.numberPiecesOnBoard--;
-			return true;
-		}
-		return false;
-	}
+	public abstract boolean removePiece(int index, int playerId);
 	
-	private int fromPlayerInRow(Position[] pos, int playerId) {
+	private int numPiecesFromPlayerInRow(Position[] pos, int playerId) {
 		int counter = 0;
 		for(int i = 0; i < pos.length; i++) {
 			if(pos[i].playerOccupying == playerId) {

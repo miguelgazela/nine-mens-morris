@@ -28,6 +28,17 @@ public class LocalGame extends Game {
 		}
 	}
 	
+	public boolean removePiece(int index, int playerId) {
+		if(!positionIsAvailable(index) && positionHasPieceOfPlayer(index, playerId)) {
+			gameBoard.boardPositions[index].playerOccupying = Position.NO_PLAYER;
+			gameBoard.boardPositions[index].isOccupied = false;
+			Player p = currentTurnPlayer.equals(player1) ? player2 : player1;
+			p.removePiece();
+			return true;
+		}
+		return false;
+	}
+	
 	public void checkGameIsOver() {
 		if((player1.getNumPieces() == Game.MIN_NUM_PIECES) || (player2.getNumPieces() == Game.MIN_NUM_PIECES)) {
 			gameIsOver = true;

@@ -11,6 +11,25 @@ public class Main {
 	public Game game;
 	public BufferedReader input;
 	
+	public static void main(String []args) throws Exception {
+		System.out.println("Nine Men's Morris starting...");
+		Main maingame = new Main();
+		maingame.input = new BufferedReader(new InputStreamReader(System.in));
+		
+		System.out.println("LOCAL or NETWORK?");
+		String userInput = maingame.input.readLine();
+		
+		if(userInput.compareTo("LOCAL") == 0) {
+			maingame.createLocalGame();
+		} else if(userInput.compareTo("NETWORK") == 0) {
+			maingame.createNetworkGame();
+			//maingame.game = new NetworkGame();
+		} else {
+			System.out.println("Command unknown");
+			System.exit(-1);
+		}
+	}
+	
 	public void createLocalGame() throws IOException {
 		game = new LocalGame();
 		System.out.println("Player 1: HUMAN or CPU?");
@@ -42,23 +61,22 @@ public class Main {
 		while(game.getGamePhase() == Game.PLACING_PHASE) {
 			while(true) {
 				int player = ((LocalGame)game).getCurrentTurnPlayer().getPlayerId();
-				System.out.println(((LocalGame)game).getCurrentTurnPlayer().getName()+" place a piece on: ");
+				System.out.println("\n"+((LocalGame)game).getCurrentTurnPlayer().getName()+" place a piece on: ");
 				userInput = input.readLine();
 				int boardIndex = Integer.parseInt(userInput);
 				if(game.setPiece(boardIndex, player)) {
 					if(game.madeAMill(boardIndex, player)) {
-						int tempPlayer = (player == Player.PLAYER_1) ? Player.PLAYER_2 : Player.PLAYER_1;
+						int otherPlayerId = (player == Player.PLAYER_1) ? Player.PLAYER_2 : Player.PLAYER_1;
 						while(true) {
 							System.out.println("You made a mill! You can remove a piece of your oponent: ");
 							userInput = input.readLine();
 							boardIndex = Integer.parseInt(userInput);
-							if(game.removePiece(boardIndex, tempPlayer)) {
+							if(game.removePiece(boardIndex, otherPlayerId)) {
 								break;
 							} else {
 								System.out.println("It couldn't be done! Try again");
 							}
 						}
-						
 					}
 					((LocalGame)game).updateCurrentTurnPlayer();
 					break;
@@ -76,20 +94,32 @@ public class Main {
 				String[] positions = userInput.split(":");
 				int initialIndex = Integer.parseInt(positions[0]);
 				int finalIndex = Integer.parseInt(positions[1]);
-				System.out.println(initialIndex+" : "+finalIndex);
+				System.out.println("Move piece from "+initialIndex+" to "+finalIndex);
 				if(game.positionHasPieceOfPlayer(initialIndex, p.getPlayerId())) {
-					if(game.validMove(initialIndex, finalIndex)) {
-						if(game.positionIsAvailable(finalIndex) && game.validMove(initialIndex, finalIndex)) {
-							game.movePieceFromTo(initialIndex, finalIndex, p.getPlayerId());
-							((LocalGame)game).updateCurrentTurnPlayer();
-							game.printGameBoard();
-							((LocalGame)game).checkGameIsOver();
-							if(game.gameIsOver()) {
-								break;
+					if(game.positionIsAvailable(finalIndex) && (game.validMove(initialIndex, finalIndex) || p.canItFly())) {
+						game.movePieceFromTo(initialIndex, finalIndex, p.getPlayerId());
+						game.printGameBoard();
+						if(game.madeAMill(finalIndex, p.getPlayerId())) {
+							int otherPlayerId = (p.getPlayerId() == Player.PLAYER_1) ? Player.PLAYER_2 : Player.PLAYER_1;
+							while(true) {
+								System.out.println("You made a mill! You can remove a piece of your oponent: ");
+								userInput = input.readLine();
+								int boardIndex = Integer.parseInt(userInput);
+								if(game.removePiece(boardIndex, otherPlayerId)) {
+									break;
+								} else {
+									System.out.println("It couldn't be done! Try again.");
+								}
 							}
-						} else {
-							System.out.println("That's not a valid move");
 						}
+						((LocalGame)game).checkGameIsOver();
+						if(game.gameIsOver()) {
+							game.printGameBoard();
+							break;
+						}
+						((LocalGame)game).updateCurrentTurnPlayer();
+					} else {
+						System.out.println("That's not a valid move");
 					}
 				} else {
 					System.out.println("No piece on that position or it isn't yours");
@@ -100,24 +130,5 @@ public class Main {
 	
 	public void createNetworkGame() {
 		game = new NetworkGame();
-	}
-	
-	public static void main(String []args) throws Exception {
-		System.out.println("Nine Men's Morris starting...");
-		Main maingame = new Main();
-		maingame.input = new BufferedReader(new InputStreamReader(System.in));
-		
-		System.out.println("LOCAL or NETWORK?");
-		String userInput = maingame.input.readLine();
-		
-		if(userInput.compareTo("LOCAL") == 0) {
-			maingame.createLocalGame();
-		} else if(userInput.compareTo("NETWORK") == 0) {
-			maingame.createNetworkGame();
-			//maingame.game = new NetworkGame();
-		} else {
-			System.out.println("Command unknown");
-			System.exit(-1);
-		}
 	}
 }
