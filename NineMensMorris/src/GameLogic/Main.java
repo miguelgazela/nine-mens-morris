@@ -4,6 +4,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.lang.management.ManagementFactory;
+import java.net.Inet4Address;
+import java.net.InetAddress;
 
 import javax.management.InstanceAlreadyExistsException;
 
@@ -162,15 +164,41 @@ public class Main {
 	public void createNetworkGame() throws IOException {
 		System.out.println("SERVER or CLIENT?");
 		String userInput = input.readLine();
-		NetworkGame game;
+		NetworkGame game = null;
 		
 		if(userInput.compareTo("SERVER") == 0) {
 			game = new ServerGame();
 		} else if(userInput.compareTo("CLIENT") == 0) {
 			game = new ClientGame();
 		} else {
-			System.out.println("Command unknown");
+			System.out.println("UNKNOWN COMMAND");
 			System.exit(-1);
+		}
+		
+		System.out.println("Player: HUMAN or CPU?");
+		userInput = input.readLine();
+		Player p = null;
+		
+		if(userInput.compareTo("HUMAN") == 0) {
+			p = new HumanPlayer("Miguel",Player.PLAYER_1);
+		} else if(userInput.compareTo("CPU") == 0) {
+			p = new RandomIAPlayer(Player.PLAYER_1);
+		} else {
+			System.out.println("UNKNOWN COMMAND");
+			System.exit(-1);
+		}
+		
+		game.setPlayer(p);
+		
+		if(game instanceof ServerGame) {
+			System.out.println("server game");
+		} else {
+			System.out.println("client game");
+			((ClientGame)game).connectToServer(InetAddress.getLocalHost().getHostAddress());
+		}
+		
+		while(true){
+		
 		}
 	}
 }

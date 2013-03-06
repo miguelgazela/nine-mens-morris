@@ -1,9 +1,7 @@
 package GameLogic;
 
-import GameLogic.NetworkGame.GameOver;
-import GameLogic.NetworkGame.Move;
-import GameLogic.NetworkGame.Place;
-import GameLogic.NetworkGame.Remove;
+import java.io.IOException;
+import java.net.InetAddress;
 
 import com.esotericsoftware.kryonet.Client;
 import com.esotericsoftware.kryonet.Connection;
@@ -34,6 +32,17 @@ public class ClientGame extends NetworkGame {
 
 				}
 			}
+			
+			public void connected(Connection connection) {
+				System.out.println("CLIENT CONNECTED TO SERVER");
+				JoinGame request = new JoinGame();
+				request.nameOfClientPlayer = player.getName();
+				client.sendTCP(request);
+			}
 		});
+	}
+	
+	public void connectToServer(String host) throws IOException {
+		client.connect(5000, host, NetworkGame.TPC_PORT);
 	}
 }

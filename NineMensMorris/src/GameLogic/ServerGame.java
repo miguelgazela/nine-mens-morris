@@ -20,10 +20,11 @@ public class ServerGame extends NetworkGame {
 		server.addListener(new Listener() {
 			public void received(Connection c, Object object) {				
 				if(object instanceof JoinGame) {
-					//ignore if connection is already established
-					if(connectionEstablished) {
+					//ignore if player is already connected
+					if(otherPlayerName != null) {
 						return;
 					}
+					System.out.println("RECEIVED REQUEST TO JOIN GAME FROM "+((JoinGame)object).nameOfClientPlayer);
 				}
 				if(object instanceof Place) {
 					
@@ -41,9 +42,10 @@ public class ServerGame extends NetworkGame {
 			
 			public void disconnected (Connection c) {
 				System.out.println("CLIENT DISCONNECTED");
+				server.stop();
 			}
 		});
-		server.bind(NetworkGame.port);
+		server.bind(NetworkGame.TPC_PORT, NetworkGame.UDP_PORT);
 		server.start();
 	}
 	

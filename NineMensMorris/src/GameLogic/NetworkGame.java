@@ -5,13 +5,18 @@ import com.esotericsoftware.kryonet.EndPoint;
 
 public class NetworkGame extends Game {
 	
-	static protected final int port = 54555;
+	static protected final int TPC_PORT = 54555;
+	static protected final int UDP_PORT = 54777;
+	
 	protected Player player;
-	protected boolean connectionEstablished;
 	protected String otherPlayerName;
 	
 	public NetworkGame() {
-		connectionEstablished = false;
+		otherPlayerName = null;
+	}
+	
+	public void setPlayer(Player p) {
+		player = p;
 	}
 	
 	// this registers objects that are going to be sent over the network
