@@ -159,7 +159,18 @@ public class Main {
 		System.out.println("Num moves: "+numMoves);
 	}
 	
-	public void createNetworkGame() {
-		game = new NetworkGame();
+	public void createNetworkGame() throws IOException {
+		System.out.println("SERVER or CLIENT?");
+		String userInput = input.readLine();
+		NetworkGame game;
+		
+		if(userInput.compareTo("SERVER") == 0) {
+			game = new ServerGame();
+		} else if(userInput.compareTo("CLIENT") == 0) {
+			game = new ClientGame();
+		} else {
+			System.out.println("Command unknown");
+			System.exit(-1);
+		}
 	}
 }
