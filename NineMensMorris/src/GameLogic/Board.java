@@ -4,6 +4,7 @@ public class Board {
 	public Position[] boardPositions;
 	public Position[][] winningPositions;
 	public int numberPiecesPlaced;
+	public int nothingHere;
 	
 	public Board() {
 		boardPositions = new Position[24];
