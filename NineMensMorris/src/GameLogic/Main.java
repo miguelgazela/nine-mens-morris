@@ -12,7 +12,6 @@ import GameLogic.IAPlayer.Move;
 public class Main {
 	public Game game;
 	public BufferedReader input;
-	public int nothing;
 	
 	public static void main(String []args) throws Exception {
 		System.out.println("Nine Men's Morris starting...");
