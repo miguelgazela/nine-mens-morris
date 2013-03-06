@@ -6,7 +6,6 @@ public class Position {
 	public int position;
 	public int playerOccupying;
 	public int[] adjacentPositions;
-	int nothing;
 	
 	public Position(int position) {
 		isOccupied = false;
