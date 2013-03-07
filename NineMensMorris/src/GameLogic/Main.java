@@ -3,12 +3,7 @@ package GameLogic;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.lang.management.ManagementFactory;
-import java.net.Inet4Address;
 import java.net.InetAddress;
-
-import javax.management.InstanceAlreadyExistsException;
-
 import GameLogic.IAPlayer.Move;
 
 public class Main {
@@ -194,11 +189,8 @@ public class Main {
 			System.out.println("server game");
 		} else {
 			System.out.println("client game");
-			((ClientGame)game).connectToServer(InetAddress.getLocalHost().getHostAddress());
-		}
-		
-		while(true){
-		
+			//((ClientGame)game).connectToServer(InetAddress.getLocalHost().getHostAddress());
+			((ClientGame)game).connectToServer("192.168.1.14");
 		}
 	}
 }

@@ -5,6 +5,7 @@ import java.io.IOException;
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
 import com.esotericsoftware.kryonet.Server;
+import com.esotericsoftware.minlog.Log;
 
 public class ServerGame extends NetworkGame {
 	private Server server;
@@ -18,7 +19,8 @@ public class ServerGame extends NetworkGame {
 		};
 		NetworkGame.register(server);
 		server.addListener(new Listener() {
-			public void received(Connection c, Object object) {				
+			public void received(Connection c, Object object) {
+				System.out.println("RECEIVED SOMETHING");
 				if(object instanceof JoinGame) {
 					//ignore if player is already connected
 					if(otherPlayerName != null) {
@@ -42,10 +44,10 @@ public class ServerGame extends NetworkGame {
 			
 			public void disconnected (Connection c) {
 				System.out.println("CLIENT DISCONNECTED");
-				server.stop();
+				//server.stop();
 			}
 		});
-		server.bind(NetworkGame.TPC_PORT, NetworkGame.UDP_PORT);
+		server.bind(NetworkGame.TPC_PORT);
 		server.start();
 	}
 	
