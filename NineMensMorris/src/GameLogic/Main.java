@@ -54,7 +54,7 @@ public class Main {
 		if(userInput.compareTo("HUMAN") == 0) {
 			p2 = new HumanPlayer("Miguel", Player.PLAYER_2);
 		} else if(userInput.compareTo("CPU") == 0) {
-			p2 = new RandomIAPlayer(Player.PLAYER_2);
+			p2 = new MinimaxIAPlayer(Player.PLAYER_2,2);
 		} else {
 			System.out.println("Command unknown");
 			System.exit(-1);
@@ -66,7 +66,7 @@ public class Main {
 				Player p = ((LocalGame)game).getCurrentTurnPlayer();
 				int boardIndex;
 				if(p.isIA()) {
-					boardIndex = ((IAPlayer)p).getIndexToPlacePiece(game.gameBoard);
+					boardIndex = ((MinimaxIAPlayer)p).getIndexToPlacePiece(game.gameBoard);
 					System.out.println(p.getName()+" placed piece on "+boardIndex);
 				} else {
 					game.printGameBoard();
