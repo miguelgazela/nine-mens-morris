@@ -26,6 +26,7 @@ public class ServerGame extends NetworkGame {
 		server.addListener(new Listener() {
 			public void received(Connection c, Object object) {
 				System.out.println("RECEIVED SOMETHING");
+				
 				if(object instanceof JoinGame) {
 					if(otherPlayerName != null) { //ignore if player is already connected
 						return;
@@ -37,15 +38,19 @@ public class ServerGame extends NetworkGame {
 					c.sendTCP(ack);
 					logThisMessage("SERVER SENT ACK TO JOIN GAME");
 				}
+				
 				if(object instanceof Place) {
 					
 				}
+				
 				if(object instanceof Remove) {
 					
 				}
+				
 				if(object instanceof Move) {
 
 				}
+				
 				if(object instanceof GameOver) {
 
 				}

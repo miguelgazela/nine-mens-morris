@@ -11,7 +11,7 @@ public class NetworkGame extends Game {
 	static protected final int UDP_PORT = 54777;
 	
 	protected Player player;
-	protected String otherPlayerName;
+	public String otherPlayerName;
 	protected Calendar calendar;
 	
 	public NetworkGame() {

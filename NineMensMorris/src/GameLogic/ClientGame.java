@@ -21,6 +21,7 @@ public class ClientGame extends NetworkGame {
 		
 		client.addListener(new Listener() {
 			public void received(Connection c, Object object) {
+				
 				if(object instanceof JoinAck) {
 					if(otherPlayerName != null) {
 						return;
@@ -28,15 +29,19 @@ public class ClientGame extends NetworkGame {
 					otherPlayerName = ((JoinAck)object).nameofServerPlayer;
 					logThisMessage("CLIENT RECEIVED ACK TO JOIN GAME");
 				}
+				
 				if(object instanceof Place) {
 
 				}
+				
 				if(object instanceof Remove) {
 
 				}
+				
 				if(object instanceof Move) {
 
 				}
+				
 				if(object instanceof GameOver) {
 
 				}
@@ -47,7 +52,7 @@ public class ClientGame extends NetworkGame {
 				JoinGame request = new JoinGame();
 				request.nameOfClientPlayer = player.getName();
 				client.sendTCP(request);
-				logThisMessage("CLIENT SENT A REQUEST TO JOIN GAME TO SERVER");
+				logThisMessage("CLIENT SENT A REQUEST TO JOIN GAME TO SERVER"); 
 			}
 		});
 	}
