@@ -37,7 +37,7 @@ public class Main {
 		if(userInput.compareTo("HUMAN") == 0) {
 			p1 = new HumanPlayer("Souto",Player.PLAYER_1);
 		} else if(userInput.compareTo("CPU") == 0) {
-			p1 = new RandomIAPlayer(Player.PLAYER_1);
+			p1 = new MinimaxIAPlayer(Player.PLAYER_1,2);
 		} else {
 			System.out.println("Command unknown");
 			System.exit(-1);
@@ -190,7 +190,7 @@ public class Main {
 		} else {
 			System.out.println("client game");
 			//((ClientGame)game).connectToServer(InetAddress.getLocalHost().getHostAddress());
-			((ClientGame)game).connectToServer("192.168.1.14");
+			((ClientGame)game).connectToServer("localhost");
 		}
 	}
 }

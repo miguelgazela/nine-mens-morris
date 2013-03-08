@@ -1,5 +1,7 @@
 package GameLogic;
 
+import java.util.Calendar;
+
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryonet.EndPoint;
 
@@ -10,9 +12,11 @@ public class NetworkGame extends Game {
 	
 	protected Player player;
 	protected String otherPlayerName;
+	protected Calendar calendar;
 	
 	public NetworkGame() {
 		otherPlayerName = null;
+		calendar = Calendar.getInstance();
 	}
 	
 	public void setPlayer(Player p) {
@@ -23,6 +27,7 @@ public class NetworkGame extends Game {
 	static protected void register(EndPoint endPoint) {
 		Kryo kryo = endPoint.getKryo();
 		kryo.register(JoinGame.class);
+		kryo.register(JoinAck.class);
 		kryo.register(Place.class);
 		kryo.register(Remove.class);
 		kryo.register(Move.class);
@@ -42,7 +47,7 @@ public class NetworkGame extends Game {
 	}
 	
 	static protected class Remove {
-		public int playerId, boardIndex;
+		public int playerId, oppPlayerId, boardIndex;
 	}
 	
 	static protected class Move {
@@ -55,6 +60,11 @@ public class NetworkGame extends Game {
 	public boolean removePiece(int index, int playerId) {
 		// TODO Auto-generated method stub
 		return false;
+	}
+	
+	// TODO temporary?
+	public void logThisMessage(String message) {
+		System.out.println("["+calendar.get(Calendar.HOUR_OF_DAY)+':'+calendar.get(Calendar.MINUTE)+':'+calendar.get(Calendar.SECOND)+"] "+message);
 	}
 
 }
