@@ -19,13 +19,13 @@ public class ServerGame extends NetworkGame {
 		super();
 		server = new Server() {
 			protected Connection newConnection() {
-				return new GameConnection();
+				return new GameConnection(player.getPlayerId(),player.getName());
 			}
 		};
 		NetworkGame.register(server);
+		
 		server.addListener(new Listener() {
 			public void received(Connection c, Object object) {
-				System.out.println("RECEIVED SOMETHING");
 				
 				if(object instanceof JoinGame) {
 					if(otherPlayerName != null) { //ignore if player is already connected
@@ -57,7 +57,7 @@ public class ServerGame extends NetworkGame {
 			}
 			
 			public void disconnected (Connection c) {
-				System.out.println("CLIENT DISCONNECTED");
+				logThisMessage("CLIENT DISCONNECTED");
 				server.stop();
 			}
 		});
@@ -69,5 +69,9 @@ public class ServerGame extends NetworkGame {
     static class GameConnection extends Connection {
     	int playerId;
     	String playerName;
+    	public GameConnection(int pId, String pName) {
+    		playerId = pId;
+    		playerName = pName;
+    	}
     }
 }

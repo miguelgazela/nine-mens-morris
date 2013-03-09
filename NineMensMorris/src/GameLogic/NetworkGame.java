@@ -11,7 +11,8 @@ public class NetworkGame extends Game {
 	static protected final int UDP_PORT = 54777;
 	
 	protected Player player;
-	public String otherPlayerName;
+	protected String otherPlayerName;
+	protected boolean myTurn;
 	protected Calendar calendar;
 	
 	public NetworkGame() {
@@ -65,6 +66,11 @@ public class NetworkGame extends Game {
 	// TODO temporary?
 	public void logThisMessage(String message) {
 		System.out.println("["+calendar.get(Calendar.HOUR_OF_DAY)+':'+calendar.get(Calendar.MINUTE)+':'+calendar.get(Calendar.SECOND)+"] "+message);
+	}
+
+	public boolean hasConnection() {
+		
+		return otherPlayerName != null;
 	}
 
 }

@@ -156,7 +156,7 @@ public class Main {
 		System.out.println("Num moves: "+numMoves);
 	}
 	
-	public void createNetworkGame() throws IOException {
+	public void createNetworkGame() throws IOException, InterruptedException {
 		System.out.println("SERVER or CLIENT?");
 		String userInput = input.readLine();
 		NetworkGame game = null;
@@ -184,13 +184,73 @@ public class Main {
 		}
 		
 		game.setPlayer(p);
-		
-		if(game instanceof ServerGame) {
-			System.out.println("server game");
-		} else {
-			System.out.println("client game");
+		int numberTries = 3;			
+	
+		if(game instanceof ClientGame) {
 			//((ClientGame)game).connectToServer(InetAddress.getLocalHost().getHostAddress());
-			((ClientGame)game).connectToServer("localhost");
+			while(true) {
+				try {
+					System.out.println("Trying to connect to server...");
+					((ClientGame)game).connectToServer("localhost");
+					break;
+				} catch (Exception e) {
+					// TODO: handle exception
+					System.out.println("NO SERVER DETECTED");
+					if(--numberTries == 0) {
+						System.exit(-1);
+					}
+					Thread.sleep(10000);
+				}
+			}
+		} else {
+			while(true) {
+				if(game.hasConnection()) {
+					break;
+				}
+				System.out.println("WAITING FOR CLIENT");
+				Thread.sleep(10000);
+			}
 		}
+		
+		while(game.getGamePhase() == Game.PLACING_PHASE) {
+			while(true) {
+				Player p = ((LocalGame)game).getCurrentTurnPlayer();
+				int boardIndex;
+				if(p.isIA()) {
+					boardIndex = ((MinimaxIAPlayer)p).getIndexToPlacePiece(game.gameBoard);
+					System.out.println(p.getName()+" placed piece on "+boardIndex);
+				} else {
+					game.printGameBoard();
+					System.out.println(((LocalGame)game).getCurrentTurnPlayer().getName()+" place piece on: ");
+					userInput = input.readLine();
+					boardIndex = Integer.parseInt(userInput);
+				}
+				if(game.setPiece(boardIndex, p.getPlayerId())) {
+					if(game.madeAMill(boardIndex, p.getPlayerId())) {
+						int otherPlayerId = (p.getPlayerId() == Player.PLAYER_1) ? Player.PLAYER_2 : Player.PLAYER_1;
+						while(true) {
+							if(p.isIA()){
+								boardIndex = ((IAPlayer)p).getIndexToRemovePieceOfOpponent(game.gameBoard);
+								System.out.println(p.getName()+" removes opponent piece on "+boardIndex);
+							} else {
+								System.out.println("You made a mill. You can remove a piece of your oponent: ");
+								userInput = input.readLine();
+								boardIndex = Integer.parseInt(userInput);
+							}
+							if(game.removePiece(boardIndex, otherPlayerId)) {
+								break;
+							} else {
+								System.out.println("You can't remove a piece from there. Try again");
+							}
+						}
+					}
+					((LocalGame)game).updateCurrentTurnPlayer();
+					break;
+				} else {
+					System.out.println("You can't place a piece there. Try again");
+				}
+			}
+		}
+		
 	}
 }
