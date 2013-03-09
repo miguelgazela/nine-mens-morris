@@ -44,9 +44,9 @@ public abstract class Game {
 		setPositionAsPlayer(dest, playerId);
 	}
 	
-	public boolean setPiece(int index, int playerId) {
-		if(positionIsAvailable(index)) {
-			setPositionAsPlayer(index, playerId);
+	public boolean setPiece(int boardIndex, int playerId) {
+		if(positionIsAvailable(boardIndex)) {
+			setPositionAsPlayer(boardIndex, playerId);
 			if(++gameBoard.numberPiecesPlaced == 18) {
 				gamePhase = Game.MOVING_PHASE;
 			}
@@ -71,6 +71,7 @@ public abstract class Game {
 	}
 	
 	public abstract boolean removePiece(int index, int playerId);
+	public abstract void checkGameIsOver();
 	
 	private int numPiecesFromPlayerInRow(Position[] pos, int playerId) {
 		int counter = 0;

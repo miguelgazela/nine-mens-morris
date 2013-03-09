@@ -15,12 +15,13 @@ public class Main {
 		Main maingame = new Main();
 		maingame.input = new BufferedReader(new InputStreamReader(System.in));
 		
-		System.out.println("LOCAL or NETWORK?");
+		System.out.println("(L)OCAL or (N)ETWORK?");
 		String userInput = maingame.input.readLine();
+		userInput = userInput.toUpperCase();
 		
-		if(userInput.compareTo("LOCAL") == 0) {
+		if(userInput.compareTo("LOCAL") == 0 || userInput.compareTo("L") == 0) {
 			maingame.createLocalGame();
-		} else if(userInput.compareTo("NETWORK") == 0) {
+		} else if(userInput.compareTo("NETWORK") == 0 || userInput.compareTo("N") == 0) {
 			maingame.createNetworkGame();
 		} else {
 			System.out.println("UNKNOWN COMMAND");
@@ -30,13 +31,14 @@ public class Main {
 	
 	public void createLocalGame() throws IOException {
 		game = new LocalGame();
-		System.out.println("Player 1: HUMAN or CPU?");
+		System.out.println("Player 1: (H)UMAN or (C)PU?");
 		String userInput = input.readLine();
+		userInput = userInput.toUpperCase();
 		Player p1 = null, p2 = null;
 		
-		if(userInput.compareTo("HUMAN") == 0) {
+		if(userInput.compareTo("HUMAN") == 0 || userInput.compareTo("H") == 0) {
 			p1 = new HumanPlayer("Souto",Player.PLAYER_1);
-		} else if(userInput.compareTo("CPU") == 0) {
+		} else if(userInput.compareTo("CPU") == 0 || userInput.compareTo("C") == 0) {
 			p1 = new MinimaxIAPlayer(Player.PLAYER_1,2);
 		} else {
 			System.out.println("Command unknown");
@@ -45,10 +47,11 @@ public class Main {
 		
 		System.out.println("Player 2: HUMAN or CPU?");
 		userInput = input.readLine();
+		userInput = userInput.toUpperCase();
 		
-		if(userInput.compareTo("HUMAN") == 0) {
+		if(userInput.compareTo("HUMAN") == 0 || userInput.compareTo("H") == 0) {
 			p2 = new HumanPlayer("Miguel", Player.PLAYER_2);
-		} else if(userInput.compareTo("CPU") == 0) {
+		} else if(userInput.compareTo("CPU") == 0 || userInput.compareTo("C") == 0) {
 			p2 = new MinimaxIAPlayer(Player.PLAYER_2,2);
 		} else {
 			System.out.println("Command unknown");
@@ -65,8 +68,9 @@ public class Main {
 					System.out.println(p.getName()+" placed piece on "+boardIndex);
 				} else {
 					game.printGameBoard();
-					System.out.println(((LocalGame)game).getCurrentTurnPlayer().getName()+" place piece on: ");
+					System.out.println(p.getName()+" place piece on: ");
 					userInput = input.readLine();
+					userInput = userInput.toUpperCase();
 					boardIndex = Integer.parseInt(userInput);
 				}
 				if(game.setPiece(boardIndex, p.getPlayerId())) {
@@ -79,6 +83,7 @@ public class Main {
 							} else {
 								System.out.println("You made a mill. You can remove a piece of your oponent: ");
 								userInput = input.readLine();
+								userInput = userInput.toUpperCase();
 								boardIndex = Integer.parseInt(userInput);
 							}
 							if(game.removePiece(boardIndex, otherPlayerId)) {
@@ -111,6 +116,7 @@ public class Main {
 					game.printGameBoard();
 					System.out.println(p.getName()+" it's your turn. Input PIECE_POS:PIECE_DEST");
 					userInput = input.readLine();
+					userInput = userInput.toUpperCase();
 					String[] positions = userInput.split(":");
 					initialIndex = Integer.parseInt(positions[0]);
 					finalIndex = Integer.parseInt(positions[1]);
@@ -130,6 +136,7 @@ public class Main {
 								} else {
 									System.out.println("You made a mill! You can remove a piece of your oponent: ");
 									userInput = input.readLine();
+									userInput = userInput.toUpperCase();
 									boardIndex = Integer.parseInt(userInput);
 								}
 								if(game.removePiece(boardIndex, otherPlayerId)) {
@@ -139,7 +146,7 @@ public class Main {
 								}
 							}
 						}
-						((LocalGame)game).checkGameIsOver();
+						game.checkGameIsOver();
 						if(game.gameIsOver()) {
 							game.printGameBoard();
 							break;
@@ -157,27 +164,37 @@ public class Main {
 	}
 	
 	public void createNetworkGame() throws IOException, InterruptedException {
-		System.out.println("SERVER or CLIENT?");
+		System.out.println("(S)ERVER or (C)LIENT?");
 		String userInput = input.readLine();
+		userInput = userInput.toUpperCase();
 		NetworkGame game = null;
 		
-		if(userInput.compareTo("SERVER") == 0) {
+		if(userInput.compareTo("SERVER") == 0 || userInput.compareTo("S") == 0) {
 			game = new ServerGame();
-		} else if(userInput.compareTo("CLIENT") == 0) {
+		} else if(userInput.compareTo("CLIENT") == 0 || userInput.compareTo("C") == 0) {
 			game = new ClientGame();
 		} else {
 			System.out.println("UNKNOWN COMMAND");
 			System.exit(-1);
 		}
 		
-		System.out.println("Player: HUMAN or CPU?");
+		System.out.println("Player: (H)UMAN or (C)PU?");
 		userInput = input.readLine();
+		userInput = userInput.toUpperCase();
 		Player p = null;
 		
-		if(userInput.compareTo("HUMAN") == 0) {
-			p = new HumanPlayer("Miguel",Player.PLAYER_1);
-		} else if(userInput.compareTo("CPU") == 0) {
-			p = new RandomIAPlayer(Player.PLAYER_1);
+		if(userInput.compareTo("HUMAN") == 0 || userInput.compareTo("H") == 0) {
+			if(game instanceof ServerGame) {
+				p = new HumanPlayer("Miguel",Player.PLAYER_1);
+			} else {
+				p = new HumanPlayer("Aida",Player.PLAYER_2);
+			}
+		} else if(userInput.compareTo("CPU") == 0 || userInput.compareTo("C") == 0) {
+			if(game instanceof ServerGame) {
+				p = new MinimaxIAPlayer(Player.PLAYER_1, 2);
+			} else {
+				p = new MinimaxIAPlayer(Player.PLAYER_2, 2);
+			}
 		} else {
 			System.out.println("UNKNOWN COMMAND");
 			System.exit(-1);
@@ -212,43 +229,56 @@ public class Main {
 			}
 		}
 		
+		// TODO it can't be always the server player the first one, change that!
+		if(game instanceof ServerGame) {
+			game.setTurn(true);
+		}
+		
 		while(game.getGamePhase() == Game.PLACING_PHASE) {
 			while(true) {
-				Player p = ((LocalGame)game).getCurrentTurnPlayer();
-				int boardIndex;
-				if(p.isIA()) {
-					boardIndex = ((MinimaxIAPlayer)p).getIndexToPlacePiece(game.gameBoard);
-					System.out.println(p.getName()+" placed piece on "+boardIndex);
-				} else {
-					game.printGameBoard();
-					System.out.println(((LocalGame)game).getCurrentTurnPlayer().getName()+" place piece on: ");
-					userInput = input.readLine();
-					boardIndex = Integer.parseInt(userInput);
-				}
-				if(game.setPiece(boardIndex, p.getPlayerId())) {
-					if(game.madeAMill(boardIndex, p.getPlayerId())) {
-						int otherPlayerId = (p.getPlayerId() == Player.PLAYER_1) ? Player.PLAYER_2 : Player.PLAYER_1;
-						while(true) {
-							if(p.isIA()){
-								boardIndex = ((IAPlayer)p).getIndexToRemovePieceOfOpponent(game.gameBoard);
-								System.out.println(p.getName()+" removes opponent piece on "+boardIndex);
-							} else {
-								System.out.println("You made a mill. You can remove a piece of your oponent: ");
-								userInput = input.readLine();
-								boardIndex = Integer.parseInt(userInput);
-							}
-							if(game.removePiece(boardIndex, otherPlayerId)) {
-								break;
-							} else {
-								System.out.println("You can't remove a piece from there. Try again");
+				if(game.isThisPlayerTurn()) {
+					Player player = game.getPlayer();
+					int boardIndex;
+					if(p.isIA()) {
+						boardIndex = ((MinimaxIAPlayer)player).getIndexToPlacePiece(game.gameBoard);
+						System.out.println(player.getName()+" placed piece on "+boardIndex);
+					} else {
+						game.printGameBoard();
+						System.out.println(player.getName()+" place piece on: ");
+						userInput = input.readLine();
+						userInput = userInput.toUpperCase();
+						boardIndex = Integer.parseInt(userInput);
+					}
+					
+					if(game.setPiece(boardIndex)) {
+						if(game.madeAMill(boardIndex, player.getPlayerId())) {
+							int otherPlayerId = (player.getPlayerId() == Player.PLAYER_1) ? Player.PLAYER_2 : Player.PLAYER_1;
+							while(true) {
+								if(player.isIA()){
+									boardIndex = ((IAPlayer)player).getIndexToRemovePieceOfOpponent(game.gameBoard);
+									System.out.println(player.getName()+" removes opponent piece on "+boardIndex);
+								} else {
+									System.out.println("You made a mill. You can remove a piece of your oponent: ");
+									userInput = input.readLine();
+									userInput = userInput.toUpperCase();
+									boardIndex = Integer.parseInt(userInput);
+								}
+								if(game.removePiece(boardIndex)) {
+									break;
+								} else {
+									System.out.println("You can't remove a piece from there. Try again");
+								}
 							}
 						}
+						game.checkGameIsOver();
+						if(game.gameIsOver()) {
+							game.printGameBoard();
+							break;
+						}
+						game.setTurn(false);
 					}
-					((LocalGame)game).updateCurrentTurnPlayer();
-					break;
-				} else {
-					System.out.println("You can't place a piece there. Try again");
 				}
+				Thread.sleep(1000);
 			}
 		}
 		

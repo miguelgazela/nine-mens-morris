@@ -7,6 +7,9 @@ import java.io.IOException;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 
+import GameLogic.NetworkGame.Place;
+import GameLogic.NetworkGame.Remove;
+
 import com.esotericsoftware.kryonet.Client;
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
@@ -31,7 +34,10 @@ public class ClientGame extends NetworkGame {
 				}
 				
 				if(object instanceof Place) {
-
+					// TODO has to validate move
+					Place place = (Place)object;
+					setPiece(place.boardIndex, place.playerId);
+					setTurn(true);
 				}
 				
 				if(object instanceof Remove) {
@@ -72,5 +78,29 @@ public class ClientGame extends NetworkGame {
         frame.setSize(220, 60);
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);
+	}
+
+	@Override
+	public boolean setPiece(int boardIndex) {
+		if(setPiece(boardIndex, player.getPlayerId())) {
+			Place place = new Place();
+			place.boardIndex = boardIndex;
+			place.playerId = player.getPlayerId();
+			client.sendTCP(place);
+			return true;
+		}
+		return false;
+	}
+
+	@Override
+	public boolean removePiece(int boardIndex) {
+		if(removePiece(boardIndex, Player.PLAYER_2)) {
+			Remove remove = new Remove();
+			remove.boardIndex = boardIndex;
+			remove.playerId = player.getPlayerId();
+			client.sendTCP(remove);
+			return true;
+		}
+		return false;
 	}
 }
