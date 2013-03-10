@@ -45,7 +45,7 @@ public class Main {
 			System.exit(-1);
 		}
 		
-		System.out.println("Player 2: HUMAN or CPU?");
+		System.out.println("Player 2: (H)UMAN or (C)PU?");
 		userInput = input.readLine();
 		userInput = userInput.toUpperCase();
 		
@@ -78,7 +78,7 @@ public class Main {
 						int otherPlayerId = (p.getPlayerId() == Player.PLAYER_1) ? Player.PLAYER_2 : Player.PLAYER_1;
 						while(true) {
 							if(p.isIA()){
-								boardIndex = ((IAPlayer)p).getIndexToRemovePieceOfOpponent(game.gameBoard);
+								boardIndex = ((MinimaxIAPlayer)p).getIndexToRemovePieceOfOpponent(game.gameBoard);
 								System.out.println(p.getName()+" removes opponent piece on "+boardIndex);
 							} else {
 								System.out.println("You made a mill. You can remove a piece of your oponent: ");
