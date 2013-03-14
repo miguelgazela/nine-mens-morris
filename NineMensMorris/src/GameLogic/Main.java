@@ -278,7 +278,7 @@ public class Main {
 						game.setTurn(false);
 					}
 				}
-				Thread.sleep(1000);
+				Thread.sleep(100);
 			}
 		}
 		

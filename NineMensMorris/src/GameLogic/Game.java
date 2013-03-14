@@ -70,9 +70,6 @@ public abstract class Game {
 		return maxPiecesInRow == 3;
 	}
 	
-	public abstract boolean removePiece(int index, int playerId);
-	public abstract void checkGameIsOver();
-	
 	private int numPiecesFromPlayerInRow(Position[] pos, int playerId) {
 		int counter = 0;
 		for(int i = 0; i < pos.length; i++) {
@@ -83,7 +80,7 @@ public abstract class Game {
 		return counter;
 	}
 	
-	public void printGameBoard() { // TODO this won't be used with a GUI
+	public void printGameBoard() {
 		gameBoard.printBoard();
 	}
 
@@ -100,4 +97,7 @@ public abstract class Game {
 		}
 		return false;
 	}
+	
+	public abstract boolean removePiece(int index, int playerId);
+	public abstract void checkGameIsOver();
 }
