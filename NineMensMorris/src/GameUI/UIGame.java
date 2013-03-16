@@ -16,5 +16,10 @@ public class UIGame extends JFrame {
 		uiGamePanel = new UIGamePanel(this);
 		uiGamePanel.addMouseMotionListener(uiGamePanel);
 		uiGamePanel.addMouseListener(uiGamePanel);
+		getContentPane().add(uiGamePanel);
+		pack();
+		setLocationRelativeTo(null);
+		setResizable(false);
+		setVisible(true);
 	}
 }

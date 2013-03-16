@@ -7,6 +7,7 @@ import java.net.InetAddress;
 import GameLogic.IAPlayer.Move;
 import GameLogic.MinimaxIAPlayer.InvalidDepth;
 import GameLogic.Player.InvalidPlayerId;
+import GameUI.UIGame;
 
 public class Main {
 	public Game game;
@@ -14,6 +15,8 @@ public class Main {
 	
 	public static void main(String []args) throws Exception {
 		System.out.println("Nine Men's Morris starting...");
+		
+		//new UIGame();
 		Main maingame = new Main();
 		maingame.input = new BufferedReader(new InputStreamReader(System.in));
 		
