@@ -11,15 +11,18 @@ public abstract class Player {
 	protected boolean canFly;
 	
 	protected Player() {
-		//System.out.println("Player constructor");
 		score = 0;
 		numPieces = 9;
 		canFly = false;
 	}
 	
-	protected Player(int playerId) {
+	protected Player(int playerId) throws InvalidPlayerId {
 		this();
-		this.playerId = playerId;
+		if(playerId < PLAYER_1 || playerId > PLAYER_2) {
+			throw new InvalidPlayerId();
+		} else {
+			this.playerId = playerId;
+		}
 	}
 	
 	public String getName() {
@@ -46,4 +49,7 @@ public abstract class Player {
 	}
 	
 	public abstract boolean isIA();
+	
+	// Exceptions
+	public class InvalidPlayerId extends Exception {}
 }

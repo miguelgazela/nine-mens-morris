@@ -1,24 +1,18 @@
 package GameLogic;
 
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
 import java.io.IOException;
-import java.util.Calendar;
-
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-
-import GameLogic.NetworkGame.Place;
-
+import java.util.Random;
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
 import com.esotericsoftware.kryonet.Server;
 
 public class ServerGame extends NetworkGame {
 	private Server server;
+	private Random random;
 	
 	public ServerGame() throws IOException {
 		super();
+		random = new Random();
 		server = new Server() {
 			protected Connection newConnection() {
 				return new GameConnection(player.getPlayerId(),player.getName());
@@ -28,43 +22,67 @@ public class ServerGame extends NetworkGame {
 		
 		server.addListener(new Listener() {
 			public void received(Connection c, Object object) {
+				
 				if(object instanceof JoinGame) {
-					if(otherPlayerName != null) { //ignore if player is already connected
+					if(connectionEstablished) { //ignore if player is already connected
 						return;
 					}
-					otherPlayerName = ((JoinGame)object).nameOfClientPlayer; 
-					logThisMessage("SERVER RECEIVED REQUEST TO JOIN GAME FROM "+((JoinGame)object).nameOfClientPlayer);
+					otherSidePlayerName = ((JoinGame)object).nameOfClientPlayer;
+					connectionEstablished = true;
+					logThisMessage("SERVER RECEIVED REQUEST TO JOIN GAME FROM "+((JoinGame)object).nameOfClientPlayer+ " "+c.getRemoteAddressTCP());
+					
+					// determine who makes the first move and send ack
+					int firstPlayerId = random.nextInt(2) + 1;
 					JoinAck ack = new JoinAck();
 					ack.nameofServerPlayer = player.getName();
+					ack.clientPlayerGoesFirst = (firstPlayerId == Player.PLAYER_1) ? false : true;
 					c.sendTCP(ack);
+					setTurn(!ack.clientPlayerGoesFirst);
+					logThisMessage("Server goes first: "+isThisPlayerTurn);
 					logThisMessage("SERVER SENT ACK TO JOIN GAME");
 				}
 				
 				if(object instanceof Place) {
-					// TODO has to validate move
 					Place place = (Place)object;
-					setPiece(place.boardIndex, place.playerId);
-					setTurn(true);
+					if(setPiece(place.boardIndex, place.playerId)) {
+						if(!madeAMill(place.boardIndex, place.playerId)) {
+							setTurn(true);
+						}
+					} else {
+						logThisMessage("INVALID PLACE FROM THE CLIENT");
+						System.exit(-1); // TODO what to do in this situation? I think it indicates a problem of synchronization
+					}
 				}
 				
 				if(object instanceof Remove) {
-					// todo has to validate remove
 					Remove remove = (Remove)object;
-					removePiece(remove.boardIndex, player.getPlayerId());
+					if(removePiece(remove.boardIndex, player.getPlayerId())) {
+						setTurn(true);
+					} else {
+						logThisMessage("INVALID REMOVE FROM THE CLIENT");
+						System.exit(-1); // TODO what to do in this situation? I think it indicates a problem of synchronization
+					}
+					
 				}
 				
 				if(object instanceof Move) {
-
+					Move move = (Move)object;
+					movePieceFromTo(move.srcIndex, move.destIndex, move.playerId);
+					if(!madeAMill(move.destIndex, move.playerId)) {
+						setTurn(true);
+					}
 				}
 				
 				if(object instanceof GameOver) {
-
+					logThisMessage("You've won! Congrats.");
+					System.exit(-1); // TODO what to do here?
 				}
 			}
 			
 			public void disconnected (Connection c) {
 				logThisMessage("CLIENT DISCONNECTED");
 				server.stop();
+				System.exit(-1);
 			}
 		});
 		server.bind(NetworkGame.TPC_PORT);
@@ -103,5 +121,21 @@ public class ServerGame extends NetworkGame {
 			return true;
 		}
 		return false;
+	}
+
+	@Override
+	public void sendGameOver() {
+		GameOver gameOver = new GameOver();
+		server.sendToAllTCP(gameOver);
+	}
+
+	@Override
+	public void movePieceFromTo(int src, int dest) {
+		movePieceFromTo(src, dest, player.getPlayerId());
+		Move move = new Move();
+		move.srcIndex = src;
+		move.destIndex = dest;
+		move.playerId = player.getPlayerId();
+		server.sendToAllTCP(move);
 	}
 }

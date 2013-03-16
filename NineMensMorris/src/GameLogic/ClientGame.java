@@ -1,15 +1,6 @@
 package GameLogic;
 
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
 import java.io.IOException;
-
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-
-import GameLogic.NetworkGame.Place;
-import GameLogic.NetworkGame.Remove;
-
 import com.esotericsoftware.kryonet.Client;
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
@@ -26,30 +17,45 @@ public class ClientGame extends NetworkGame {
 			public void received(Connection c, Object object) {
 				
 				if(object instanceof JoinAck) {
-					if(otherPlayerName != null) {
+					if(connectionEstablished) { //ignore if player is already connected to a game
 						return;
 					}
-					otherPlayerName = ((JoinAck)object).nameofServerPlayer;
+					otherSidePlayerName = ((JoinAck)object).nameofServerPlayer;
+					connectionEstablished = true;
+					setTurn(((JoinAck)object).clientPlayerGoesFirst);
 					logThisMessage("CLIENT RECEIVED ACK TO JOIN GAME");
 				}
 				
 				if(object instanceof Place) {
-					// TODO has to validate move
 					Place place = (Place)object;
-					setPiece(place.boardIndex, place.playerId);
-					setTurn(true);
+					if(setPiece(place.boardIndex, place.playerId)) {
+						if(!madeAMill(place.boardIndex, place.playerId)) {
+							setTurn(true);
+						}
+					} else {
+						logThisMessage("INVALID PLACE FROM THE SERVER");
+						System.exit(-1); // TODO what to do in this situation? I think it indicates a problem of synchronization
+					}
 				}
 				
 				if(object instanceof Remove) {
-
+					Remove remove = (Remove)object;
+					if(removePiece(remove.boardIndex, player.getPlayerId())) {
+						setTurn(true);
+					} else {
+						logThisMessage("INVALID REMOVE FROM THE SERVER");
+						System.exit(-1); // TODO what to do in this situation? I think it indicates a problem of synchronization
+					}
 				}
-				
-				if(object instanceof Move) {
 
+				if(object instanceof Move) {
+					Move move = (Move)object;
+					movePieceFromTo(move.srcIndex, move.destIndex, move.playerId);
 				}
 				
 				if(object instanceof GameOver) {
-
+					logThisMessage("You've won! Congrats.");
+					System.exit(-1); // TODO what to do here?
 				}
 			}
 			
@@ -65,19 +71,6 @@ public class ClientGame extends NetworkGame {
 	
 	public void connectToServer(String host) throws IOException {
 		client.connect(5000, host, NetworkGame.TPC_PORT);
-		
-		// Open a window to prevent the client from stopping immediately.
-        JFrame frame = new JFrame("Client");
-        frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        frame.addWindowListener(new WindowAdapter() {
-                public void windowClosed (WindowEvent evt) {
-                        client.stop();
-                }
-        });
-        frame.getContentPane().add(new JLabel("Close to stop the client."));
-        frame.setSize(220, 60);
-        frame.setLocationRelativeTo(null);
-        frame.setVisible(true);
 	}
 
 	@Override
@@ -94,7 +87,7 @@ public class ClientGame extends NetworkGame {
 
 	@Override
 	public boolean removePiece(int boardIndex) {
-		if(removePiece(boardIndex, Player.PLAYER_2)) {
+		if(removePiece(boardIndex, Player.PLAYER_1)) {
 			Remove remove = new Remove();
 			remove.boardIndex = boardIndex;
 			remove.playerId = player.getPlayerId();
@@ -102,5 +95,21 @@ public class ClientGame extends NetworkGame {
 			return true;
 		}
 		return false;
+	}
+	
+	@Override
+	public void sendGameOver() {
+		GameOver gameOver = new GameOver();
+		client.sendTCP(gameOver);
+	}
+	
+	@Override
+	public void movePieceFromTo(int src, int dest) {
+		movePieceFromTo(src, dest, player.getPlayerId());
+		Move move = new Move();
+		move.srcIndex = src;
+		move.destIndex = dest;
+		move.playerId = player.getPlayerId();
+		client.sendTCP(move);
 	}
 }

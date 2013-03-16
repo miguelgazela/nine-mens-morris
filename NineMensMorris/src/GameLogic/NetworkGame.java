@@ -4,6 +4,7 @@ import java.util.Calendar;
 
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryonet.EndPoint;
+import com.esotericsoftware.minlog.Log.Logger;
 
 public abstract class NetworkGame extends Game {
 	
@@ -11,12 +12,15 @@ public abstract class NetworkGame extends Game {
 	static protected final int UDP_PORT = 54777;
 	
 	protected Player player;
-	protected String otherPlayerName;
+	protected String otherSidePlayerName;
 	protected boolean isThisPlayerTurn;
 	protected Calendar calendar;
+	protected boolean connectionEstablished;
 	
 	public NetworkGame() {
-		otherPlayerName = null;
+		otherSidePlayerName = null;
+		connectionEstablished = false;
+		isThisPlayerTurn = false;
 		calendar = Calendar.getInstance();
 	}
 	
@@ -57,12 +61,14 @@ public abstract class NetworkGame extends Game {
 		System.out.println("["+calendar.get(Calendar.HOUR_OF_DAY)+':'+calendar.get(Calendar.MINUTE)+':'+calendar.get(Calendar.SECOND)+"] "+message);
 	}
 
-	public boolean hasConnection() {
-		return otherPlayerName != null;
+	public boolean hasConnectionEstablished() {
+		return connectionEstablished;
 	}
 	
+	public abstract void sendGameOver();
 	public abstract boolean setPiece(int boardIndex);
 	public abstract boolean removePiece(int boardIndex);
+	public abstract void movePieceFromTo(int src, int dest);
 	
 	// this registers objects that are going to be sent over the network
 	static protected void register(EndPoint endPoint) {
@@ -81,10 +87,15 @@ public abstract class NetworkGame extends Game {
 	
 	static protected class JoinAck {
 		public String nameofServerPlayer;
+		public boolean clientPlayerGoesFirst;
 	}
 
 	static protected class Place {
 		public int playerId, boardIndex;
+	}
+	
+	static protected class ActionAck {
+		public boolean validAction; // TODO for places, removes and moves? 
 	}
 	
 	static protected class Remove {

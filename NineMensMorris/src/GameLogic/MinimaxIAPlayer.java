@@ -7,8 +7,12 @@ public class MinimaxIAPlayer extends IAPlayer {
 	private int depth;
 	private int oppPlayer;
 	private int pieceToRemove;
-	public MinimaxIAPlayer(int playerId,int depth) {
+
+	public MinimaxIAPlayer(int playerId,int depth) throws InvalidPlayerId, InvalidDepth {
 		super(playerId);
+		if(depth < 1) {
+			throw new InvalidDepth();
+		}
 		this.depth = depth;
 		oppPlayer = (playerId == PLAYER_1) ? PLAYER_2 : PLAYER_1;
 		pieceToRemove = -1;
@@ -70,43 +74,38 @@ public class MinimaxIAPlayer extends IAPlayer {
 		//  return nextMoves;   // return empty list
 		// }
 
-		
-		for(int i = 0; i < gameBoard.boardPositions.length; i++) // Search for empty cells and add to the List
-		{
-			int move[]= {-1,-1};
-			
-			if(!gameBoard.boardPositions[i].isOccupied)   
-				{
+
+		for(int i = 0; i < gameBoard.boardPositions.length; i++) { // Search for empty cells and add to the List
+			int move[] = {-1,-1};
+			if(!gameBoard.boardPositions[i].isOccupied)	{
 				gameBoard.boardPositions[i].playerOccupying = playerId;
 				move[0] = i;
-				
+
 				for(int k = 0; k < gameBoard.winningPositions.length; k++) { //check if piece made a mill
 					int playerPieces = 0; 
 					boolean selectedPiece = false;
 					for(int j = 0; j < gameBoard.winningPositions[k].length; j++) {
-						
-						if(gameBoard.winningPositions[k][j].playerOccupying == playerId) 
+						if(gameBoard.winningPositions[k][j].playerOccupying == playerId) {
 							playerPieces++;
-						if(gameBoard.winningPositions[k][j].position == move[0])
+						}
+						if(gameBoard.winningPositions[k][j].position == move[0]) {
 							selectedPiece = true;
+						}
 					}
-					if(playerPieces==3 && selectedPiece) //made a mill - select piece to remove
-					{
-						for(int l = 0; l < gameBoard.boardPositions.length; l++)
-							if(gameBoard.boardPositions[l].playerOccupying!=playerId && gameBoard.boardPositions[l].playerOccupying!=-1)
-								{
-									move[1] = l;
-									nextMoves.add(move);
-								}
-					}
-					else{
+					if(playerPieces==3 && selectedPiece) { //made a mill - select piece to remove
+						for(int l = 0; l < gameBoard.boardPositions.length; l++) {
+							if(gameBoard.boardPositions[l].playerOccupying != playerId && gameBoard.boardPositions[l].playerOccupying != -1) {
+								move[1] = l;
+								nextMoves.add(move);
+							}
+						}
+					} else {
 						nextMoves.add(move);
 					}
-					
 					selectedPiece = false;					
 				}
-				gameBoard.boardPositions[i].playerOccupying = -1;
-				}
+				gameBoard.boardPositions[i].playerOccupying = Position.NO_PLAYER;
+			}
 		}
 		return nextMoves;
 	}
@@ -114,11 +113,8 @@ public class MinimaxIAPlayer extends IAPlayer {
 	private int[] minimax(int player, int depth,Board gameBoard) {
 		List<int[]> nextMoves = generateMoves(gameBoard,player); // Generate possible next moves in a List of Positions.
 		int bestScore = (player == playerId) ? Integer.MIN_VALUE : Integer.MAX_VALUE;
-		int currentScore = 0;
-		int bestPos = -1;
-		
-		int removedPlayer = 0, removePos = -1;
-		
+		int currentScore = 0, bestPos = -1, removedPlayer = 0, removePos = -1;
+
 		if (nextMoves.isEmpty() || depth == 0) { // Gameover or depth reached, evaluate score
 			bestScore = evaluate(gameBoard);
 		} else {
@@ -126,13 +122,13 @@ public class MinimaxIAPlayer extends IAPlayer {
 				// Try this move for the current player
 				gameBoard.boardPositions[pos[0]].playerOccupying = player;
 				gameBoard.boardPositions[pos[0]].isOccupied = true;
-				
-				if(pos[1]!=-1) {
+
+				if(pos[1] != -1) {
 					removedPlayer = gameBoard.boardPositions[pos[1]].playerOccupying;
 					gameBoard.boardPositions[pos[1]].playerOccupying = -1;
 					gameBoard.boardPositions[pos[1]].isOccupied = false;
 				}
-					
+
 				if (player == playerId) {  // maximizing player
 					currentScore = minimax(oppPlayer,depth - 1,gameBoard)[0];
 					if (currentScore > bestScore) {
@@ -148,18 +144,20 @@ public class MinimaxIAPlayer extends IAPlayer {
 						removePos = pos[1];
 					}
 				}
-				
+
 				// Undo move
 				gameBoard.boardPositions[pos[0]].isOccupied = false;
 				gameBoard.boardPositions[pos[0]].playerOccupying = Position.NO_PLAYER;
-				if(pos[1]!=-1)
+				if(pos[1] != -1)
 				{
 					gameBoard.boardPositions[pos[1]].isOccupied = true;
 					gameBoard.boardPositions[pos[1]].playerOccupying = removedPlayer;
 				}
-					
 			}
 		}
 		return new int[] {bestScore, bestPos,removePos};
 	}
+
+	// Exceptions
+	public class InvalidDepth extends Exception {}
 }

@@ -2,7 +2,7 @@ package GameLogic;
 
 public class RandomIAPlayer extends IAPlayer {
 
-	public RandomIAPlayer(int playerId) {
+	public RandomIAPlayer(int playerId) throws InvalidPlayerId {
 		super(playerId);
 	}
 

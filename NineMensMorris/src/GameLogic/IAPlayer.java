@@ -27,7 +27,7 @@ public abstract class IAPlayer extends Player {
 		}
 	}
 	
-	public IAPlayer(int playerId) {
+	public IAPlayer(int playerId) throws InvalidPlayerId {
 		super(playerId);
 		setName();
 	}
