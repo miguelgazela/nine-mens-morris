@@ -23,6 +23,7 @@ public class ClientGame extends NetworkGame {
 					otherSidePlayerName = ((JoinAck)object).nameofServerPlayer;
 					connectionEstablished = true;
 					setTurn(((JoinAck)object).clientPlayerGoesFirst);
+					IdPlayerWhoGoesFirst = isThisPlayerTurn ? player.getPlayerId() : Player.PLAYER_2;
 					logThisMessage("CLIENT RECEIVED ACK TO JOIN GAME");
 				}
 				

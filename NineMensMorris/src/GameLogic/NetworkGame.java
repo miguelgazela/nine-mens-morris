@@ -16,11 +16,13 @@ public abstract class NetworkGame extends Game {
 	protected boolean isThisPlayerTurn;
 	protected Calendar calendar;
 	protected boolean connectionEstablished;
+	protected int IdPlayerWhoGoesFirst;
 	
 	public NetworkGame() {
 		otherSidePlayerName = null;
 		connectionEstablished = false;
 		isThisPlayerTurn = false;
+		IdPlayerWhoGoesFirst = -1;
 		calendar = Calendar.getInstance();
 	}
 	
@@ -34,6 +36,10 @@ public abstract class NetworkGame extends Game {
 	
 	public boolean isThisPlayerTurn() {
 		return isThisPlayerTurn;
+	}
+	
+	public boolean playedFirst() {
+		return player.getPlayerId() == IdPlayerWhoGoesFirst;
 	}
 	
 	public Player getPlayer() {

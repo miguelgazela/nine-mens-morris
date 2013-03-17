@@ -31,11 +31,14 @@ public class ServerGame extends NetworkGame {
 					connectionEstablished = true;
 					logThisMessage("SERVER RECEIVED REQUEST TO JOIN GAME FROM "+((JoinGame)object).nameOfClientPlayer+ " "+c.getRemoteAddressTCP());
 					
-					// determine who makes the first move and send ack
-					int firstPlayerId = random.nextInt(2) + 1;
 					JoinAck ack = new JoinAck();
 					ack.nameofServerPlayer = player.getName();
+					
+					// determine who makes the first move and send ack
+					int firstPlayerId = random.nextInt(2) + 1;
 					ack.clientPlayerGoesFirst = (firstPlayerId == Player.PLAYER_1) ? false : true;
+					IdPlayerWhoGoesFirst = firstPlayerId;
+					
 					c.sendTCP(ack);
 					setTurn(!ack.clientPlayerGoesFirst);
 					logThisMessage("Server goes first: "+isThisPlayerTurn);

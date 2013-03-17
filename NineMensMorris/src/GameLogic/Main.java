@@ -3,11 +3,10 @@ package GameLogic;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.InetAddress;
 import GameLogic.IAPlayer.Move;
 import GameLogic.MinimaxIAPlayer.InvalidDepth;
 import GameLogic.Player.InvalidPlayerId;
-import GameUI.UIGame;
+import GameUI.UIGameMenu;
 
 public class Main {
 	public Game game;
@@ -17,6 +16,10 @@ public class Main {
 		System.out.println("Nine Men's Morris starting...");
 		
 		//new UIGame();
+		UIGameMenu uiGameMenu = new UIGameMenu();
+		//uiGameMenu.launch();
+
+		/*
 		Main maingame = new Main();
 		maingame.input = new BufferedReader(new InputStreamReader(System.in));
 		
@@ -32,6 +35,7 @@ public class Main {
 			System.out.println("UNKNOWN COMMAND");
 			System.exit(-1);
 		}
+		*/
 	}
 	
 	public void createLocalGame() throws IOException, InvalidPlayerId, InvalidDepth {
@@ -57,7 +61,7 @@ public class Main {
 		if(userInput.compareTo("HUMAN") == 0 || userInput.compareTo("H") == 0) {
 			p2 = new HumanPlayer("Miguel", Player.PLAYER_2);
 		} else if(userInput.compareTo("CPU") == 0 || userInput.compareTo("C") == 0) {
-			p2 = new MinimaxIAPlayer(Player.PLAYER_2,1);
+			p2 = new MinimaxIAPlayer(Player.PLAYER_2,2);
 		} else {
 			System.out.println("Command unknown");
 			System.exit(-1);
@@ -238,105 +242,107 @@ public class Main {
 			}
 		}
 
-		while(game.getGamePhase() == Game.PLACING_PHASE) {
-			while(true) {
-				if(game.isThisPlayerTurn()) {
-					if(game.getGamePhase() == Game.MOVING_PHASE) {
-						break;
-					}
-					Player player = game.getPlayer();
-					int boardIndex;
-					if(p.isIA()) {
-						boardIndex = ((MinimaxIAPlayer)player).getIndexToPlacePiece(game.gameBoard);
-						System.out.println(player.getName()+" placed piece on "+boardIndex);
-					} else {
-						game.printGameBoard();
-						System.out.println(player.getName()+" place piece on: ");
-						userInput = input.readLine();
-						userInput = userInput.toUpperCase();
-						boardIndex = Integer.parseInt(userInput);
-					}
+		while(true) {
+			if(game.isThisPlayerTurn()) {
+				if(game.getGamePhase() != Game.PLACING_PHASE) {
+					break;
+				}
+				Player player = game.getPlayer();
+				int boardIndex;
+				if(p.isIA()) {
+					boardIndex = ((MinimaxIAPlayer)player).getIndexToPlacePiece(game.gameBoard);
+					System.out.println(player.getName()+" placed piece on "+boardIndex);
+				} else {
+					game.printGameBoard();
+					System.out.println(player.getName()+" place piece on: ");
+					userInput = input.readLine();
+					userInput = userInput.toUpperCase();
+					boardIndex = Integer.parseInt(userInput);
+				}
 
-					if(game.setPiece(boardIndex)) { // if the place is valid
-						if(game.madeAMill(boardIndex, player.getPlayerId())) { // if has 3 in a row
-							int otherPlayerId = (player.getPlayerId() == Player.PLAYER_1) ? Player.PLAYER_2 : Player.PLAYER_1;
-							while(true) {
-								if(player.isIA()){
-									boardIndex = ((IAPlayer)player).getIndexToRemovePieceOfOpponent(game.gameBoard);
-									System.out.println(player.getName()+" removes opponent piece on "+boardIndex);
-								} else {
-									System.out.println("You made a mill. You can remove a piece of your oponent: ");
-									userInput = input.readLine();
-									userInput = userInput.toUpperCase();
-									boardIndex = Integer.parseInt(userInput);
-								}
-								if(game.removePiece(boardIndex)) { // if it removed an opponent piece
-									break;
-								} else {
-									System.out.println("You can't remove a piece from there. Try again");
-								}
+				if(game.setPiece(boardIndex)) { // if the place is valid
+					if(game.madeAMill(boardIndex, player.getPlayerId())) { // if has 3 in a row
+						while(true) {
+							if(player.isIA()){
+								boardIndex = ((IAPlayer)player).getIndexToRemovePieceOfOpponent(game.gameBoard);
+								System.out.println(player.getName()+" removes opponent piece on "+boardIndex);
+							} else {
+								System.out.println("You made a mill. You can remove a piece of your oponent: ");
+								userInput = input.readLine();
+								userInput = userInput.toUpperCase();
+								boardIndex = Integer.parseInt(userInput);
+							}
+							if(game.removePiece(boardIndex)) { // if it removed an opponent piece
+								break;
+							} else {
+								System.out.println("You can't remove a piece from there. Try again");
 							}
 						}
-						// TODO it's impossible to win the game in the placing phase right?
-						game.setTurn(false);
-						break;
+					}
+					game.setTurn(false);
+				}
+			}
+			Thread.sleep(10);
+		}
+
+		System.out.println("The pieces are all placed. Starting the fun part...");
+		if(game.playedFirst()) {
+			game.setTurn(true);
+		}
+		while(!game.gameIsOver()) {
+			while(true) {
+				if(game.isThisPlayerTurn()) {
+					Player player = game.getPlayer();
+					int initialIndex, finalIndex;
+					if(player.isIA()) {
+						Move move = ((IAPlayer)player).getPieceMove(game.gameBoard);
+						initialIndex = move.src;
+						finalIndex = move.dest;
+						System.out.println(player.getName()+" moved piece from "+initialIndex+" to "+finalIndex);
+					} else {
+						game.printGameBoard();
+						System.out.println(player.getName()+" it's your turn. Input PIECE_POS:PIECE_DEST");
+						userInput = input.readLine();
+						userInput = userInput.toUpperCase();
+						String[] positions = userInput.split(":");
+						initialIndex = Integer.parseInt(positions[0]);
+						finalIndex = Integer.parseInt(positions[1]);
+						System.out.println("Move piece from "+initialIndex+" to "+finalIndex);
+					}
+					if(game.positionHasPieceOfPlayer(initialIndex, player.getPlayerId())) {
+						if(game.positionIsAvailable(finalIndex) && (game.validMove(initialIndex, finalIndex) || player.canItFly())) {
+							game.movePieceFromTo(initialIndex, finalIndex);
+							if(game.madeAMill(finalIndex, player.getPlayerId())) {
+								int otherPlayerId = (player.getPlayerId() == Player.PLAYER_1) ? Player.PLAYER_2 : Player.PLAYER_1;
+								int boardIndex;
+								while(true) {
+									if(player.isIA()){
+										boardIndex = ((IAPlayer)player).getIndexToRemovePieceOfOpponent(game.gameBoard);
+										System.out.println(player.getName()+" removes opponent piece on "+boardIndex);
+									} else {
+										System.out.println("You made a mill! You can remove a piece of your oponent: ");
+										userInput = input.readLine();
+										userInput = userInput.toUpperCase();
+										boardIndex = Integer.parseInt(userInput);
+									}
+									if(game.removePiece(boardIndex, otherPlayerId)) {
+										break;
+									} else {
+										System.out.println("It couldn't be done! Try again.");
+									}
+								}
+							}
+							game.checkGameIsOver();
+							game.setTurn(false);
+							break;
+						} else {
+							System.out.println("That's not a valid move");
+						}
+					} else {
+						System.out.println("No piece on that position or it isn't yours");
 					}
 				}
 				Thread.sleep(10);
-			}
-		}
-		System.out.println("The pieces are all placed. Starting the fun part...");
-		while(!game.gameIsOver()) {
-			while(true) {
-				Player player = game.getPlayer();
-				int initialIndex, finalIndex;
-				if(player.isIA()) {
-					Move move = ((IAPlayer)player).getPieceMove(game.gameBoard);
-					initialIndex = move.src;
-					finalIndex = move.dest;
-					System.out.println(player.getName()+" moved piece from "+initialIndex+" to "+finalIndex);
-				} else {
-					game.printGameBoard();
-					System.out.println(player.getName()+" it's your turn. Input PIECE_POS:PIECE_DEST");
-					userInput = input.readLine();
-					userInput = userInput.toUpperCase();
-					String[] positions = userInput.split(":");
-					initialIndex = Integer.parseInt(positions[0]);
-					finalIndex = Integer.parseInt(positions[1]);
-					System.out.println("Move piece from "+initialIndex+" to "+finalIndex);
-				}
-				if(game.positionHasPieceOfPlayer(initialIndex, player.getPlayerId())) {
-					if(game.positionIsAvailable(finalIndex) && (game.validMove(initialIndex, finalIndex) || player.canItFly())) {
-						game.movePieceFromTo(initialIndex, finalIndex);
-						if(game.madeAMill(finalIndex, player.getPlayerId())) {
-							int otherPlayerId = (player.getPlayerId() == Player.PLAYER_1) ? Player.PLAYER_2 : Player.PLAYER_1;
-							int boardIndex;
-							while(true) {
-								if(player.isIA()){
-									boardIndex = ((IAPlayer)player).getIndexToRemovePieceOfOpponent(game.gameBoard);
-									System.out.println(player.getName()+" removes opponent piece on "+boardIndex);
-								} else {
-									System.out.println("You made a mill! You can remove a piece of your oponent: ");
-									userInput = input.readLine();
-									userInput = userInput.toUpperCase();
-									boardIndex = Integer.parseInt(userInput);
-								}
-								if(game.removePiece(boardIndex, otherPlayerId)) {
-									break;
-								} else {
-									System.out.println("It couldn't be done! Try again.");
-								}
-							}
-						}
-						game.checkGameIsOver();
-						game.setTurn(false);
-						break;
-					} else {
-						System.out.println("That's not a valid move");
-					}
-				} else {
-					System.out.println("No piece on that position or it isn't yours");
-				}
 			}
 		}
 		System.out.println("You lost!");

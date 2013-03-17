@@ -36,7 +36,7 @@ public class UIGamePanel extends JPanel implements MouseMotionListener, MouseLis
 	protected void paintComponent(Graphics g) {
 		super.paintComponent(g); // clear off-screen bitmap
 		graphics = g;
-		BufferedImage bg = uiResourcesLoader.game_background_1;
+		BufferedImage bg = uiResourcesLoader.game_background_1; // make this a private member of this class
 
 		// draws the game elements
 		if (bg != null) {
