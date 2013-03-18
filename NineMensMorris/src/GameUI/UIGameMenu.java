@@ -25,7 +25,8 @@ public class UIGameMenu extends JFrame {
 	private SLPanel panel;
 	private final UIGameMenuPanel uiGameMenuPanel;
 	private UIOptionsPanel uiOptionsPanel;
-	private SLConfig mainCfg, OptionsCfg, HelpCfg;
+	private UIAboutPanel uiAboutPanel;
+	private SLConfig mainCfg, OptionsCfg, AboutCfg;
 	
 	public UIGameMenu() {
 		super("Nine Men's Morris - by Afonso Caldas & Miguel Oliveira");
@@ -40,15 +41,20 @@ public class UIGameMenu extends JFrame {
 		uiOptionsPanel = new UIOptionsPanel();
 		uiOptionsPanel.addMouseMotionListener(uiOptionsPanel);
 		uiOptionsPanel.addMouseListener(uiOptionsPanel);
+		uiAboutPanel = new UIAboutPanel();
+		uiAboutPanel.addMouseListener(uiAboutPanel);
 		
 		mainCfg = new SLConfig(panel)
 			.row(1f).col(1f)
 			.place(0, 0, uiGameMenuPanel);
 		
 		OptionsCfg = new SLConfig(panel)
-			.row(1f).col(2f).col(1f)
-			.place(0, 0, uiOptionsPanel)
-			.place(0, 1, uiGameMenuPanel);
+			.row(1f).col(1f)
+			.place(0, 0, uiOptionsPanel);
+		
+		AboutCfg = new SLConfig(panel)
+			.row(1f).col(1f)
+			.place(0, 0, uiAboutPanel);
 		
 		panel.setTweenManager(SLAnimator.createTweenManager());
 		panel.initialize(mainCfg);
@@ -98,6 +104,17 @@ public class UIGameMenu extends JFrame {
 		}
 		@Override
 		public void mouseClicked(MouseEvent e) {
+			new Runnable() {@Override public void run() {
+				panel.createTransition()
+					.push(new SLKeyframe(mainCfg, 2f)
+						.setStartSide(SLSide.RIGHT, uiGameMenuPanel)
+						.setEndSide(SLSide.LEFT, uiOptionsPanel)
+						.setCallback(new SLKeyframe.Callback() {@Override public void done() {
+							//p5.setAction(p5Action);
+							//enableActions();
+						}}))
+					.play();
+			}}.run();
 		}
 		@Override
 		public void mousePressed(MouseEvent e) {
@@ -113,6 +130,50 @@ public class UIGameMenu extends JFrame {
 		}
 	}
 	
+	private class UIAboutPanel extends JPanel implements MouseListener {
+		private UIResourcesLoader uirl;
+		private BufferedImage background;
+		private Graphics graphics;
+		
+		public UIAboutPanel() {
+			uirl = UIResourcesLoader.getInstanceLoader();
+			background = uirl.about_background;
+		}
+		
+		@Override
+		public Dimension getPreferredSize() {
+			if (background != null) {
+				int width = background.getWidth();
+				int height = background.getHeight();
+				return new Dimension(width, height);
+			}
+			return super.getPreferredSize();
+		}
+
+		@Override
+		protected void paintComponent(Graphics g) {
+			super.paintComponent(graphics = g); // clear off-screen bitmap
+			if (background != null) {
+				graphics.drawImage(background, 0, 0, this);
+			}
+		}
+
+		@Override
+		public void mouseClicked(MouseEvent e) {
+			new Runnable() {@Override public void run() {
+				panel.createTransition()
+					.push(new SLKeyframe(mainCfg, 2f)
+						.setStartSide(SLSide.TOP, uiGameMenuPanel)
+						.setEndSide(SLSide.BOTTOM, uiAboutPanel))
+					.play();
+			}}.run();
+		}
+		@Override public void mousePressed(MouseEvent e) {}
+		@Override public void mouseReleased(MouseEvent e) {}
+		@Override public void mouseEntered(MouseEvent e) {}
+		@Override public void mouseExited(MouseEvent e) {}
+	}
+	
 	private class UIGameMenuPanel extends JPanel implements MouseListener, MouseMotionListener, KeyListener {
 		
 		private static final long serialVersionUID = -1237601154927560866L;
@@ -122,6 +183,8 @@ public class UIGameMenu extends JFrame {
 		private BufferedImage background;
 		private Image[] buttons_normal, buttons_hover, buttons_active, displayed_buttons;
 		private Coord[] buttons_coords;
+		private Image[] about_buttons;
+		private Coord aboutButtonCoord;
 		boolean changedButton;
 		boolean pressedButton;
 		int changedButtonIndex;
@@ -138,6 +201,8 @@ public class UIGameMenu extends JFrame {
 			displayed_buttons[0] = buttons_normal[uiResourcesLoader.NEW_GAME_BTN];
 			displayed_buttons[1] = buttons_normal[uiResourcesLoader.OPTIONS_BTN];
 			displayed_buttons[2] = buttons_normal[uiResourcesLoader.EXIT_BTN];
+			about_buttons = uiResourcesLoader.getAboutButtons();
+			aboutButtonCoord = uiResourcesLoader.getAboutButtonCoord();
 			changedButton = false;
 			pressedButton = false;
 			changedButtonIndex = -1;
@@ -160,6 +225,7 @@ public class UIGameMenu extends JFrame {
 			// draws the game elements
 			if (background != null) {
 				graphics.drawImage(background, 0, 0, this);
+				graphics.drawImage(about_buttons[0], aboutButtonCoord.x, aboutButtonCoord.y, this);
 				// draw buttons
 				for(int i = 0; i < displayed_buttons.length; i++) {
 					graphics.drawImage(displayed_buttons[i], buttons_coords[i].x, buttons_coords[i].y, this);
@@ -210,16 +276,26 @@ public class UIGameMenu extends JFrame {
 			if (y > 314 && y < 343 && x > 278 && x < (278+85)) { // options
 				new Runnable() {@Override public void run() {
 					panel.createTransition()
-						.push(new SLKeyframe(OptionsCfg, 0.8f)
+						.push(new SLKeyframe(OptionsCfg, 2f)
 							.setStartSide(SLSide.LEFT, uiOptionsPanel)
+							.setEndSide(SLSide.RIGHT, uiGameMenuPanel)
 							.setCallback(new SLKeyframe.Callback() {@Override public void done() {
-								//p5.setAction(p5Action);
-								//enableActions();
+								changedButton = false;
+								changedButtonIndex = -1;
+								displayed_buttons[uiResourcesLoader.OPTIONS_BTN] = buttons_normal[uiResourcesLoader.OPTIONS_BTN];
 							}}))
 						.play();
 				}}.run();
-			} else if(y > 314 && y < 343 && x > 393 && x < (393+85)) { // exit game
+			} else if (y > 314 && y < 343 && x > 393 && x < (393+85)) { // exit game
 				System.exit(0);
+			} else if (x > 311 && x < (311+20) && y > 160 && y < (160+26)) {
+				new Runnable() {@Override public void run() {
+					panel.createTransition()
+						.push(new SLKeyframe(AboutCfg, 2f)
+							.setStartSide(SLSide.BOTTOM, uiAboutPanel)
+							.setEndSide(SLSide.TOP, uiGameMenuPanel))
+						.play();
+				}}.run();
 			}
 		}
 
@@ -264,8 +340,6 @@ public class UIGameMenu extends JFrame {
 		public void mouseReleased(MouseEvent e) {
 			int x = e.getX();
 			int y = e.getY();
-			
-			System.out.println("CHANGED: "+changedButton+" INDEX: "+changedButtonIndex+" PRESSED: "+pressedButton+" X: "+x+" Y:"+y);
 
 			if(pressedButton) {
 				displayed_buttons[changedButtonIndex] = buttons_normal[changedButtonIndex];
@@ -284,17 +358,11 @@ public class UIGameMenu extends JFrame {
 			repaint();
 		}
 
-		@Override
-		public void mouseEntered(MouseEvent e) {}
-		@Override
-		public void mouseExited(MouseEvent e) {}
-		@Override
-		public void keyTyped(KeyEvent e) {}
-		@Override
-		public void keyPressed(KeyEvent e) {}
-		@Override
-		public void keyReleased(KeyEvent e) {}
-		@Override
-		public void mouseDragged(MouseEvent e) {}
+		@Override public void mouseEntered(MouseEvent e) {}
+		@Override public void mouseExited(MouseEvent e) {}
+		@Override public void keyTyped(KeyEvent e) {}
+		@Override public void keyPressed(KeyEvent e) {}
+		@Override public void keyReleased(KeyEvent e) {}
+		@Override public void mouseDragged(MouseEvent e) {}
 	}
 }

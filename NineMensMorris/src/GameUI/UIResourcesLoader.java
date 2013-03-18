@@ -26,13 +26,16 @@ public class UIResourcesLoader {
 	public BufferedImage game_background_1;
 	public BufferedImage main_menu_background;
 	public BufferedImage options_background;
+	public BufferedImage about_background;
 	private Image[] v_unselectedPieces;
 	private Image[] v_selectedPieces;
 	private Image[] v_mainmenu_buttons_normal;
 	private Image[] v_mainmenu_buttons_hover;
 	private Image[] v_mainmenu_buttons_active;
+	private Image[] v_about_buttons;
 	
 	private Coord[] v_mainmenu_buttons_coords;
+	private Coord about_button_coord;
 	
 	private UIResourcesLoader() {
 		initPieces();
@@ -41,6 +44,7 @@ public class UIResourcesLoader {
 			game_background_1 = ImageIO.read(new File("images/backgrounds/game_background_test.png"));
 			main_menu_background = ImageIO.read(new File("images/backgrounds/main_menu_background.png"));
 			options_background = ImageIO.read(new File("images/backgrounds/options_background.png"));
+			about_background = ImageIO.read(new File("images/backgrounds/about_background.png"));
 		} catch (IOException e) {
 			e.printStackTrace();
 			System.out.println("Resources missing");
@@ -60,6 +64,7 @@ public class UIResourcesLoader {
 		v_mainmenu_buttons_hover = new Image[3];
 		v_mainmenu_buttons_active = new Image[3];
 		v_mainmenu_buttons_coords = new Coord[3];
+		v_about_buttons = new Image[2];
 		
 		try {
 			v_mainmenu_buttons_normal[NEW_GAME_BTN] = ImageIO.read(new File("images/buttons/new_game_normal.png"));
@@ -71,6 +76,8 @@ public class UIResourcesLoader {
 			v_mainmenu_buttons_active[NEW_GAME_BTN] = ImageIO.read(new File("images/buttons/new_game_active.png"));
 			v_mainmenu_buttons_active[OPTIONS_BTN] = ImageIO.read(new File("images/buttons/options_active.png"));
 			v_mainmenu_buttons_active[EXIT_BTN] = ImageIO.read(new File("images/buttons/exit_game_active.png"));
+			v_about_buttons[0] = ImageIO.read(new File("images/buttons/about_normal.png"));
+			v_about_buttons[1] = ImageIO.read(new File("images/buttons/about_hover.png"));
 		} catch (Exception e) {
 			e.printStackTrace();
 			System.out.println("Resources missing");
@@ -79,6 +86,7 @@ public class UIResourcesLoader {
 		v_mainmenu_buttons_coords[NEW_GAME_BTN] = new Coord(159, 310);
 		v_mainmenu_buttons_coords[OPTIONS_BTN] = new Coord(274, 310);
 		v_mainmenu_buttons_coords[EXIT_BTN] = new Coord(389, 310);
+		about_button_coord = new Coord(311, 160);
 	}
 	
 	public Image[] getMainMenuButtons(int buttonsState) {
@@ -96,6 +104,14 @@ public class UIResourcesLoader {
 	
 	public Coord[] getMainMenuButtonsCoord() {
 		return v_mainmenu_buttons_coords;
+	}
+	
+	public Coord getAboutButtonCoord() {
+		return about_button_coord;
+	}
+	
+	public Image[] getAboutButtons() {
+		return v_about_buttons;
 	}
 	
 	private void initPieces() {
