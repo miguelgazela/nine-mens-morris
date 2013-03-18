@@ -3,10 +3,13 @@ package GameLogic;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+
+import aurelienribon.slidinglayout.SLAnimator;
 import GameLogic.IAPlayer.Move;
 import GameLogic.MinimaxIAPlayer.InvalidDepth;
 import GameLogic.Player.InvalidPlayerId;
 import GameUI.UIGameMenu;
+import GameUI.UIResourcesLoader;
 
 public class Main {
 	public Game game;
@@ -15,9 +18,8 @@ public class Main {
 	public static void main(String []args) throws Exception {
 		System.out.println("Nine Men's Morris starting...");
 		
-		//new UIGame();
+		SLAnimator.start();
 		UIGameMenu uiGameMenu = new UIGameMenu();
-		//uiGameMenu.launch();
 
 		/*
 		Main maingame = new Main();
@@ -61,7 +63,7 @@ public class Main {
 		if(userInput.compareTo("HUMAN") == 0 || userInput.compareTo("H") == 0) {
 			p2 = new HumanPlayer("Miguel", Player.PLAYER_2);
 		} else if(userInput.compareTo("CPU") == 0 || userInput.compareTo("C") == 0) {
-			p2 = new MinimaxIAPlayer(Player.PLAYER_2,2);
+			p2 = new MinimaxIAPlayer(Player.PLAYER_2,3);
 		} else {
 			System.out.println("Command unknown");
 			System.exit(-1);
