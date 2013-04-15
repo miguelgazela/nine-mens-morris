@@ -20,15 +20,16 @@ public abstract class IAPlayer extends Player {
 		"Loki", "Captain America", "Black Widow", "Phil Coulson"};
 	
 	public class Move {
-		public int src, dest;
-		public Move(int src, int dest) {
+		public int src, dest, remove;
+		public Move(int src, int dest, int remove) {
 			this.src = src;
 			this.dest = dest;
+			this.remove = remove;
 		}
 	}
 	
-	public IAPlayer(int playerId) throws InvalidPlayerId {
-		super(playerId);
+	public IAPlayer(Token player, int numPiecesPerPlayer) throws GameException {
+		super(player, numPiecesPerPlayer);
 		setName();
 	}
 	
@@ -47,5 +48,5 @@ public abstract class IAPlayer extends Player {
 	
 	public abstract int getIndexToRemovePieceOfOpponent(Board gameBoard);
 	
-	public abstract Move getPieceMove(Board gameBoard);
+	public abstract Move getPieceMove(Board gameBoard, int gamePhase);
 }

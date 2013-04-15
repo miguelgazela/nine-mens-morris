@@ -2,16 +2,20 @@ package GameLogic;
 
 public class RandomIAPlayer extends IAPlayer {
 
-	public RandomIAPlayer(int playerId) throws InvalidPlayerId {
-		super(playerId);
+	public RandomIAPlayer(Token player, int numPiecesPerPlayer) throws GameException {
+		super(player, numPiecesPerPlayer);
 	}
 
 	@Override
 	public int getIndexToPlacePiece(Board gameBoard) {
 		while(true) {
-			int index = rand.nextInt(24);
-			if(!gameBoard.boardPositions[index].isOccupied) {
-				return index;
+			int index = rand.nextInt(Board.NUM_POSITIONS_OF_BOARD);
+			try {
+				if(!gameBoard.getPosition(index).isOccupied()) {
+					return index;
+				}
+			} catch (GameException e) {
+				e.printStackTrace();
 			}
 		}
 	}
@@ -19,26 +23,34 @@ public class RandomIAPlayer extends IAPlayer {
 	@Override
 	public int getIndexToRemovePieceOfOpponent(Board gameBoard) {
 		while(true) {
-			int index = rand.nextInt(24);
-			int playerOccupying = gameBoard.boardPositions[index].playerOccupying;
-			if(playerOccupying != Position.NO_PLAYER && playerOccupying != this.playerId) {
-				return index;
+			try {
+				int index = rand.nextInt(Board.NUM_POSITIONS_OF_BOARD);
+				Token playerOccupying = gameBoard.getPosition(index).getPlayerOccupyingIt();
+				if(playerOccupying != Token.NO_PLAYER && playerOccupying != this.playerToken) {
+					return index;
+				}
+			} catch (GameException e) {
+				e.printStackTrace();
 			}
 		}
 	}
 
 	@Override
-	public Move getPieceMove(Board gameBoard) {
+	public Move getPieceMove(Board gameBoard, int gamePhase) {
 		while(true) {
-			int index = rand.nextInt(24);
-			Position position = gameBoard.boardPositions[index];
-			if(position.playerOccupying == this.playerId) {
-				int[] adjacents = position.adjacentPositions;
-				for(int i = 0; i < adjacents.length; i++) {
-					if(!gameBoard.boardPositions[adjacents[i]].isOccupied) {
-						return new Move(index, adjacents[i]);
+			try {
+				int srcIndex = rand.nextInt(Board.NUM_POSITIONS_OF_BOARD);
+				Position position = gameBoard.getPosition(srcIndex);
+				if(position.getPlayerOccupyingIt() == this.playerToken) {
+					int[] adjacents = position.getAdjacentPositionsIndexes();
+					for(int i = 0; i < adjacents.length; i++) {
+						if(!gameBoard.getPosition(adjacents[i]).isOccupied()) {
+							return new Move(srcIndex, adjacents[i], -1);
+						}
 					}
 				}
+			} catch (GameException e) {
+				e.printStackTrace();
 			}
 		}
 	}

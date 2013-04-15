@@ -28,12 +28,11 @@ public class LocalGame extends Game {
 		}
 	}
 	
-	public boolean removePiece(int index, int playerId) {
-		if(!positionIsAvailable(index) && positionHasPieceOfPlayer(index, playerId)) {
-			gameBoard.boardPositions[index].playerOccupying = Position.NO_PLAYER;
-			gameBoard.boardPositions[index].isOccupied = false;
+	public boolean removePiece(int boardIndex, Token player) throws GameException {
+		if(!gameBoard.positionIsAvailable(boardIndex) && positionHasPieceOfPlayer(boardIndex, player)) {
+			gameBoard.getPosition(boardIndex).setAsUnoccupied();
 			Player p = currentTurnPlayer.equals(player1) ? player2 : player1;
-			p.removePiece();
+			p.lowerNumPiecesOnBoard();
 			return true;
 		}
 		return false;

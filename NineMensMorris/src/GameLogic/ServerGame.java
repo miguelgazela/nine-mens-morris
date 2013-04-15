@@ -15,7 +15,7 @@ public class ServerGame extends NetworkGame {
 		random = new Random();
 		server = new Server() {
 			protected Connection newConnection() {
-				return new GameConnection(player.getPlayerId(),player.getName());
+				return new GameConnection(player.getPlayerToken(),player.getName());
 			}
 		};
 		NetworkGame.register(server);
@@ -35,9 +35,14 @@ public class ServerGame extends NetworkGame {
 					ack.nameofServerPlayer = player.getName();
 					
 					// determine who makes the first move and send ack
-					int firstPlayerId = random.nextInt(2) + 1;
-					ack.clientPlayerGoesFirst = (firstPlayerId == Player.PLAYER_1) ? false : true;
-					IdPlayerWhoGoesFirst = firstPlayerId;
+					int firstPlayer = random.nextInt(2) + 1;
+					if(firstPlayer == 1) {
+						playerWhoGoesFirst = Token.PLAYER_1;
+					} else if (firstPlayer == 2) {
+						playerWhoGoesFirst = Token.PLAYER_2;
+					}
+					
+					ack.clientPlayerGoesFirst = (playerWhoGoesFirst == Token.PLAYER_1) ? false : true;
 					
 					c.sendTCP(ack);
 					setTurn(!ack.clientPlayerGoesFirst);
@@ -94,10 +99,10 @@ public class ServerGame extends NetworkGame {
 	
 	// This holds per connection state.
     static class GameConnection extends Connection {
-    	int playerId;
+    	Token player;
     	String playerName;
-    	public GameConnection(int pId, String pName) {
-    		playerId = pId;
+    	public GameConnection(Token player, String pName) {
+    		this.player = player;
     		playerName = pName;
     	}
     }

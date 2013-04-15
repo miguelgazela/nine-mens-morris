@@ -1,27 +1,29 @@
 package GameLogic;
 
 public abstract class Player {
-	public static final int PLAYER_1 = 1;
-	public static final int PLAYER_2 = 2;
+	//public static final int PLAYER_1 = 1;
+	//public static final int PLAYER_2 = 2;
 	
 	protected String name;
-	protected int score;
+	protected int gamesWon;
 	protected int numPieces;
-	protected int playerId;
+	protected int numPiecesOnBoard;
+	protected Token playerToken;
 	protected boolean canFly;
 	
 	protected Player() {
-		score = 0;
-		numPieces = 9;
+		gamesWon = 0;
+		numPiecesOnBoard = 0;
 		canFly = false;
 	}
 	
-	protected Player(int playerId) throws InvalidPlayerId {
+	protected Player(Token player, int numPiecesPerPlayer) throws GameException {
 		this();
-		if(playerId < PLAYER_1 || playerId > PLAYER_2) {
-			throw new InvalidPlayerId();
+		if(player != Token.PLAYER_1 && player != Token.PLAYER_2) {
+			throw new GameException(""+getClass().getName()+" - Invalid Player Token");
 		} else {
-			this.playerId = playerId;
+			numPieces = numPiecesPerPlayer;
+			playerToken = player;
 		}
 	}
 	
@@ -29,19 +31,35 @@ public abstract class Player {
 		return name;
 	}
 	
+	public void setName(String name) {
+		this.name = name;
+	}
+	
 	public int getNumPieces() {
 		return numPieces;
 	}
 	
-	public int getPlayerId() {
-		return playerId;
+	public int getNumPiecesOnBoard() {
+		return numPiecesOnBoard;
 	}
 	
-	public int removePiece() {
-		if(--numPieces == 3) {
+	public int getNumPiecesLeftToPlace() {
+		return (numPieces - numPiecesOnBoard);
+	}
+	
+	public int raiseNumPiecesOnBoard() {
+		return ++numPiecesOnBoard;
+	}
+	
+	public int lowerNumPiecesOnBoard() {
+		if (--numPiecesOnBoard == 3) {
 			canFly = true;
 		}
-		return numPieces;
+		return numPiecesOnBoard;
+	}
+	
+	public Token getPlayerToken() {
+		return playerToken;
 	}
 	
 	public boolean canItFly() {
@@ -49,7 +67,4 @@ public abstract class Player {
 	}
 	
 	public abstract boolean isIA();
-	
-	// Exceptions
-	public class InvalidPlayerId extends Exception {}
 }

@@ -4,24 +4,33 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
-import aurelienribon.slidinglayout.SLAnimator;
 import GameLogic.IAPlayer.Move;
-import GameLogic.MinimaxIAPlayer.InvalidDepth;
-import GameLogic.Player.InvalidPlayerId;
-import GameUI.UIGameMenu;
-import GameUI.UIResourcesLoader;
 
 public class Main {
 	public Game game;
 	public BufferedReader input;
 	
 	public static void main(String []args) throws Exception {
-		System.out.println("Nine Men's Morris starting...");
+		int minimaxDepth = -1;
 		
+		if(args.length == 0 || args.length > 1) {
+			System.out.println("Usage: java Main <minimaxDepth>");
+			System.exit(-1);
+		} else {
+			try {
+				minimaxDepth = Integer.parseInt(args[0]);
+			} catch (Exception e) {
+				System.out.println("Invalid depth");
+				e.printStackTrace();
+				System.exit(-1);
+			}
+		}
+		
+		/*
 		SLAnimator.start();
 		UIGameMenu uiGameMenu = new UIGameMenu();
-
-		/*
+		*/
+		System.out.println("Nine Men's Morris starting...");
 		Main maingame = new Main();
 		maingame.input = new BufferedReader(new InputStreamReader(System.in));
 		
@@ -30,17 +39,16 @@ public class Main {
 		userInput = userInput.toUpperCase();
 		
 		if(userInput.compareTo("LOCAL") == 0 || userInput.compareTo("L") == 0) {
-			maingame.createLocalGame();
+			maingame.createLocalGame(minimaxDepth);
 		} else if(userInput.compareTo("NETWORK") == 0 || userInput.compareTo("N") == 0) {
 			maingame.createNetworkGame();
 		} else {
 			System.out.println("UNKNOWN COMMAND");
 			System.exit(-1);
 		}
-		*/
 	}
 	
-	public void createLocalGame() throws IOException, InvalidPlayerId, InvalidDepth {
+	public void createLocalGame(int minimaxDepth) throws IOException, GameException {
 		game = new LocalGame();
 		System.out.println("Player 1: (H)UMAN or (C)PU?");
 		String userInput = input.readLine();
@@ -48,9 +56,9 @@ public class Main {
 		Player p1 = null, p2 = null;
 		
 		if(userInput.compareTo("HUMAN") == 0 || userInput.compareTo("H") == 0) {
-			p1 = new HumanPlayer("Souto",Player.PLAYER_1);
+			p1 = new HumanPlayer("Miguel", Token.PLAYER_1, Game.NUM_PIECES_PER_PLAYER);
 		} else if(userInput.compareTo("CPU") == 0 || userInput.compareTo("C") == 0) {
-			p1 = new MinimaxIAPlayer(Player.PLAYER_1,2);
+			p1 = new MinimaxIAPlayer(Token.PLAYER_2, Game.NUM_PIECES_PER_PLAYER, minimaxDepth);
 		} else {
 			System.out.println("Command unknown");
 			System.exit(-1);
@@ -61,21 +69,28 @@ public class Main {
 		userInput = userInput.toUpperCase();
 		
 		if(userInput.compareTo("HUMAN") == 0 || userInput.compareTo("H") == 0) {
-			p2 = new HumanPlayer("Miguel", Player.PLAYER_2);
+			p2 = new HumanPlayer("Miguel", Token.PLAYER_1, Game.NUM_PIECES_PER_PLAYER);
 		} else if(userInput.compareTo("CPU") == 0 || userInput.compareTo("C") == 0) {
-			p2 = new MinimaxIAPlayer(Player.PLAYER_2,3);
+			p2 = new MinimaxIAPlayer(Token.PLAYER_2,Game.NUM_PIECES_PER_PLAYER, minimaxDepth);
 		} else {
 			System.out.println("Command unknown");
 			System.exit(-1);
 		}
 		
 		((LocalGame)game).setPlayers(p1, p2);
-		while(game.getGamePhase() == Game.PLACING_PHASE) {
+		while(game.getCurrentGamePhase() == Game.PLACING_PHASE) {
+			
 			while(true) {
 				Player p = ((LocalGame)game).getCurrentTurnPlayer();
 				int boardIndex;
+				
 				if(p.isIA()) {
+					long startTime = System.nanoTime();
 					boardIndex = ((MinimaxIAPlayer)p).getIndexToPlacePiece(game.gameBoard);
+					long endTime = System.nanoTime();
+					System.out.println("Number of moves: "+((MinimaxIAPlayer)p).numberOfMoves);
+					System.out.println("Moves that removed: "+((MinimaxIAPlayer)p).movesThatRemove);
+					System.out.println("It took: "+ (endTime - startTime)/1000000+" miliseconds");
 					System.out.println(p.getName()+" placed piece on "+boardIndex);
 				} else {
 					game.printGameBoard();
@@ -84,9 +99,13 @@ public class Main {
 					userInput = userInput.toUpperCase();
 					boardIndex = Integer.parseInt(userInput);
 				}
-				if(game.setPiece(boardIndex, p.getPlayerId())) {
-					if(game.madeAMill(boardIndex, p.getPlayerId())) {
-						int otherPlayerId = (p.getPlayerId() == Player.PLAYER_1) ? Player.PLAYER_2 : Player.PLAYER_1;
+				
+				if(game.placePieceOfPlayer(boardIndex, p.getPlayerToken())) {
+					p.raiseNumPiecesOnBoard(); // TODO the game should do this
+					
+					if(game.madeAMill(boardIndex, p.getPlayerToken())) {
+						Token opponentPlayer = (p.getPlayerToken() == Token.PLAYER_1) ? Token.PLAYER_2 : Token.PLAYER_1;
+						
 						while(true) {
 							if(p.isIA()){
 								boardIndex = ((MinimaxIAPlayer)p).getIndexToRemovePieceOfOpponent(game.gameBoard);
@@ -97,7 +116,7 @@ public class Main {
 								userInput = userInput.toUpperCase();
 								boardIndex = Integer.parseInt(userInput);
 							}
-							if(game.removePiece(boardIndex, otherPlayerId)) {
+							if(game.removePiece(boardIndex, opponentPlayer)) {
 								break;
 							} else {
 								System.out.println("You can't remove a piece from there. Try again");
@@ -113,13 +132,20 @@ public class Main {
 		}
 		
 		System.out.println("The pieces are all placed. Starting the fun part...");
-		int numMoves = 0;
 		while(!game.gameIsOver()) {
+			
 			while(true) {
 				Player p = ((LocalGame)game).getCurrentTurnPlayer();
 				int initialIndex, finalIndex;
+				Move move = null;
+				
 				if(p.isIA()) {
-					Move move = ((IAPlayer)p).getPieceMove(game.gameBoard);
+					long startTime = System.nanoTime();
+					move = ((IAPlayer)p).getPieceMove(game.gameBoard, game.getCurrentGamePhase());
+					long endTime = System.nanoTime();
+					System.out.println("Number of moves: "+((MinimaxIAPlayer)p).numberOfMoves);
+					System.out.println("Moves that removed: "+((MinimaxIAPlayer)p).movesThatRemove);
+					System.out.println("It took: "+ (endTime - startTime)/1000000+" miliseconds");
 					initialIndex = move.src;
 					finalIndex = move.dest;
 					System.out.println(p.getName()+" moved piece from "+initialIndex+" to "+finalIndex);
@@ -133,16 +159,18 @@ public class Main {
 					finalIndex = Integer.parseInt(positions[1]);
 					System.out.println("Move piece from "+initialIndex+" to "+finalIndex);
 				}
-				if(game.positionHasPieceOfPlayer(initialIndex, p.getPlayerId())) {
+				if(game.positionHasPieceOfPlayer(initialIndex, p.getPlayerToken())) {
+					
 					if(game.positionIsAvailable(finalIndex) && (game.validMove(initialIndex, finalIndex) || p.canItFly())) {
-						game.movePieceFromTo(initialIndex, finalIndex, p.getPlayerId());
-						numMoves++;
-						if(game.madeAMill(finalIndex, p.getPlayerId())) {
-							int otherPlayerId = (p.getPlayerId() == Player.PLAYER_1) ? Player.PLAYER_2 : Player.PLAYER_1;
+						game.movePieceFromTo(initialIndex, finalIndex, p.getPlayerToken());
+						
+						if(game.madeAMill(finalIndex, p.getPlayerToken())) {
+							Token opponentPlayerToken = (p.getPlayerToken() == Token.PLAYER_1) ? Token.PLAYER_2 : Token.PLAYER_1;
 							int boardIndex;
+							
 							while(true) {
 								if(p.isIA()){
-									boardIndex = ((IAPlayer)p).getIndexToRemovePieceOfOpponent(game.gameBoard);
+									boardIndex = move.remove;
 									System.out.println(p.getName()+" removes opponent piece on "+boardIndex);
 								} else {
 									System.out.println("You made a mill! You can remove a piece of your oponent: ");
@@ -150,7 +178,7 @@ public class Main {
 									userInput = userInput.toUpperCase();
 									boardIndex = Integer.parseInt(userInput);
 								}
-								if(game.removePiece(boardIndex, otherPlayerId)) {
+								if(game.removePiece(boardIndex, opponentPlayerToken)) {
 									break;
 								} else {
 									System.out.println("It couldn't be done! Try again.");
@@ -171,10 +199,9 @@ public class Main {
 				}
 			}
 		}
-		System.out.println("Num moves: "+numMoves);
 	}
 	
-	public void createNetworkGame() throws IOException, InterruptedException, InvalidPlayerId, InvalidDepth {
+	public void createNetworkGame() throws IOException, InterruptedException, GameException {
 		System.out.println("(S)ERVER or (C)LIENT?");
 		String userInput = input.readLine();
 		userInput = userInput.toUpperCase();
@@ -196,15 +223,15 @@ public class Main {
 		
 		if(userInput.compareTo("HUMAN") == 0 || userInput.compareTo("H") == 0) {
 			if(game instanceof ServerGame) {
-				p = new HumanPlayer("Miguel",Player.PLAYER_1);
+				p = new HumanPlayer("Miguel",Token.PLAYER_1, Game.NUM_PIECES_PER_PLAYER);
 			} else {
-				p = new HumanPlayer("Aida",Player.PLAYER_2);
+				p = new HumanPlayer("Aida",Token.PLAYER_2, Game.NUM_PIECES_PER_PLAYER);
 			}
 		} else if(userInput.compareTo("CPU") == 0 || userInput.compareTo("C") == 0) {
 			if(game instanceof ServerGame) {
-				p = new MinimaxIAPlayer(Player.PLAYER_1, 2);
+				p = new MinimaxIAPlayer(Token.PLAYER_1, Game.NUM_PIECES_PER_PLAYER, 4);
 			} else {
-				p = new MinimaxIAPlayer(Player.PLAYER_2, 2);
+				p = new MinimaxIAPlayer(Token.PLAYER_2, Game.NUM_PIECES_PER_PLAYER, 4);
 			}
 		} else {
 			System.out.println("UNKNOWN COMMAND");
@@ -246,7 +273,7 @@ public class Main {
 
 		while(true) {
 			if(game.isThisPlayerTurn()) {
-				if(game.getGamePhase() != Game.PLACING_PHASE) {
+				if(game.getCurrentGamePhase() != Game.PLACING_PHASE) {
 					break;
 				}
 				Player player = game.getPlayer();
@@ -263,7 +290,7 @@ public class Main {
 				}
 
 				if(game.setPiece(boardIndex)) { // if the place is valid
-					if(game.madeAMill(boardIndex, player.getPlayerId())) { // if has 3 in a row
+					if(game.madeAMill(boardIndex, player.getPlayerToken())) { // if has 3 in a row
 						while(true) {
 							if(player.isIA()){
 								boardIndex = ((IAPlayer)player).getIndexToRemovePieceOfOpponent(game.gameBoard);
@@ -293,11 +320,13 @@ public class Main {
 		}
 		while(!game.gameIsOver()) {
 			while(true) {
+				
 				if(game.isThisPlayerTurn()) {
 					Player player = game.getPlayer();
 					int initialIndex, finalIndex;
+					
 					if(player.isIA()) {
-						Move move = ((IAPlayer)player).getPieceMove(game.gameBoard);
+						Move move = ((IAPlayer)player).getPieceMove(game.gameBoard, game.getCurrentGamePhase());
 						initialIndex = move.src;
 						finalIndex = move.dest;
 						System.out.println(player.getName()+" moved piece from "+initialIndex+" to "+finalIndex);
@@ -311,12 +340,15 @@ public class Main {
 						finalIndex = Integer.parseInt(positions[1]);
 						System.out.println("Move piece from "+initialIndex+" to "+finalIndex);
 					}
-					if(game.positionHasPieceOfPlayer(initialIndex, player.getPlayerId())) {
+					if(game.positionHasPieceOfPlayer(initialIndex, player.getPlayerToken())) {
+						
 						if(game.positionIsAvailable(finalIndex) && (game.validMove(initialIndex, finalIndex) || player.canItFly())) {
 							game.movePieceFromTo(initialIndex, finalIndex);
-							if(game.madeAMill(finalIndex, player.getPlayerId())) {
-								int otherPlayerId = (player.getPlayerId() == Player.PLAYER_1) ? Player.PLAYER_2 : Player.PLAYER_1;
+							
+							if(game.madeAMill(finalIndex, player.getPlayerToken())) {
+								Token opponentPlayerToken = (player.getPlayerToken() == Token.PLAYER_1) ? Token.PLAYER_2 : Token.PLAYER_1;
 								int boardIndex;
+								
 								while(true) {
 									if(player.isIA()){
 										boardIndex = ((IAPlayer)player).getIndexToRemovePieceOfOpponent(game.gameBoard);
@@ -327,7 +359,7 @@ public class Main {
 										userInput = userInput.toUpperCase();
 										boardIndex = Integer.parseInt(userInput);
 									}
-									if(game.removePiece(boardIndex, otherPlayerId)) {
+									if(game.removePiece(boardIndex, opponentPlayerToken)) {
 										break;
 									} else {
 										System.out.println("It couldn't be done! Try again.");

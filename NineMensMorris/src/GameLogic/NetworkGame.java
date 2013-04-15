@@ -16,13 +16,13 @@ public abstract class NetworkGame extends Game {
 	protected boolean isThisPlayerTurn;
 	protected Calendar calendar;
 	protected boolean connectionEstablished;
-	protected int IdPlayerWhoGoesFirst;
+	protected Token playerWhoGoesFirst;
 	
 	public NetworkGame() {
 		otherSidePlayerName = null;
 		connectionEstablished = false;
 		isThisPlayerTurn = false;
-		IdPlayerWhoGoesFirst = -1;
+		playerWhoGoesFirst = Token.NO_PLAYER;
 		calendar = Calendar.getInstance();
 	}
 	
@@ -39,7 +39,7 @@ public abstract class NetworkGame extends Game {
 	}
 	
 	public boolean playedFirst() {
-		return player.getPlayerId() == IdPlayerWhoGoesFirst;
+		return (player.getPlayerToken() == playerWhoGoesFirst);
 	}
 	
 	public Player getPlayer() {
@@ -47,18 +47,17 @@ public abstract class NetworkGame extends Game {
 	}
 	
 	@Override
-	public boolean removePiece(int index, int playerId) {
-		if(!positionIsAvailable(index) && positionHasPieceOfPlayer(index, playerId)) {
-			gameBoard.boardPositions[index].playerOccupying = Position.NO_PLAYER;
-			gameBoard.boardPositions[index].isOccupied = false;
-			player.removePiece();
+	public boolean removePiece(int boardIndex, Token player) throws GameException {
+		if(!gameBoard.positionIsAvailable(boardIndex) && positionHasPieceOfPlayer(boardIndex, player)) {
+			gameBoard.getPosition(boardIndex).setAsUnoccupied();
+			this.player.lowerNumPiecesOnBoard();
 			return true;
 		}
 		return false;
 	}
 	
 	public void checkGameIsOver() {
-		if((player.getNumPieces() == Game.MIN_NUM_PIECES)) {
+		if((player.getNumPiecesOnBoard() == Game.MIN_NUM_PIECES)) {
 			gameIsOver = true;
 		}
 	}
