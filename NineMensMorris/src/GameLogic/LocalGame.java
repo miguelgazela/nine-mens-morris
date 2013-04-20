@@ -1,4 +1,4 @@
-package GameLogic;
+ package GameLogic;
 
 public class LocalGame extends Game {
 	private Player player1;
@@ -39,8 +39,14 @@ public class LocalGame extends Game {
 	}
 	
 	public void checkGameIsOver() {
-		if((player1.getNumPieces() == Game.MIN_NUM_PIECES) || (player2.getNumPieces() == Game.MIN_NUM_PIECES)) {
-			gameIsOver = true;
+		try {
+			if(gameBoard.getNumberOfPiecesOfPlayer(Token.PLAYER_1) == Game.MIN_NUM_PIECES
+					|| gameBoard.getNumberOfPiecesOfPlayer(Token.PLAYER_2) == Game.MIN_NUM_PIECES) {
+				gameIsOver = true;
+			}
+		} catch (GameException e) {
+			e.printStackTrace();
+			System.exit(-1);
 		}
 	}
 }

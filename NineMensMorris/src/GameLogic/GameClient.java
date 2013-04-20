@@ -5,17 +5,18 @@ import com.esotericsoftware.kryonet.Client;
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
 
-public class ClientGame extends NetworkGame {
+public class GameClient extends Network {
 	Client client;
 	
-	public ClientGame() {
+	public GameClient() {
 		client = new Client();
 		client.start();
-		NetworkGame.register(client);
+		Network.register(client);
 		
 		client.addListener(new Listener() {
 			public void received(Connection c, Object object) {
 				
+				/*
 				if(object instanceof JoinAck) {
 					if(connectionEstablished) { //ignore if player is already connected to a game
 						return;
@@ -58,23 +59,26 @@ public class ClientGame extends NetworkGame {
 					logThisMessage("You've won! Congrats.");
 					System.exit(-1); // TODO what to do here?
 				}
+				*/
 			}
 			
 			public void connected(Connection connection) {
-				logThisMessage("CLIENT CONNECTED TO SERVER");
+				logThisMessage("THIS CLIENT IS CONNECTED TO SERVER");
+				/*
 				JoinGame request = new JoinGame();
 				request.nameOfClientPlayer = player.getName();
 				client.sendTCP(request);
 				logThisMessage("CLIENT SENT A REQUEST TO JOIN GAME TO SERVER"); 
+				*/
 			}
 		});
 	}
 	
 	public void connectToServer(String host) throws IOException {
-		client.connect(5000, host, NetworkGame.TPC_PORT);
+		client.connect(5000, host, Network.TPC_PORT);
 	}
 
-	@Override
+	/*
 	public boolean setPiece(int boardIndex) {
 		if(setPiece(boardIndex, player.getPlayerId())) {
 			Place place = new Place();
@@ -86,7 +90,6 @@ public class ClientGame extends NetworkGame {
 		return false;
 	}
 
-	@Override
 	public boolean removePiece(int boardIndex) {
 		if(removePiece(boardIndex, Player.PLAYER_1)) {
 			Remove remove = new Remove();
@@ -98,13 +101,6 @@ public class ClientGame extends NetworkGame {
 		return false;
 	}
 	
-	@Override
-	public void sendGameOver() {
-		GameOver gameOver = new GameOver();
-		client.sendTCP(gameOver);
-	}
-	
-	@Override
 	public void movePieceFromTo(int src, int dest) {
 		movePieceFromTo(src, dest, player.getPlayerId());
 		Move move = new Move();
@@ -113,4 +109,10 @@ public class ClientGame extends NetworkGame {
 		move.playerId = player.getPlayerId();
 		client.sendTCP(move);
 	}
+	
+	public abstract void sendGameOver();
+	public abstract boolean setPiece(int boardIndex);
+	public abstract boolean removePiece(int boardIndex);
+	public abstract void movePieceFromTo(int src, int dest);
+	*/
 }

@@ -4,7 +4,6 @@ import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.util.Vector;
 
 import javax.imageio.ImageIO;
 
@@ -27,6 +26,7 @@ public class UIResourcesLoader {
 	public BufferedImage main_menu_background;
 	public BufferedImage options_background;
 	public BufferedImage about_background;
+	public BufferedImage game_options_background;
 	private Image[] v_unselectedPieces;
 	private Image[] v_selectedPieces;
 	private Image[] v_mainmenu_buttons_normal;
@@ -45,6 +45,7 @@ public class UIResourcesLoader {
 			main_menu_background = ImageIO.read(new File("images/backgrounds/main_menu_background.png"));
 			options_background = ImageIO.read(new File("images/backgrounds/options_background.png"));
 			about_background = ImageIO.read(new File("images/backgrounds/about_background.png"));
+			game_options_background = ImageIO.read(new File("images/backgrounds/game_options.png"));
 		} catch (IOException e) {
 			e.printStackTrace();
 			System.out.println("Resources missing");

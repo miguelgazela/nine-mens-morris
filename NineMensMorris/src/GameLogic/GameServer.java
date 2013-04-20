@@ -6,23 +6,24 @@ import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
 import com.esotericsoftware.kryonet.Server;
 
-public class ServerGame extends NetworkGame {
+public class GameServer extends Network {
 	private Server server;
 	private Random random;
 	
-	public ServerGame() throws IOException {
+	public GameServer() throws IOException {
 		super();
 		random = new Random();
 		server = new Server() {
 			protected Connection newConnection() {
-				return new GameConnection(player.getPlayerToken(),player.getName());
+				return new GameConnection();
 			}
 		};
-		NetworkGame.register(server);
+		Network.register(server);
 		
 		server.addListener(new Listener() {
 			public void received(Connection c, Object object) {
 				
+				/*
 				if(object instanceof JoinGame) {
 					if(connectionEstablished) { //ignore if player is already connected
 						return;
@@ -85,28 +86,27 @@ public class ServerGame extends NetworkGame {
 					logThisMessage("You've won! Congrats.");
 					System.exit(-1); // TODO what to do here?
 				}
+				*/
 			}
 			
 			public void disconnected (Connection c) {
-				logThisMessage("CLIENT DISCONNECTED");
+				logThisMessage("CLIENT HAS DISCONNECTED, STOPING SERVER!");
 				server.stop();
 				System.exit(-1);
 			}
 		});
-		server.bind(NetworkGame.TPC_PORT);
+		server.bind(Network.TPC_PORT);
 		server.start();
 	}
 	
 	// This holds per connection state.
     static class GameConnection extends Connection {
-    	Token player;
-    	String playerName;
-    	public GameConnection(Token player, String pName) {
-    		this.player = player;
-    		playerName = pName;
+    	public GameConnection() {
+    		// TODO add something here?
     	}
     }
 
+    /*
 	@Override
 	public boolean setPiece(int boardIndex) {
 		if(setPiece(boardIndex, player.getPlayerId())) {
@@ -146,4 +146,5 @@ public class ServerGame extends NetworkGame {
 		move.playerId = player.getPlayerId();
 		server.sendToAllTCP(move);
 	}
+	*/
 }

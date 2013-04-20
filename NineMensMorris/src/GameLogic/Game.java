@@ -65,7 +65,7 @@ public abstract class Game {
 				}
 			}
 		}
-		return (maxNumPlayerPiecesInRow == 3);
+		return (maxNumPlayerPiecesInRow == Board.NUM_POSITIONS_IN_EACH_MILL);
 	}
 	
 	private int numPiecesFromPlayerInRow(Position[] pos, Token player) {

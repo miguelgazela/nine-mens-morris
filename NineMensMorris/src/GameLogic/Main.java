@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 
 import GameLogic.IAPlayer.Move;
+import GameUI.UIGameMenu;
+import aurelienribon.slidinglayout.SLAnimator;
 
 public class Main {
 	public Game game;
@@ -30,6 +32,7 @@ public class Main {
 		SLAnimator.start();
 		UIGameMenu uiGameMenu = new UIGameMenu();
 		*/
+		
 		System.out.println("Nine Men's Morris starting...");
 		Main maingame = new Main();
 		maingame.input = new BufferedReader(new InputStreamReader(System.in));
@@ -205,12 +208,16 @@ public class Main {
 		System.out.println("(S)ERVER or (C)LIENT?");
 		String userInput = input.readLine();
 		userInput = userInput.toUpperCase();
-		NetworkGame game = null;
+		
+		NetworkGame game = new NetworkGame();
+		GameServer gs = null;
+		GameClient gc = null;
 		
 		if(userInput.compareTo("SERVER") == 0 || userInput.compareTo("S") == 0) {
-			game = new ServerGame();
+			gs = new GameServer();
+			gc = new GameClient();
 		} else if(userInput.compareTo("CLIENT") == 0 || userInput.compareTo("C") == 0) {
-			game = new ClientGame();
+			gc = new GameClient();
 		} else {
 			System.out.println("UNKNOWN COMMAND");
 			System.exit(-1);
@@ -222,13 +229,13 @@ public class Main {
 		Player p = null;
 		
 		if(userInput.compareTo("HUMAN") == 0 || userInput.compareTo("H") == 0) {
-			if(game instanceof ServerGame) {
+			if(gs != null) {
 				p = new HumanPlayer("Miguel",Token.PLAYER_1, Game.NUM_PIECES_PER_PLAYER);
 			} else {
 				p = new HumanPlayer("Aida",Token.PLAYER_2, Game.NUM_PIECES_PER_PLAYER);
 			}
 		} else if(userInput.compareTo("CPU") == 0 || userInput.compareTo("C") == 0) {
-			if(game instanceof ServerGame) {
+			if(gs != null) {
 				p = new MinimaxIAPlayer(Token.PLAYER_1, Game.NUM_PIECES_PER_PLAYER, 4);
 			} else {
 				p = new MinimaxIAPlayer(Token.PLAYER_2, Game.NUM_PIECES_PER_PLAYER, 4);
@@ -241,36 +248,44 @@ public class Main {
 		game.setPlayer(p);
 		int numberTries = 3;			
 	
-		if(game instanceof ClientGame) {
-			//((ClientGame)game).connectToServer(InetAddress.getLocalHost().getHostAddress());
+		if(gs == null) { // this is only a client trying to connect
 			while(true) {
 				try {
-					System.out.println("Trying to connect to server...");
-					((ClientGame)game).connectToServer("localhost");
+					System.out.println("Connect to GameServer at: ");
+					userInput = input.readLine();
+					gc.connectToServer(userInput);
 					break;
 				} catch (Exception e) {
 					// TODO: handle exception
-					System.out.println("NO SERVER DETECTED");
+					System.out.print("NO SERVER DETECTED! ");
 					if(--numberTries == 0) {
 						System.exit(-1);
 					}
+					System.out.println("TRYING AGAIN.\n");
 					Thread.sleep(10000);
 				}
 			}
-		} else {
+		} else { // this computer has the GameServer
 			boolean firstTry = true;
+			gc.connectToServer("localhost");
+			
 			while(true) {
-				if(game.hasConnectionEstablished()) {
+				if(gs.hasConnectionEstablished()) {
 					break;
 				}
 				if(firstTry) {
-					System.out.println("WAITING FOR CLIENT");
+					System.out.println("WAITING FOR GAMECLIENT...");
 					firstTry = false;
 				}
 				Thread.sleep(100);
 			}
 		}
 
+		while(true) {
+			
+		}
+		
+		/*
 		while(true) {
 			if(game.isThisPlayerTurn()) {
 				if(game.getCurrentGamePhase() != Game.PLACING_PHASE) {
@@ -381,5 +396,6 @@ public class Main {
 		}
 		System.out.println("You lost!");
 		game.sendGameOver();
+		*/
 	}
 }
