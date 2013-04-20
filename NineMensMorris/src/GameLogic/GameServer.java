@@ -2,6 +2,9 @@ package GameLogic;
 
 import java.io.IOException;
 import java.util.Random;
+
+import org.objenesis.instantiator.basic.NewInstanceInstantiator;
+
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
 import com.esotericsoftware.kryonet.Server;
@@ -9,9 +12,16 @@ import com.esotericsoftware.kryonet.Server;
 public class GameServer extends Network {
 	private Server server;
 	private Random random;
+	private short numberOfConnectedGameClients;
+	private Board gameBoard;
+	private int gamePhase;
+	private Token currentPlayer;
 	
 	public GameServer() throws IOException {
 		super();
+		numberOfConnectedGameClients = 0;
+		currentPlayer = Token.NO_PLAYER;
+		gameBoard = new Board();
 		random = new Random();
 		server = new Server() {
 			protected Connection newConnection() {
@@ -23,34 +33,52 @@ public class GameServer extends Network {
 		server.addListener(new Listener() {
 			public void received(Connection c, Object object) {
 				
-				/*
 				if(object instanceof JoinGame) {
-					if(connectionEstablished) { //ignore if player is already connected
+					if(connectionEstablished) { // ignore if there are already 2 GameClient connected
+						logThisMessage("SERVER RECEIVED REQUEST TO JOIN GAME FROM A THIRD PLAYER. SENDING SERVER IS FULL ANSWER.");
+						c.sendTCP(new FullServer());
 						return;
 					}
-					otherSidePlayerName = ((JoinGame)object).nameOfClientPlayer;
-					connectionEstablished = true;
-					logThisMessage("SERVER RECEIVED REQUEST TO JOIN GAME FROM "+((JoinGame)object).nameOfClientPlayer+ " "+c.getRemoteAddressTCP());
 					
+					// send an ackowledge for this GameClient request
+					logThisMessage("SERVER RECEIVED REQUEST TO JOIN GAME FROM "+((JoinGame)object).playerToken+ " "+c.getRemoteAddressTCP());
 					JoinAck ack = new JoinAck();
-					ack.nameofServerPlayer = player.getName();
-					
-					// determine who makes the first move and send ack
-					int firstPlayer = random.nextInt(2) + 1;
-					if(firstPlayer == 1) {
-						playerWhoGoesFirst = Token.PLAYER_1;
-					} else if (firstPlayer == 2) {
-						playerWhoGoesFirst = Token.PLAYER_2;
-					}
-					
-					ack.clientPlayerGoesFirst = (playerWhoGoesFirst == Token.PLAYER_1) ? false : true;
-					
+					ack.playerAcknowledged = ((JoinGame)object).playerToken;
 					c.sendTCP(ack);
-					setTurn(!ack.clientPlayerGoesFirst);
-					logThisMessage("Server goes first: "+isThisPlayerTurn);
-					logThisMessage("SERVER SENT ACK TO JOIN GAME");
+					
+					// if there's 2 GameClient connected, start the game
+					if(++numberOfConnectedGameClients == 2) {
+						connectionEstablished = true;
+						StartGame startGame = new StartGame();
+						
+						// determine who makes the first move
+						short firstPlayer = (short) (random.nextInt(2) + 1);
+						startGame.playerWhoPlaysFirst = (firstPlayer == 1 ? Token.PLAYER_1 : Token.PLAYER_2);
+						currentPlayer = startGame.playerWhoPlaysFirst;
+						
+						server.sendToAllTCP(startGame); // warn both players
+						
+						logThisMessage("SERVER SENT START GAME WARNING. FIRST PLAYER IS "+ (startGame.playerWhoPlaysFirst == Token.PLAYER_1 ? "PLAYER 1" : "PLAYER 2"));
+					}
 				}
 				
+				if(object instanceof PiecePlacing) {
+					ActionValidation actionValidation = new ActionValidation();
+					
+					// validate move
+					try {
+						if(setPiece(((PiecePlacing)object).player, ((PiecePlacing)object).boardIndex)) {
+							actionValidation.validAction = true;
+						} else {
+							actionValidation.validAction = false;
+						}
+					} catch (GameException e) {
+						e.printStackTrace();
+					}
+					c.sendTCP(actionValidation);
+				}
+
+				/*
 				if(object instanceof Place) {
 					Place place = (Place)object;
 					if(setPiece(place.boardIndex, place.playerId)) {
@@ -106,19 +134,21 @@ public class GameServer extends Network {
     	}
     }
 
-    /*
-	@Override
-	public boolean setPiece(int boardIndex) {
-		if(setPiece(boardIndex, player.getPlayerId())) {
-			Place place = new Place();
-			place.boardIndex = boardIndex;
-			place.playerId = player.getPlayerId();
-			server.sendToAllTCP(place);
-			return true;
+	public boolean setPiece(Token player, int boardIndex) throws GameException {
+		if(player == currentPlayer) {
+			if(gameBoard.positionIsAvailable(boardIndex)) {
+				gameBoard.getPosition(boardIndex).setAsOccupied(player);
+				gameBoard.incNumPiecesOfPlayer(player);
+				if(gameBoard.incNumTotalPiecesPlaced() == (Game.NUM_PIECES_PER_PLAYER * 2)) {
+					gamePhase = Game.MOVING_PHASE;
+				}
+				return true;
+			}
 		}
 		return false;
 	}
 
+	/*
 	@Override
 	public boolean removePiece(int boardIndex) {
 		if(removePiece(boardIndex, Player.PLAYER_2)) {

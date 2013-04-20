@@ -215,36 +215,23 @@ public class Main {
 		
 		if(userInput.compareTo("SERVER") == 0 || userInput.compareTo("S") == 0) {
 			gs = new GameServer();
-			gc = new GameClient();
+			gc = new GameClient(Token.PLAYER_1);
 		} else if(userInput.compareTo("CLIENT") == 0 || userInput.compareTo("C") == 0) {
-			gc = new GameClient();
+			gc = new GameClient(Token.PLAYER_2);
 		} else {
 			System.out.println("UNKNOWN COMMAND");
 			System.exit(-1);
 		}
 		
-		System.out.println("Player: (H)UMAN or (C)PU?");
-		userInput = input.readLine();
-		userInput = userInput.toUpperCase();
 		Player p = null;
 		
-		if(userInput.compareTo("HUMAN") == 0 || userInput.compareTo("H") == 0) {
-			if(gs != null) {
-				p = new HumanPlayer("Miguel",Token.PLAYER_1, Game.NUM_PIECES_PER_PLAYER);
-			} else {
-				p = new HumanPlayer("Aida",Token.PLAYER_2, Game.NUM_PIECES_PER_PLAYER);
-			}
-		} else if(userInput.compareTo("CPU") == 0 || userInput.compareTo("C") == 0) {
-			if(gs != null) {
-				p = new MinimaxIAPlayer(Token.PLAYER_1, Game.NUM_PIECES_PER_PLAYER, 4);
-			} else {
-				p = new MinimaxIAPlayer(Token.PLAYER_2, Game.NUM_PIECES_PER_PLAYER, 4);
-			}
+		// the player with the server is always PLAYER_1 (not necessarily the first to play)
+		if(gs != null) {
+			p = new HumanPlayer("Miguel",Token.PLAYER_1, Game.NUM_PIECES_PER_PLAYER);
 		} else {
-			System.out.println("UNKNOWN COMMAND");
-			System.exit(-1);
+			p = new HumanPlayer("Aida",Token.PLAYER_2, Game.NUM_PIECES_PER_PLAYER);
 		}
-		
+
 		game.setPlayer(p);
 		int numberTries = 3;			
 	
@@ -281,8 +268,50 @@ public class Main {
 			}
 		}
 
+		while(gc.isWaitingForGameStart()) {
+			// it should use a Runnable for this right?
+			System.out.println("Waiting for game to start");
+			Thread.sleep(5000);
+		}
+		
+		System.out.println("GAME IS ON!!!");
+		if(gc.getPlayerThatPlaysFirst() == p.getPlayerToken()) {
+			System.out.println("I'M THE ONE WHO PLAYS FIRST!");
+			game.setTurn(true);
+		}
+		
 		while(true) {
-			
+			if(game.isThisPlayerTurn()) {
+				
+				// check if the other player played the last piece of the placing phase
+				if(game.getCurrentGamePhase() != Game.PLACING_PHASE) {
+					break;
+				}
+				
+				int boardIndex;
+				Player player = game.getPlayer();
+				game.printGameBoard();
+				
+				// ask user input
+				System.out.println(player.getName()+" place piece on: ");
+				boardIndex = Integer.parseInt(input.readLine());
+				
+				// validate placing with the server
+				if(gc.validatePiecePlacing(boardIndex)) {
+					
+					// validate placing locally
+					if(game.placePieceOfPlayer(boardIndex, player.getPlayerToken())) {
+						if(game.madeAMill(boardIndex, player.getPlayerToken())) {
+							
+						}
+						game.setTurn(false);
+					}
+				} else {
+					System.out.println("The server has considered that move invalid. Try again");
+				}
+				
+			}
+			Thread.sleep(10);
 		}
 		
 		/*
@@ -328,6 +357,7 @@ public class Main {
 			}
 			Thread.sleep(10);
 		}
+
 
 		System.out.println("The pieces are all placed. Starting the fun part...");
 		if(game.playedFirst()) {

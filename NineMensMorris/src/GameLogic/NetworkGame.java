@@ -1,22 +1,13 @@
 package GameLogic;
 
-import java.util.Calendar;
-
-import com.esotericsoftware.kryo.Kryo;
-import com.esotericsoftware.kryonet.EndPoint;
-import com.esotericsoftware.minlog.Log.Logger;
 
 public class NetworkGame extends Game {
 	
 	protected Player player;
-	//protected String opponentPlayerName;
 	protected boolean thisPlayerTurn;
-	protected Token playerWhoGoesFirst;
 	
 	public NetworkGame() {
-		//opponentPlayerName = null;
 		thisPlayerTurn = false;
-		playerWhoGoesFirst = Token.NO_PLAYER;
 	}
 	
 	public void setPlayer(Player p) {
@@ -31,8 +22,8 @@ public class NetworkGame extends Game {
 		return thisPlayerTurn;
 	}
 	
-	public boolean playedFirst() {
-		return (player.getPlayerToken() == playerWhoGoesFirst);
+	public boolean playedFirst(Token playerThatPlayedFirst) {
+		return (player.getPlayerToken() == playerThatPlayedFirst);
 	}
 	
 	public Player getPlayer() {
