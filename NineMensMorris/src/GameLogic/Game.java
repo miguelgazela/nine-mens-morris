@@ -1,6 +1,6 @@
 package GameLogic;
 
-public abstract class Game {
+public class Game {
 	
 	static public final int NUM_PIECES_PER_PLAYER = 9;
 	
@@ -90,6 +90,14 @@ public abstract class Game {
 		return gameIsOver;
 	}
 	
-	public abstract boolean removePiece(int index, Token playerId) throws GameException;
-	public abstract void checkGameIsOver();
+	public boolean removePiece(int boardIndex, Token player) throws GameException { 
+		if(!gameBoard.positionIsAvailable(boardIndex) && positionHasPieceOfPlayer(boardIndex, player)) {
+			gameBoard.getPosition(boardIndex).setAsUnoccupied();
+			gameBoard.decNumPiecesOfPlayer(player);
+			return true;
+		}
+		return false;
+	}
+	
+	public void checkGameIsOver() {}
 }

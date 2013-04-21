@@ -13,15 +13,14 @@ public class GameServer extends Network {
 	private Server server;
 	private Random random;
 	private short numberOfConnectedGameClients;
-	private Board gameBoard;
-	private int gamePhase;
+	private Game validationGame;
 	private Token currentPlayer;
 	
 	public GameServer() throws IOException {
 		super();
 		numberOfConnectedGameClients = 0;
 		currentPlayer = Token.NO_PLAYER;
-		gameBoard = new Board();
+		validationGame = new Game();
 		random = new Random();
 		server = new Server() {
 			protected Connection newConnection() {
@@ -64,32 +63,53 @@ public class GameServer extends Network {
 				
 				if(object instanceof PiecePlacing) {
 					ActionValidation actionValidation = new ActionValidation();
+					Token player = ((PiecePlacing)object).player;
+					int boardIndex = ((PiecePlacing)object).boardIndex;
+					logThisMessage("SERVER RECEIVED A PIECE PLACING FROM PLAYER "+player);
+
+					// validate move
+					try {
+						actionValidation.validAction = false;
+						
+						if(currentPlayer == player) {
+							if(validationGame.placePieceOfPlayer(boardIndex, player)) {
+								actionValidation.validAction = true;
+								server.sendToAllTCP(object);
+								
+								logThisMessage("SERVER VALIDATED A PIECE PLACING FROM PLAYER "+player);
+
+								if(!validationGame.madeAMill(boardIndex, player)) {
+									logThisMessage("PLAYER DIDN'T MAKE A MILL WITH THE PREVIOUS MOVE");
+									updateCurrentPlayer();
+								}
+							}
+						}
+					} catch (GameException e) { e.printStackTrace(); }
+
+					c.sendTCP(actionValidation);
+				}
+				
+				if(object instanceof PieceRemoving) {
+					ActionValidation actionValidation = new ActionValidation();
+					Token player = ((PieceRemoving)object).player;
+					int boardIndex = ((PieceRemoving)object).boardIndex;
 					
 					// validate move
 					try {
-						if(setPiece(((PiecePlacing)object).player, ((PiecePlacing)object).boardIndex)) {
-							actionValidation.validAction = true;
-						} else {
-							actionValidation.validAction = false;
+						actionValidation.validAction = false;
+
+						if(currentPlayer != player) {
+							if(validationGame.removePiece(boardIndex, player)) {
+								logThisMessage("SERVER VALIDATED A REMOVE PIECE OF PLAYER "+player+" FROM INDEX "+boardIndex);
+								actionValidation.validAction = true;
+							}
 						}
-					} catch (GameException e) {
-						e.printStackTrace();
-					}
+					} catch (GameException e) { e.printStackTrace(); }
+					
 					c.sendTCP(actionValidation);
 				}
 
 				/*
-				if(object instanceof Place) {
-					Place place = (Place)object;
-					if(setPiece(place.boardIndex, place.playerId)) {
-						if(!madeAMill(place.boardIndex, place.playerId)) {
-							setTurn(true);
-						}
-					} else {
-						logThisMessage("INVALID PLACE FROM THE CLIENT");
-						System.exit(-1); // TODO what to do in this situation? I think it indicates a problem of synchronization
-					}
-				}
 				
 				if(object instanceof Remove) {
 					Remove remove = (Remove)object;
@@ -119,8 +139,8 @@ public class GameServer extends Network {
 			
 			public void disconnected (Connection c) {
 				logThisMessage("CLIENT HAS DISCONNECTED, STOPING SERVER!");
-				server.stop();
-				System.exit(-1);
+				//server.stop();
+				//System.exit(-1);
 			}
 		});
 		server.bind(Network.TPC_PORT);
@@ -133,20 +153,13 @@ public class GameServer extends Network {
     		// TODO add something here?
     	}
     }
-
-	public boolean setPiece(Token player, int boardIndex) throws GameException {
-		if(player == currentPlayer) {
-			if(gameBoard.positionIsAvailable(boardIndex)) {
-				gameBoard.getPosition(boardIndex).setAsOccupied(player);
-				gameBoard.incNumPiecesOfPlayer(player);
-				if(gameBoard.incNumTotalPiecesPlaced() == (Game.NUM_PIECES_PER_PLAYER * 2)) {
-					gamePhase = Game.MOVING_PHASE;
-				}
-				return true;
-			}
-		}
-		return false;
-	}
+    
+    private void updateCurrentPlayer() {
+    	currentPlayer = (currentPlayer == Token.PLAYER_1 ? Token.PLAYER_2 : Token.PLAYER_1);
+    	ThisPlayerTurn tpt = new ThisPlayerTurn();
+    	tpt.player = currentPlayer;
+    	server.sendToAllTCP(tpt);
+    }
 
 	/*
 	@Override

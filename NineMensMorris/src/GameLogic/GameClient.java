@@ -1,6 +1,9 @@
 package GameLogic;
 
 import java.io.IOException;
+
+import GameLogic.Network.PiecePlacing;
+
 import com.esotericsoftware.kryonet.Client;
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
@@ -12,6 +15,7 @@ public class GameClient extends Network {
 	private boolean waitingForGameToStart;
 	private boolean waitingForServerResponse;
 	private boolean responseFromServer;
+	private boolean thisPlayerTurn;
 	
 	public GameClient(Token player) throws GameException {
 		
@@ -19,12 +23,14 @@ public class GameClient extends Network {
 			throw new GameException(""+getClass().getName()+" - Invalid Player Token");
 		}
 		
-		client = new Client();
 		waitingForGameToStart = true;
 		waitingForServerResponse = false;
 		responseFromServer = false;
+		thisPlayerTurn = false;
 		playerThatPlaysFirst = Token.NO_PLAYER;
 		playerToken = player;
+		
+		client = new Client();
 		client.start();
 		Network.register(client);
 		
@@ -47,11 +53,29 @@ public class GameClient extends Network {
 					logThisMessage("GAMECLIENT HAS RECEIVED CONFIRMATION FOR GAME START FROM THE SERVER");
 					waitingForGameToStart = false;
 					playerThatPlaysFirst = ((StartGame)object).playerWhoPlaysFirst;
+					thisPlayerTurn = (playerToken == playerThatPlaysFirst);
 				}
 				
 				if(object instanceof ActionValidation) {
+					logThisMessage("RECEIVED ACTION VALIDATION");
 					responseFromServer = ((ActionValidation)object).validAction;
 					waitingForServerResponse = false;
+				}
+				
+				if(object instanceof PiecePlacing) {
+					Token player = ((PiecePlacing)object).player;
+					int boardIndex = ((PiecePlacing)object).boardIndex;
+					
+					if(player != playerToken) { // it's a move from the opponent
+						logThisMessage("RECEIVED PIECE PLACING FROM OPPONENT");
+					}
+				}
+				
+				if(object instanceof ThisPlayerTurn) {
+					thisPlayerTurn = (playerToken == ((ThisPlayerTurn)object).player);
+					if(thisPlayerTurn) {
+						logThisMessage("IT'S MY TURN NOW!");
+					}
 				}
 				
 				/*
@@ -111,12 +135,19 @@ public class GameClient extends Network {
 		return waitingForGameToStart;
 	}
 	
+	public boolean isThisPlayerTurn() {
+		return thisPlayerTurn;
+	}
+	
 	public Token getPlayerThatPlaysFirst() {
 		return playerThatPlaysFirst;
 	}
 
 	public boolean validatePiecePlacing(int boardIndex) {
-		PiecePlacing piecePlacing = new PiecePlacing(playerToken, boardIndex);
+		PiecePlacing piecePlacing = new PiecePlacing();
+		piecePlacing.player = playerToken;
+		piecePlacing.boardIndex = boardIndex;
+		
 		waitingForServerResponse = true;
 		client.sendTCP(piecePlacing);
 		
@@ -127,7 +158,23 @@ public class GameClient extends Network {
 		
 		boolean temp = responseFromServer;
 		responseFromServer = false;
+		return temp;
+	}
+	
+	public boolean validatePieceRemoving(int boardIndex) {
+		PieceRemoving pieceRemoving = new PieceRemoving();
+		pieceRemoving.player = (playerToken == Token.PLAYER_1 ? Token.PLAYER_2 : Token.PLAYER_1);
+		pieceRemoving.boardIndex = boardIndex;
+		waitingForServerResponse = true;
+		client.sendTCP(pieceRemoving);
 		
+		while(waitingForServerResponse) {
+			logThisMessage("GAMECLIENT WAITING FOR PIECE REMOVING VALIDATION FROM GAMESERVER");
+			try { Thread.sleep(5); } catch (InterruptedException e) { e.printStackTrace(); }
+		}
+		
+		boolean temp = responseFromServer;
+		responseFromServer = false;
 		return temp;
 	}
 

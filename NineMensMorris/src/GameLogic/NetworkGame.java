@@ -34,7 +34,10 @@ public class NetworkGame extends Game {
 	public boolean removePiece(int boardIndex, Token player) throws GameException {
 		if(!gameBoard.positionIsAvailable(boardIndex) && positionHasPieceOfPlayer(boardIndex, player)) {
 			gameBoard.getPosition(boardIndex).setAsUnoccupied();
-			this.player.lowerNumPiecesOnBoard();
+			gameBoard.decNumPiecesOfPlayer(player);
+			if(player == this.player.getPlayerToken()) {
+				this.player.lowerNumPiecesOnBoard();
+			}
 			return true;
 		}
 		return false;

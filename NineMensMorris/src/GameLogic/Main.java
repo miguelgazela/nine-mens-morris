@@ -4,6 +4,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
+import com.esotericsoftware.minlog.Log;
+
 import GameLogic.IAPlayer.Move;
 import GameUI.UIGameMenu;
 import aurelienribon.slidinglayout.SLAnimator;
@@ -34,6 +36,7 @@ public class Main {
 		*/
 		
 		System.out.println("Nine Men's Morris starting...");
+		Log.set(Log.LEVEL_INFO);
 		Main maingame = new Main();
 		maingame.input = new BufferedReader(new InputStreamReader(System.in));
 		
@@ -302,7 +305,22 @@ public class Main {
 					// validate placing locally
 					if(game.placePieceOfPlayer(boardIndex, player.getPlayerToken())) {
 						if(game.madeAMill(boardIndex, player.getPlayerToken())) {
-							
+							while(true) {
+								// ask for the index of the opponent piece
+								System.out.println("You made a mill. You can remove a piece of your oponent. Remove piece at: ");
+								boardIndex = Integer.parseInt(input.readLine());
+								
+								// validate removing with the server
+								if(gc.validatePieceRemoving(boardIndex)) {
+									
+									// validate removing locally
+									if(game.removePiece(boardIndex, (player.getPlayerToken() == Token.PLAYER_1 ? Token.PLAYER_2 : Token.PLAYER_1))) {
+										break;
+									} else {
+										System.out.println("You can't remove a piece from there. Try again");
+									}
+								}
+							}
 						}
 						game.setTurn(false);
 					}
@@ -312,6 +330,7 @@ public class Main {
 				
 			}
 			Thread.sleep(10);
+			game.setTurn(gc.isThisPlayerTurn());
 		}
 		
 		/*

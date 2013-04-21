@@ -30,12 +30,13 @@ public abstract class Network {
 		kryo.register(JoinGame.class);
 		kryo.register(JoinAck.class);
 		kryo.register(PiecePlacing.class);
-		kryo.register(Remove.class);
+		kryo.register(PieceRemoving.class);
 		kryo.register(Move.class);
 		kryo.register(Token.class);
 		kryo.register(StartGame.class);
 		kryo.register(FullServer.class);
 		kryo.register(ActionValidation.class);
+		kryo.register(ThisPlayerTurn.class);
 	}
 	
 	static protected class JoinGame {
@@ -57,18 +58,19 @@ public abstract class Network {
 	static protected class PiecePlacing {
 		public Token player;
 		public int boardIndex;
-		public PiecePlacing (Token p, int bi) {
-			player = p;
-			bi = boardIndex;
-		}
+	}
+	
+	static protected class PieceRemoving {
+		public Token player;
+		public int boardIndex;
 	}
 	
 	static protected class ActionValidation {
 		public boolean validAction;
 	}
 	
-	static protected class Remove {
-		public int playerId, boardIndex;
+	static protected class ThisPlayerTurn {
+		public Token player;
 	}
 	
 	static protected class Move {
