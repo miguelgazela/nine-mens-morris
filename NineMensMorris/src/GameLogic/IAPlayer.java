@@ -19,15 +19,6 @@ public abstract class IAPlayer extends Player {
 		"Terminator", "Tom Cruise", "Will Smith", "Nelson Mandela", "Iron Man", "Hulk", "Thor",
 		"Loki", "Captain America", "Black Widow", "Phil Coulson"};
 	
-	public class Move {
-		public int src, dest, remove;
-		public Move(int src, int dest, int remove) {
-			this.src = src;
-			this.dest = dest;
-			this.remove = remove;
-		}
-	}
-	
 	public IAPlayer(Token player, int numPiecesPerPlayer) throws GameException {
 		super(player, numPiecesPerPlayer);
 		setName();
@@ -48,5 +39,5 @@ public abstract class IAPlayer extends Player {
 	
 	public abstract int getIndexToRemovePieceOfOpponent(Board gameBoard);
 	
-	public abstract Move getPieceMove(Board gameBoard, int gamePhase);
+	public abstract Move getPieceMove(Board gameBoard, int gamePhase) throws GameException;
 }

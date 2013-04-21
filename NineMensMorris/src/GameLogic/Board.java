@@ -20,12 +20,6 @@ public class Board {
 		initMillCombinations();
 	}
 	
-	/*
-	public Position[] getBoardPositions() {
-		return boardPositions;
-	}
-	*/
-	
 	public Position getPosition(int posIndex) throws GameException {
 		if(posIndex >= 0 && posIndex < Board.NUM_POSITIONS_OF_BOARD) {
 			return boardPositions[posIndex];

@@ -31,7 +31,7 @@ public abstract class Network {
 		kryo.register(JoinAck.class);
 		kryo.register(PiecePlacing.class);
 		kryo.register(PieceRemoving.class);
-		kryo.register(Move.class);
+		//kryo.register(Move.class);
 		kryo.register(Token.class);
 		kryo.register(StartGame.class);
 		kryo.register(FullServer.class);
@@ -73,7 +73,9 @@ public abstract class Network {
 		public Token player;
 	}
 	
+	/*
 	static protected class Move {
 		public int playerId, srcIndex, destIndex;
 	}
+	*/
 }

@@ -3,10 +3,10 @@ package GameLogic;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 
 import com.esotericsoftware.minlog.Log;
 
-import GameLogic.IAPlayer.Move;
 import GameUI.UIGameMenu;
 import aurelienribon.slidinglayout.SLAnimator;
 
@@ -152,8 +152,8 @@ public class Main {
 					System.out.println("Number of moves: "+((MinimaxIAPlayer)p).numberOfMoves);
 					System.out.println("Moves that removed: "+((MinimaxIAPlayer)p).movesThatRemove);
 					System.out.println("It took: "+ (endTime - startTime)/1000000+" miliseconds");
-					initialIndex = move.src;
-					finalIndex = move.dest;
+					initialIndex = move.srcIndex;
+					finalIndex = move.destIndex;
 					System.out.println(p.getName()+" moved piece from "+initialIndex+" to "+finalIndex);
 				} else {
 					game.printGameBoard();
@@ -176,7 +176,7 @@ public class Main {
 							
 							while(true) {
 								if(p.isIA()){
-									boardIndex = move.remove;
+									boardIndex = move.removePieceOnIndex;
 									System.out.println(p.getName()+" removes opponent piece on "+boardIndex);
 								} else {
 									System.out.println("You made a mill! You can remove a piece of your oponent: ");
@@ -285,14 +285,25 @@ public class Main {
 		
 		while(true) {
 			if(game.isThisPlayerTurn()) {
+				int boardIndex;
+				Player player = game.getPlayer();
+				
+				// update game with opponent move(s)
+				ArrayList<Move> opponentMoves = gc.getOpponentMoves();
+				for(Move move : opponentMoves) {
+					if(move.typeOfMove == Move.PLACING) {
+						game.placePieceOfPlayer(move.destIndex, (player.getPlayerToken() == Token.PLAYER_1 ? Token.PLAYER_2 : Token.PLAYER_1));
+					} else if(move.typeOfMove == Move.REMOVING) {
+						game.removePiece(move.removePieceOnIndex, (player.getPlayerToken() == Token.PLAYER_1 ? Token.PLAYER_2 : Token.PLAYER_1));
+					}
+				}
+				opponentMoves.clear();
 				
 				// check if the other player played the last piece of the placing phase
 				if(game.getCurrentGamePhase() != Game.PLACING_PHASE) {
 					break;
 				}
 				
-				int boardIndex;
-				Player player = game.getPlayer();
 				game.printGameBoard();
 				
 				// ask user input

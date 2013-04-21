@@ -45,7 +45,7 @@ public class RandomIAPlayer extends IAPlayer {
 					int[] adjacents = position.getAdjacentPositionsIndexes();
 					for(int i = 0; i < adjacents.length; i++) {
 						if(!gameBoard.getPosition(adjacents[i]).isOccupied()) {
-							return new Move(srcIndex, adjacents[i], -1);
+							return new Move(srcIndex, adjacents[i], -1, Move.MOVING);
 						}
 					}
 				}

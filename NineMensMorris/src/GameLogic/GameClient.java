@@ -1,6 +1,7 @@
 package GameLogic;
 
 import java.io.IOException;
+import java.util.ArrayList;
 
 import GameLogic.Network.PiecePlacing;
 
@@ -16,6 +17,7 @@ public class GameClient extends Network {
 	private boolean waitingForServerResponse;
 	private boolean responseFromServer;
 	private boolean thisPlayerTurn;
+	private ArrayList<Move> opponentMoves;
 	
 	public GameClient(Token player) throws GameException {
 		
@@ -29,6 +31,7 @@ public class GameClient extends Network {
 		thisPlayerTurn = false;
 		playerThatPlaysFirst = Token.NO_PLAYER;
 		playerToken = player;
+		opponentMoves = new ArrayList<Move>();
 		
 		client = new Client();
 		client.start();
@@ -67,6 +70,9 @@ public class GameClient extends Network {
 					int boardIndex = ((PiecePlacing)object).boardIndex;
 					
 					if(player != playerToken) { // it's a move from the opponent
+						try {
+							opponentMoves.add(new Move(-1, boardIndex, -1, Move.PLACING));
+						} catch (GameException e) { e.printStackTrace(); }
 						logThisMessage("RECEIVED PIECE PLACING FROM OPPONENT");
 					}
 				}
@@ -176,6 +182,10 @@ public class GameClient extends Network {
 		boolean temp = responseFromServer;
 		responseFromServer = false;
 		return temp;
+	}
+	
+	public ArrayList<Move> getOpponentMoves() {
+		return opponentMoves;
 	}
 
 	/*
