@@ -3,11 +3,16 @@ package GameLogic;
 public class Game {
 	
 	static public final int NUM_PIECES_PER_PLAYER = 9;
-	
-	protected static final int MIN_NUM_PIECES = 2;
 	static public final int PLACING_PHASE = 1;
 	static public final int MOVING_PHASE = 2;
 	static public final int FLYING_PHASE = 3;
+	
+	static public final int INVALID_SRC_POS = -1;
+	static public final int UNAVAILABLE_POS = -2;
+	static public final int INVALID_MOVE = -3;
+	static public final int VALID_MOVE = 0;
+
+	static protected final int MIN_NUM_PIECES = 2;
 	
 	protected Board gameBoard;
 	protected int gamePhase;
@@ -35,9 +40,22 @@ public class Game {
 		return false;
 	}
 	
-	public void movePieceFromTo(int src, int dest, Token player) throws GameException {
-		gameBoard.getPosition(src).setAsUnoccupied();
-		gameBoard.getPosition(dest).setAsOccupied(player);
+	public int movePieceFromTo(int srcIndex, int destIndex, Token player) throws GameException {
+		if(positionHasPieceOfPlayer(srcIndex, player)) {
+			if(positionIsAvailable(destIndex)) {
+				if(validMove(srcIndex, destIndex) || (gameBoard.getNumberOfPiecesOfPlayer(player) == Game.MIN_NUM_PIECES + 1)) {
+					gameBoard.getPosition(srcIndex).setAsUnoccupied();
+					gameBoard.getPosition(destIndex).setAsOccupied(player);
+					return Game.VALID_MOVE;
+				} else {
+					return Game.INVALID_MOVE;
+				}
+			} else {
+				return Game.UNAVAILABLE_POS;
+			}
+		} else {
+			return Game.INVALID_SRC_POS;
+		}
 	}
 	
 	public boolean placePieceOfPlayer(int boardPosIndex, Token player) throws GameException {
