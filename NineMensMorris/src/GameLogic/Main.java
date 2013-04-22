@@ -172,7 +172,6 @@ public class Main {
 				}
 				
 				int result;
-				
 				if((result = game.movePieceFromTo(srcIndex, destIndex, p.getPlayerToken())) == Game.VALID_MOVE) {
 					if(game.madeAMill(destIndex, p.getPlayerToken())) {
 						Token opponentPlayerToken = (p.getPlayerToken() == Token.PLAYER_1) ? Token.PLAYER_2 : Token.PLAYER_1;
@@ -205,47 +204,6 @@ public class Main {
 				} else {
 					System.out.println("Invalid move. Error code: "+result);
 				}
-				
-				if(game.positionHasPieceOfPlayer(srcIndex, p.getPlayerToken())) {
-					
-					if(game.positionIsAvailable(destIndex) && (game.validMove(srcIndex, destIndex) || p.canItFly())) {
-						game.movePieceFromTo(srcIndex, destIndex, p.getPlayerToken());
-						
-						if(game.madeAMill(destIndex, p.getPlayerToken())) {
-							Token opponentPlayerToken = (p.getPlayerToken() == Token.PLAYER_1) ? Token.PLAYER_2 : Token.PLAYER_1;
-							int boardIndex;
-							
-							while(true) {
-								if(p.isIA()){
-									boardIndex = move.removePieceOnIndex;
-									System.out.println(p.getName()+" removes opponent piece on "+boardIndex);
-								} else {
-									System.out.println("You made a mill! You can remove a piece of your oponent: ");
-									userInput = input.readLine();
-									userInput = userInput.toUpperCase();
-									boardIndex = Integer.parseInt(userInput);
-								}
-								if(game.removePiece(boardIndex, opponentPlayerToken)) {
-									break;
-								} else {
-									System.out.println("It couldn't be done! Try again.");
-								}
-							}
-						}
-						
-						game.checkGameIsOver();
-						if(game.gameIsOver()) {
-							game.printGameBoard();
-							break;
-						}
-						((LocalGame)game).updateCurrentTurnPlayer();
-					} else {
-						System.out.println("That's not a valid move");
-					}
-				} else {
-					System.out.println("No piece on that position or it isn't yours");
-				}
-				
 			}
 		}
 	}
@@ -265,30 +223,26 @@ public class Main {
 			
 			// display IP addresses
 			Enumeration<NetworkInterface> nets;
-	        
 	        try {
 	            nets = NetworkInterface.getNetworkInterfaces();
 	            for (NetworkInterface netint : Collections.list(nets)) {
 	                Enumeration<InetAddress> inetAddresses = netint.getInetAddresses();
 	                for (InetAddress inetAddress : Collections.list(inetAddresses)) {
-	                    System.out.println(inetAddress);
+	                    Log.info(inetAddress.toString());
 	                }
 	            }
-	        } catch (SocketException e) {
-	            e.printStackTrace();
-	        }
-
-			
+	        } catch (SocketException e) { e.printStackTrace(); }
+	        
 		} else if(userInput.compareTo("CLIENT") == 0 || userInput.compareTo("C") == 0) {
 			gc = new GameClient(Token.PLAYER_2);
 		} else {
-			System.out.println("UNKNOWN COMMAND");
+			Log.error("Unknown command. Closing program.");
 			System.exit(-1);
 		}
 		
 		Player p = null;
 		
-		// the player with the server is always PLAYER_1 (not necessarily the first to play)
+		// the player with the server is always PLAYER_1 (not necessarily the first one to play)
 		if(gs != null) {
 			p = new HumanPlayer("Miguel",Token.PLAYER_1, Game.NUM_PIECES_PER_PLAYER);
 		} else {
@@ -301,18 +255,17 @@ public class Main {
 		if(gs == null) { // this is only a client trying to connect
 			while(true) {
 				try {
-					System.out.println("Connect to GameServer at: ");
+					System.out.println("Connect to GameServer at IP address: ");
 					userInput = input.readLine();
 					gc.connectToServer(userInput);
 					break;
 				} catch (Exception e) {
-					// TODO: handle exception
-					System.out.print("NO SERVER DETECTED! ");
+					Log.info("No GameServer detected!");
 					if(--numberTries == 0) {
 						System.exit(-1);
 					}
-					System.out.println("TRYING AGAIN.\n");
-					Thread.sleep(10000);
+					Thread.sleep(6000);
+					Log.info("Trying another connection.");
 				}
 			}
 		} else { // this computer has the GameServer
@@ -324,7 +277,7 @@ public class Main {
 					break;
 				}
 				if(firstTry) {
-					System.out.println("WAITING FOR GAMECLIENT...");
+					Log.info("Server initialized. Waiting for connection from GameClient of this computer");
 					firstTry = false;
 				}
 				Thread.sleep(100);
@@ -332,9 +285,8 @@ public class Main {
 		}
 
 		while(gc.isWaitingForGameStart()) {
-			// it should use a Runnable for this right?
 			System.out.println("Waiting for game to start");
-			Thread.sleep(5000);
+			Thread.sleep(1000);
 		}
 		
 		System.out.println("GAME IS ON!!!");
@@ -367,6 +319,7 @@ public class Main {
 					
 					// validate placing locally
 					if(game.placePieceOfPlayer(boardIndex, player.getPlayerToken())) {
+						
 						if(game.madeAMill(boardIndex, player.getPlayerToken())) {
 							while(true) {
 								// ask for the index of the opponent piece
@@ -421,55 +374,25 @@ public class Main {
 					destIndex = Integer.parseInt(positions[1]);
 					
 					// validate move, locally and with the server
-					if(game.positionHasPieceOfPlayer(srcIndex, player.getPlayerToken())) {
-						
-					}
-				}
-				Thread.sleep(10);
-				game.setTurn(gc.isThisPlayerTurn());
-			}
-		}
-		
-		/*
-		while(!game.gameIsOver()) {
-			while(true) {
-				
-				if(game.isThisPlayerTurn()) {
-					Player player = game.getPlayer();
-					int initialIndex, finalIndex;
+					int result;
+					if(gc.validatePieceMoving(srcIndex, destIndex)) {
+						if((result = game.movePieceFromTo(srcIndex, destIndex, player.getPlayerToken())) == Game.VALID_MOVE) {
 
-						game.printGameBoard();
-						System.out.println(player.getName()+" it's your turn. Input PIECE_POS:PIECE_DEST");
-						userInput = input.readLine();
-						userInput = userInput.toUpperCase();
-						String[] positions = userInput.split(":");
-						initialIndex = Integer.parseInt(positions[0]);
-						finalIndex = Integer.parseInt(positions[1]);
-						System.out.println("Move piece from "+initialIndex+" to "+finalIndex);
-
-					if(game.positionHasPieceOfPlayer(initialIndex, player.getPlayerToken())) {
-						
-						if(game.positionIsAvailable(finalIndex) && (game.validMove(initialIndex, finalIndex) || player.canItFly())) {
-							game.movePieceFromTo(initialIndex, finalIndex);
-							
-							if(game.madeAMill(finalIndex, player.getPlayerToken())) {
-								Token opponentPlayerToken = (player.getPlayerToken() == Token.PLAYER_1) ? Token.PLAYER_2 : Token.PLAYER_1;
-								int boardIndex;
-								
+							if(game.madeAMill(destIndex, player.getPlayerToken())) {
 								while(true) {
-									if(player.isIA()){
-										boardIndex = ((IAPlayer)player).getIndexToRemovePieceOfOpponent(game.gameBoard);
-										System.out.println(player.getName()+" removes opponent piece on "+boardIndex);
-									} else {
-										System.out.println("You made a mill! You can remove a piece of your oponent: ");
-										userInput = input.readLine();
-										userInput = userInput.toUpperCase();
-										boardIndex = Integer.parseInt(userInput);
-									}
-									if(game.removePiece(boardIndex, opponentPlayerToken)) {
-										break;
-									} else {
-										System.out.println("It couldn't be done! Try again.");
+									// ask for the index of the opponent piece
+									System.out.println("You made a mill. You can remove a piece of your oponent. Remove piece at: ");
+									int boardIndex = Integer.parseInt(input.readLine());
+
+									// validate removing with the server
+									if(gc.validatePieceRemoving(boardIndex)) {
+
+										// validate removing locally
+										if(game.removePiece(boardIndex, (player.getPlayerToken() == Token.PLAYER_1 ? Token.PLAYER_2 : Token.PLAYER_1))) {
+											break;
+										} else {
+											System.out.println("You can't remove a piece from there. Try again");
+										}
 									}
 								}
 							}
@@ -477,17 +400,13 @@ public class Main {
 							game.setTurn(false);
 							break;
 						} else {
-							System.out.println("That's not a valid move");
+							System.out.println("Invalid move. Error code: "+result);
 						}
-					} else {
-						System.out.println("No piece on that position or it isn't yours");
 					}
 				}
 				Thread.sleep(10);
+				game.setTurn(gc.isThisPlayerTurn());
 			}
 		}
-		System.out.println("You lost!");
-		game.sendGameOver();
-		*/
 	}
 }

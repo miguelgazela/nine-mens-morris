@@ -1,6 +1,7 @@
 package GameLogic;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.util.ArrayList;
 
 import javax.swing.border.Border;
@@ -10,12 +11,14 @@ import GameLogic.Network.PiecePlacing;
 import com.esotericsoftware.kryonet.Client;
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
+import com.esotericsoftware.minlog.Log;
 
 public class GameClient extends Network {
 	private Client client;
 	private Token playerToken;
 	private Token playerThatPlaysFirst;
 	private boolean waitingForGameToStart;
+	private boolean joinAcknowledged;
 	private boolean waitingForServerResponse;
 	private boolean responseFromServer;
 	private boolean thisPlayerTurn;
@@ -29,6 +32,7 @@ public class GameClient extends Network {
 		
 		waitingForGameToStart = true;
 		waitingForServerResponse = false;
+		joinAcknowledged = false;
 		responseFromServer = false;
 		thisPlayerTurn = false;
 		playerThatPlaysFirst = Token.NO_PLAYER;
@@ -43,10 +47,12 @@ public class GameClient extends Network {
 			public void received(Connection c, Object object) {
 				
 				if(object instanceof JoinAck) {
-					if(connectionEstablished) { // ignore if GameClient is already connected to a GameServer
+					if(joinAcknowledged) { // ignore if GameClient has already joined a game
 						return;
 					}
-					logThisMessage("GAMECLIENT RECEIVED ACK TO JOIN GAME FROM GAMESERVER. WAITING FOR GAME TO START");
+					joinAcknowledged = true;
+					Log.info("GameClient join request was acknowledged by GameServer. Waiting for other player.");
+					//logThisMessage("GAMECLIENT RECEIVED ACK TO JOIN GAME FROM GAMESERVER. WAITING FOR GAME TO START");
 				}
 
 				if(object instanceof FullServer) {
@@ -71,7 +77,8 @@ public class GameClient extends Network {
 					Token player = ((PiecePlacing)object).player;
 					int boardIndex = ((PiecePlacing)object).boardIndex;
 					
-					if(player != playerToken) { // it's a move from the opponent
+					// if it's a move from the opponent, add it to the list
+					if(player != playerToken) {
 						try {
 							opponentMoves.add(new Move(-1, boardIndex, -1, Move.PLACING));
 						} catch (GameException e) { e.printStackTrace(); }
@@ -83,11 +90,26 @@ public class GameClient extends Network {
 					Token player = ((PieceRemoving)object).player;
 					int boardIndex = ((PieceRemoving)object).boardIndex;
 					
-					if(player == playerToken) { // it's a move from the opponent, to remove one of our pieces
+					// if it's a move from the opponent, add it to the list
+					if(player == playerToken) {
 						try {
 							opponentMoves.add(new Move(-1, -1, boardIndex, Move.REMOVING));
 						} catch (GameException e) { e.printStackTrace(); }
 						logThisMessage("RECEIVED PIECE REMOVING FROM OPPONENT");
+					}
+				}
+				
+				if(object instanceof PieceMoving) {
+					Token player = ((PieceMoving)object).player;
+					int srcIndex = ((PieceMoving)object).srcIndex;
+					int destIndex = ((PieceMoving)object).destIndex;
+					
+					// if it's a move from the opponent, add it to the list
+					if(player != playerToken) {
+						try {
+							opponentMoves.add(new Move(srcIndex, destIndex, -1, Move.MOVING));
+						} catch (GameException e) { e.printStackTrace(); }
+						logThisMessage("RECEIVED PIECE MOVING FROM OPPONENT");
 					}
 				}
 				
@@ -163,6 +185,11 @@ public class GameClient extends Network {
 		return playerThatPlaysFirst;
 	}
 
+	/**
+	 * 
+	 * @param boardIndex
+	 * @return
+	 */
 	public boolean validatePiecePlacing(int boardIndex) {
 		PiecePlacing piecePlacing = new PiecePlacing();
 		piecePlacing.player = playerToken;
@@ -170,34 +197,67 @@ public class GameClient extends Network {
 		
 		waitingForServerResponse = true;
 		client.sendTCP(piecePlacing);
-		
-		while(waitingForServerResponse) {
-			logThisMessage("GAMECLIENT WAITING FOR PIECE PLACING VALIDATION FROM GAMESERVER");
-			try { Thread.sleep(5); } catch (InterruptedException e) { e.printStackTrace(); }
-		}
+		waitForServerResponse();
 		
 		boolean temp = responseFromServer;
 		responseFromServer = false;
 		return temp;
 	}
 	
+	/**
+	 * 
+	 * @param boardIndex
+	 * @return
+	 */
 	public boolean validatePieceRemoving(int boardIndex) {
 		PieceRemoving pieceRemoving = new PieceRemoving();
 		pieceRemoving.player = (playerToken == Token.PLAYER_1 ? Token.PLAYER_2 : Token.PLAYER_1);
 		pieceRemoving.boardIndex = boardIndex;
+		
 		waitingForServerResponse = true;
 		client.sendTCP(pieceRemoving);
-		
-		while(waitingForServerResponse) {
-			logThisMessage("GAMECLIENT WAITING FOR PIECE REMOVING VALIDATION FROM GAMESERVER");
-			try { Thread.sleep(5); } catch (InterruptedException e) { e.printStackTrace(); }
-		}
+		waitForServerResponse();
 		
 		boolean temp = responseFromServer;
 		responseFromServer = false;
 		return temp;
 	}
 	
+	/**
+	 * 
+	 * @param srcIndex
+	 * @param destIndex
+	 * @return
+	 */
+	public boolean validatePieceMoving(int srcIndex, int destIndex) {
+		PieceMoving pieceMoving = new PieceMoving();
+		pieceMoving.player = playerToken;
+		pieceMoving.srcIndex = srcIndex;
+		pieceMoving.destIndex = destIndex;
+		
+		waitingForServerResponse = true;
+		client.sendTCP(pieceMoving);
+		waitForServerResponse();
+		
+		boolean temp = responseFromServer;
+		responseFromServer = false;
+		return temp;
+	}
+	
+	/**
+	 * 
+	 */
+	private void waitForServerResponse() {
+		while(waitingForServerResponse) {
+			logThisMessage("GAMECLIENT WAITING FOR VALIDATION FROM GAMESERVER");
+			try { Thread.sleep(10); } catch (InterruptedException e) { e.printStackTrace(); }
+		}
+	}
+	
+	/**
+	 * 
+	 * @return
+	 */
 	public ArrayList<Move> getOpponentMoves() {
 		return opponentMoves;
 	}

@@ -111,6 +111,34 @@ public class GameServer extends Network {
 					
 					c.sendTCP(actionValidation);
 				}
+				
+				if(object instanceof PieceMoving) {
+					ActionValidation actionValidation = new ActionValidation();
+					Token player = ((PieceMoving)object).player;
+					int srcIndex = ((PieceMoving)object).srcIndex;
+					int destIndex = ((PieceMoving)object).destIndex;
+					
+					// validate move
+					try {
+						actionValidation.validAction = false;
+						
+						if(currentPlayer == player) {
+							if(validationGame.movePieceFromTo(srcIndex, destIndex, player) == Game.VALID_MOVE) {
+								actionValidation.validAction = true;
+								server.sendToAllTCP(object);
+								
+								logThisMessage("SERVER VALIDATED A PIECE MOVING FROM PLAYER "+player);
+
+								if(!validationGame.madeAMill(destIndex, player)) {
+									logThisMessage("PLAYER DIDN'T MAKE A MILL WITH THE PREVIOUS MOVE");
+									updateCurrentPlayer();
+								}
+							}
+						}
+					} catch (GameException e) { e.printStackTrace(); }
+					
+					c.sendTCP(actionValidation);
+				}
 
 				/*
 				
