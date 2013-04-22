@@ -141,26 +141,6 @@ public class GameServer extends Network {
 				}
 
 				/*
-				
-				if(object instanceof Remove) {
-					Remove remove = (Remove)object;
-					if(removePiece(remove.boardIndex, player.getPlayerId())) {
-						setTurn(true);
-					} else {
-						logThisMessage("INVALID REMOVE FROM THE CLIENT");
-						System.exit(-1); // TODO what to do in this situation? I think it indicates a problem of synchronization
-					}
-					
-				}
-				
-				if(object instanceof Move) {
-					Move move = (Move)object;
-					movePieceFromTo(move.srcIndex, move.destIndex, move.playerId);
-					if(!madeAMill(move.destIndex, move.playerId)) {
-						setTurn(true);
-					}
-				}
-				
 				if(object instanceof GameOver) {
 					logThisMessage("You've won! Congrats.");
 					System.exit(-1); // TODO what to do here?
@@ -191,34 +171,4 @@ public class GameServer extends Network {
     	tpt.player = currentPlayer;
     	server.sendToAllTCP(tpt);
     }
-
-	/*
-	@Override
-	public boolean removePiece(int boardIndex) {
-		if(removePiece(boardIndex, Player.PLAYER_2)) {
-			Remove remove = new Remove();
-			remove.boardIndex = boardIndex;
-			remove.playerId = player.getPlayerId();
-			server.sendToAllTCP(remove);
-			return true;
-		}
-		return false;
-	}
-
-	@Override
-	public void sendGameOver() {
-		GameOver gameOver = new GameOver();
-		server.sendToAllTCP(gameOver);
-	}
-
-	@Override
-	public void movePieceFromTo(int src, int dest) {
-		movePieceFromTo(src, dest, player.getPlayerId());
-		Move move = new Move();
-		move.srcIndex = src;
-		move.destIndex = dest;
-		move.playerId = player.getPlayerId();
-		server.sendToAllTCP(move);
-	}
-	*/
 }

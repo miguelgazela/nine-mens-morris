@@ -203,7 +203,13 @@ public class Board {
 		case PLAYER_2:
 			return "O";
 		case NO_PLAYER:
-			return "*";
+		{
+			if(i < 10) {
+				return Integer.toString(i);
+			} else {
+				return "*";
+			}
+		}
 		default:
 			return null;
 		}

@@ -121,33 +121,6 @@ public class GameClient extends Network {
 				}
 				
 				/*
-				if(object instanceof Place) {
-					Place place = (Place)object;
-					if(setPiece(place.boardIndex, place.playerId)) {
-						if(!madeAMill(place.boardIndex, place.playerId)) {
-							setTurn(true);
-						}
-					} else {
-						logThisMessage("INVALID PLACE FROM THE SERVER");
-						System.exit(-1); // TODO what to do in this situation? I think it indicates a problem of synchronization
-					}
-				}
-				
-				if(object instanceof Remove) {
-					Remove remove = (Remove)object;
-					if(removePiece(remove.boardIndex, player.getPlayerId())) {
-						setTurn(true);
-					} else {
-						logThisMessage("INVALID REMOVE FROM THE SERVER");
-						System.exit(-1); // TODO what to do in this situation? I think it indicates a problem of synchronization
-					}
-				}
-
-				if(object instanceof Move) {
-					Move move = (Move)object;
-					movePieceFromTo(move.srcIndex, move.destIndex, move.playerId);
-				}
-				
 				if(object instanceof GameOver) {
 					logThisMessage("You've won! Congrats.");
 					System.exit(-1); // TODO what to do here?
@@ -210,6 +183,7 @@ public class GameClient extends Network {
 	 * @return
 	 */
 	public boolean validatePieceRemoving(int boardIndex) {
+		Log.info("HERE");
 		PieceRemoving pieceRemoving = new PieceRemoving();
 		pieceRemoving.player = (playerToken == Token.PLAYER_1 ? Token.PLAYER_2 : Token.PLAYER_1);
 		pieceRemoving.boardIndex = boardIndex;

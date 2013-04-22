@@ -343,7 +343,6 @@ public class Main {
 				} else {
 					System.out.println("The server has considered that move invalid. Try again");
 				}
-				
 			}
 			Thread.sleep(10);
 			game.setTurn(gc.isThisPlayerTurn());
