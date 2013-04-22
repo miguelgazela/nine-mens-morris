@@ -3,7 +3,12 @@ package GameLogic;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.net.SocketException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Enumeration;
 
 import com.esotericsoftware.minlog.Log;
 
@@ -219,6 +224,23 @@ public class Main {
 		if(userInput.compareTo("SERVER") == 0 || userInput.compareTo("S") == 0) {
 			gs = new GameServer();
 			gc = new GameClient(Token.PLAYER_1);
+			
+			// display IP addresses
+			Enumeration<NetworkInterface> nets;
+	        
+	        try {
+	            nets = NetworkInterface.getNetworkInterfaces();
+	            for (NetworkInterface netint : Collections.list(nets)) {
+	                Enumeration<InetAddress> inetAddresses = netint.getInetAddresses();
+	                for (InetAddress inetAddress : Collections.list(inetAddresses)) {
+	                    System.out.println(inetAddress);
+	                }
+	            }
+	        } catch (SocketException e) {
+	            e.printStackTrace();
+	        }
+
+			
 		} else if(userInput.compareTo("CLIENT") == 0 || userInput.compareTo("C") == 0) {
 			gc = new GameClient(Token.PLAYER_2);
 		} else {
