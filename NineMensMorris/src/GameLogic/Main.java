@@ -312,11 +312,12 @@ public class Main {
 				
 				// update game with opponent move(s)
 				ArrayList<Move> opponentMoves = gc.getOpponentMoves();
+				
 				for(Move move : opponentMoves) {
 					if(move.typeOfMove == Move.PLACING) {
 						game.placePieceOfPlayer(move.destIndex, (player.getPlayerToken() == Token.PLAYER_1 ? Token.PLAYER_2 : Token.PLAYER_1));
 					} else if(move.typeOfMove == Move.REMOVING) {
-						game.removePiece(move.removePieceOnIndex, (player.getPlayerToken() == Token.PLAYER_1 ? Token.PLAYER_2 : Token.PLAYER_1));
+						game.removePiece(move.removePieceOnIndex, (player.getPlayerToken() == Token.PLAYER_1 ? Token.PLAYER_1 : Token.PLAYER_2));
 					}
 				}
 				opponentMoves.clear();
