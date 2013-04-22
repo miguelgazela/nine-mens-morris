@@ -312,24 +312,15 @@ public class Main {
 				
 				// update game with opponent move(s)
 				ArrayList<Move> opponentMoves = gc.getOpponentMoves();
-				
-				for(Move move : opponentMoves) {
-					if(move.typeOfMove == Move.PLACING) {
-						game.placePieceOfPlayer(move.destIndex, (player.getPlayerToken() == Token.PLAYER_1 ? Token.PLAYER_2 : Token.PLAYER_1));
-					} else if(move.typeOfMove == Move.REMOVING) {
-						game.removePiece(move.removePieceOnIndex, (player.getPlayerToken() == Token.PLAYER_1 ? Token.PLAYER_1 : Token.PLAYER_2));
-					}
-				}
-				opponentMoves.clear();
+				game.updateGameWithOpponentMoves(opponentMoves);
 				
 				// check if the other player played the last piece of the placing phase
 				if(game.getCurrentGamePhase() != Game.PLACING_PHASE) {
 					break;
 				}
 				
-				game.printGameBoard();
-				
 				// ask user input
+				game.printGameBoard();
 				System.out.println(player.getName()+" place piece on: ");
 				boardIndex = Integer.parseInt(input.readLine());
 				
@@ -366,69 +357,35 @@ public class Main {
 			Thread.sleep(10);
 			game.setTurn(gc.isThisPlayerTurn());
 		}
-		
-		/*
-		while(true) {
-			if(game.isThisPlayerTurn()) {
-				if(game.getCurrentGamePhase() != Game.PLACING_PHASE) {
-					break;
-				}
-				Player player = game.getPlayer();
-				int boardIndex;
-				if(p.isIA()) {
-					boardIndex = ((MinimaxIAPlayer)player).getIndexToPlacePiece(game.gameBoard);
-					System.out.println(player.getName()+" placed piece on "+boardIndex);
-				} else {
-					game.printGameBoard();
-					System.out.println(player.getName()+" place piece on: ");
-					userInput = input.readLine();
-					userInput = userInput.toUpperCase();
-					boardIndex = Integer.parseInt(userInput);
-				}
-
-				if(game.setPiece(boardIndex)) { // if the place is valid
-					if(game.madeAMill(boardIndex, player.getPlayerToken())) { // if has 3 in a row
-						while(true) {
-							if(player.isIA()){
-								boardIndex = ((IAPlayer)player).getIndexToRemovePieceOfOpponent(game.gameBoard);
-								System.out.println(player.getName()+" removes opponent piece on "+boardIndex);
-							} else {
-								System.out.println("You made a mill. You can remove a piece of your oponent: ");
-								userInput = input.readLine();
-								userInput = userInput.toUpperCase();
-								boardIndex = Integer.parseInt(userInput);
-							}
-							if(game.removePiece(boardIndex)) { // if it removed an opponent piece
-								break;
-							} else {
-								System.out.println("You can't remove a piece from there. Try again");
-							}
-						}
-					}
-					game.setTurn(false);
-				}
-			}
-			Thread.sleep(10);
-		}
-
 
 		System.out.println("The pieces are all placed. Starting the fun part...");
-		if(game.playedFirst()) {
+		
+		// getting the right player to make the first move
+		if(game.playedFirst(gc.getPlayerThatPlaysFirst())) {
 			game.setTurn(true);
 		}
+		
+		while(!game.gameIsOver()) {
+			while(true) {
+				if(game.isThisPlayerTurn()) {
+					Player player = game.getPlayer();
+					int srcIndex, destIndex;
+					
+					
+				}
+				Thread.sleep(10);
+				game.setTurn(gc.isThisPlayerTurn());
+			}
+		}
+		
+		/*
 		while(!game.gameIsOver()) {
 			while(true) {
 				
 				if(game.isThisPlayerTurn()) {
 					Player player = game.getPlayer();
 					int initialIndex, finalIndex;
-					
-					if(player.isIA()) {
-						Move move = ((IAPlayer)player).getPieceMove(game.gameBoard, game.getCurrentGamePhase());
-						initialIndex = move.src;
-						finalIndex = move.dest;
-						System.out.println(player.getName()+" moved piece from "+initialIndex+" to "+finalIndex);
-					} else {
+
 						game.printGameBoard();
 						System.out.println(player.getName()+" it's your turn. Input PIECE_POS:PIECE_DEST");
 						userInput = input.readLine();
@@ -437,7 +394,7 @@ public class Main {
 						initialIndex = Integer.parseInt(positions[0]);
 						finalIndex = Integer.parseInt(positions[1]);
 						System.out.println("Move piece from "+initialIndex+" to "+finalIndex);
-					}
+
 					if(game.positionHasPieceOfPlayer(initialIndex, player.getPlayerToken())) {
 						
 						if(game.positionIsAvailable(finalIndex) && (game.validMove(initialIndex, finalIndex) || player.canItFly())) {

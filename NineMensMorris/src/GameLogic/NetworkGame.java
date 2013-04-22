@@ -1,5 +1,7 @@
 package GameLogic;
 
+import java.util.ArrayList;
+
 
 public class NetworkGame extends Game {
 	
@@ -47,5 +49,18 @@ public class NetworkGame extends Game {
 		if((player.getNumPiecesOnBoard() == Game.MIN_NUM_PIECES)) {
 			gameIsOver = true;
 		}
+	}
+	
+	public void updateGameWithOpponentMoves(ArrayList<Move> opponentMoves) throws GameException {
+		for(Move move : opponentMoves) {
+			if(move.typeOfMove == Move.PLACING) {
+				placePieceOfPlayer(move.destIndex, (player.getPlayerToken() == Token.PLAYER_1 ? Token.PLAYER_2 : Token.PLAYER_1));
+			} else if(move.typeOfMove == Move.REMOVING) {
+				removePiece(move.removePieceOnIndex, (player.getPlayerToken() == Token.PLAYER_1 ? Token.PLAYER_1 : Token.PLAYER_2));
+			} else if(move.typeOfMove == Move.MOVING) {
+				movePieceFromTo(move.srcIndex, move.destIndex, (player.getPlayerToken() == Token.PLAYER_1 ? Token.PLAYER_2 : Token.PLAYER_1));
+			}
+		}
+		opponentMoves.clear();
 	}
 }
