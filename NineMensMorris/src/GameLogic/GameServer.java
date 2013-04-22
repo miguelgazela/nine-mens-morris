@@ -100,8 +100,11 @@ public class GameServer extends Network {
 
 						if(currentPlayer != player) {
 							if(validationGame.removePiece(boardIndex, player)) {
-								logThisMessage("SERVER VALIDATED A REMOVE PIECE OF PLAYER "+player+" FROM INDEX "+boardIndex);
 								actionValidation.validAction = true;
+								server.sendToAllTCP(object);
+								updateCurrentPlayer();
+								
+								logThisMessage("SERVER VALIDATED A REMOVE PIECE OF PLAYER "+player+" FROM INDEX "+boardIndex);
 							}
 						}
 					} catch (GameException e) { e.printStackTrace(); }

@@ -3,6 +3,8 @@ package GameLogic;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import javax.swing.border.Border;
+
 import GameLogic.Network.PiecePlacing;
 
 import com.esotericsoftware.kryonet.Client;
@@ -74,6 +76,18 @@ public class GameClient extends Network {
 							opponentMoves.add(new Move(-1, boardIndex, -1, Move.PLACING));
 						} catch (GameException e) { e.printStackTrace(); }
 						logThisMessage("RECEIVED PIECE PLACING FROM OPPONENT");
+					}
+				}
+				
+				if(object instanceof PieceRemoving) {
+					Token player = ((PieceRemoving)object).player;
+					int boardIndex = ((PieceRemoving)object).boardIndex;
+					
+					if(player == playerToken) { // it's a move from the opponent, to remove one of our pieces
+						try {
+							opponentMoves.add(new Move(-1, -1, boardIndex, Move.REMOVING));
+						} catch (GameException e) { e.printStackTrace(); }
+						logThisMessage("RECEIVED PIECE REMOVING FROM OPPONENT");
 					}
 				}
 				
