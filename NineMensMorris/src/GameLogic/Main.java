@@ -37,7 +37,7 @@ public class Main {
 		
 		/*
 		SLAnimator.start();
-		UIGameMenu uiGameMenu = new UIGameMenu();
+		new UIGameMenu();
 		*/
 		
 		System.out.println("Nine Men's Morris starting...");

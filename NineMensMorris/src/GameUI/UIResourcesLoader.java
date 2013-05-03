@@ -24,7 +24,7 @@ public class UIResourcesLoader {
 	
 	public BufferedImage game_background_1;
 	public BufferedImage main_menu_background;
-	public BufferedImage options_background;
+	public BufferedImage settings_background;
 	public BufferedImage about_background;
 	public BufferedImage game_options_background;
 	private Image[] v_unselectedPieces;
@@ -43,7 +43,7 @@ public class UIResourcesLoader {
 		try {
 			game_background_1 = ImageIO.read(new File("images/backgrounds/game_background_test.png"));
 			main_menu_background = ImageIO.read(new File("images/backgrounds/main_menu_background.png"));
-			options_background = ImageIO.read(new File("images/backgrounds/options_background.png"));
+			settings_background = ImageIO.read(new File("images/backgrounds/settings_background.png"));
 			about_background = ImageIO.read(new File("images/backgrounds/about_background.png"));
 			game_options_background = ImageIO.read(new File("images/backgrounds/game_options.png"));
 		} catch (IOException e) {

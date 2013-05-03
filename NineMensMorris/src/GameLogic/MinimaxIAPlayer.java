@@ -225,7 +225,7 @@ public class MinimaxIAPlayer extends IAPlayer {
 					}
 
 					if (player == this.playerToken) {  // maximizing player
-						currentScore = minimax(opponentPlayer, depth - 1,gameBoard, gamePhase)[0];
+						currentScore = minimax(opponentPlayer, depth - 1, gameBoard, gamePhase)[0];
 						if (currentScore > bestScore) {
 							bestScore = currentScore;
 							bestPosDest = move.destIndex;
@@ -233,7 +233,7 @@ public class MinimaxIAPlayer extends IAPlayer {
 							removePos = move.removePieceOnIndex;
 						}
 					} else {  //  minimizing player
-						currentScore = minimax(this.playerToken, depth - 1,gameBoard, gamePhase)[0];
+						currentScore = minimax(this.playerToken, depth - 1, gameBoard, gamePhase)[0];
 						if (currentScore < bestScore) {
 							bestScore = currentScore;
 							bestPosDest = move.destIndex;
