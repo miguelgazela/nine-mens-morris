@@ -35,11 +35,10 @@ public class Main {
 			}
 		}
 		
-		/*
 		SLAnimator.start();
 		new UIGameMenu();
-		*/
 		
+		/*
 		System.out.println("Nine Men's Morris starting...");
 		Log.set(Log.LEVEL_INFO);
 		Main maingame = new Main();
@@ -57,6 +56,7 @@ public class Main {
 			System.out.println("UNKNOWN COMMAND");
 			System.exit(-1);
 		}
+		*/
 	}
 	
 	public void createLocalGame(int minimaxDepth) throws IOException, GameException {

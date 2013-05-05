@@ -7,48 +7,58 @@ import java.io.IOException;
 
 import javax.imageio.ImageIO;
 
+import GameLogic.GameException;
+import GameLogic.Token;
+
 public class UIResourcesLoader {
-	public final static int BLUE_PIECE = 0;
-	public final static int GREEN_PIECE = 1;
-	public final static int PURPLE_PIECE = 2;
-	public final static int YELLOW_PIECE = 3;
-	public final static int RED_PIECE = 4;
-	public final static int NEW_GAME_BTN = 0;
-	public final static int OPTIONS_BTN = 1;
-	public final static int EXIT_BTN = 2;
-	public final static int MAIN_MENU_NORMAL = 0;
-	public final static int MAIN_MENU_HOVER = 1;
-	public final static int MAIN_MENU_ACTIVE = 2;
+	
+	static public final int LOCAL_GAME = 0;
+	static public final int NETWORK_GAME = 1;
+	static public final int SERVER_GAME = 2;
+	static public final int CLIENT_GAME = 3;
+	static public final int HUM_HUM_GAME = 4;
+	static public final int HUM_CPU_GAME = 5;
+	static public final int CPU_CPU_GAME = 6;
 	
 	private static UIResourcesLoader instanceLoader;
 	
-	public BufferedImage game_background_1;
-	public BufferedImage main_menu_background;
-	public BufferedImage settings_background;
-	public BufferedImage about_background;
-	public BufferedImage game_options_background;
+	public BufferedImage mainmenu_bg;
+	public BufferedImage settings_bg;
+	public BufferedImage about_bg;
+	public BufferedImage devteam_bg;
+	public BufferedImage newgame_bg;
+	public BufferedImage game_bg;
+	
+	public Image game_level_check;
+	public Image start_game;
+	public Image return_game;
+	
+	public Coord[] game_level_check_coords;
+	public Coord[] new_game_btns_coords;
+	public Coord[] board_positions_coords;
+	public Coord start_game_btn_coord;
+	public Coord return_game_btn_coord;
+	
+	private Image[] v_unselectedNewGameBtn;
+	private Image[] v_selectedNewGameBtn;
 	private Image[] v_unselectedPieces;
 	private Image[] v_selectedPieces;
-	private Image[] v_mainmenu_buttons_normal;
-	private Image[] v_mainmenu_buttons_hover;
-	private Image[] v_mainmenu_buttons_active;
-	private Image[] v_about_buttons;
-	
-	private Coord[] v_mainmenu_buttons_coords;
-	private Coord about_button_coord;
 	
 	private UIResourcesLoader() {
 		initPieces();
-		initMainMenuButtons();
+		initBtns();
+		initCoords();
 		try {
-			game_background_1 = ImageIO.read(new File("images/backgrounds/game_background_test.png"));
-			main_menu_background = ImageIO.read(new File("images/backgrounds/main_menu_background.png"));
-			settings_background = ImageIO.read(new File("images/backgrounds/settings_background.png"));
-			about_background = ImageIO.read(new File("images/backgrounds/about_background.png"));
-			game_options_background = ImageIO.read(new File("images/backgrounds/game_options.png"));
+			mainmenu_bg = ImageIO.read(new File("images/backgrounds/mainmenu_bg.png"));
+			settings_bg = ImageIO.read(new File("images/backgrounds/settings_bg.png"));
+			about_bg = ImageIO.read(new File("images/backgrounds/about.png"));
+			devteam_bg = ImageIO.read(new File("images/backgrounds/devteam.png"));
+			newgame_bg = ImageIO.read(new File("images/backgrounds/newgame_bg.png"));
+			game_level_check = ImageIO.read(new File("images/buttons/check.png"));
+			game_bg = ImageIO.read(new File("images/backgrounds/game.png"));
 		} catch (IOException e) {
 			e.printStackTrace();
-			System.out.println("Resources missing");
+			System.out.println("Background Resources Missing");
 			System.exit(-1);
 		}
 	}
@@ -60,76 +70,90 @@ public class UIResourcesLoader {
 		return instanceLoader;
 	}
 	
-	private void initMainMenuButtons() {
-		v_mainmenu_buttons_normal = new Image[3];
-		v_mainmenu_buttons_hover = new Image[3];
-		v_mainmenu_buttons_active = new Image[3];
-		v_mainmenu_buttons_coords = new Coord[3];
-		v_about_buttons = new Image[2];
+	private void initBtns() {
+		v_unselectedNewGameBtn = new Image[7];
+		v_selectedNewGameBtn = new Image[7];
 		
 		try {
-			v_mainmenu_buttons_normal[NEW_GAME_BTN] = ImageIO.read(new File("images/buttons/new_game_normal.png"));
-			v_mainmenu_buttons_normal[OPTIONS_BTN] = ImageIO.read(new File("images/buttons/options_normal.png"));
-			v_mainmenu_buttons_normal[EXIT_BTN] = ImageIO.read(new File("images/buttons/exit_game_normal.png"));
-			v_mainmenu_buttons_hover[NEW_GAME_BTN] = ImageIO.read(new File("images/buttons/new_game_hover.png"));
-			v_mainmenu_buttons_hover[OPTIONS_BTN] = ImageIO.read(new File("images/buttons/options_hover.png"));
-			v_mainmenu_buttons_hover[EXIT_BTN] = ImageIO.read(new File("images/buttons/exit_game_hover.png"));
-			v_mainmenu_buttons_active[NEW_GAME_BTN] = ImageIO.read(new File("images/buttons/new_game_active.png"));
-			v_mainmenu_buttons_active[OPTIONS_BTN] = ImageIO.read(new File("images/buttons/options_active.png"));
-			v_mainmenu_buttons_active[EXIT_BTN] = ImageIO.read(new File("images/buttons/exit_game_active.png"));
-			v_about_buttons[0] = ImageIO.read(new File("images/buttons/about_normal.png"));
-			v_about_buttons[1] = ImageIO.read(new File("images/buttons/about_hover.png"));
-		} catch (Exception e) {
+			v_unselectedNewGameBtn[LOCAL_GAME] = ImageIO.read(new File("images/buttons/local_uns.png"));
+			v_unselectedNewGameBtn[NETWORK_GAME] = ImageIO.read(new File("images/buttons/network_uns.png"));
+			v_unselectedNewGameBtn[SERVER_GAME] = ImageIO.read(new File("images/buttons/server_uns.png"));
+			v_unselectedNewGameBtn[CLIENT_GAME] = ImageIO.read(new File("images/buttons/client_uns.png"));
+			v_unselectedNewGameBtn[HUM_HUM_GAME] = ImageIO.read(new File("images/buttons/h-h_uns.png"));
+			v_unselectedNewGameBtn[HUM_CPU_GAME] = ImageIO.read(new File("images/buttons/h-c_uns.png"));
+			v_unselectedNewGameBtn[CPU_CPU_GAME] = ImageIO.read(new File("images/buttons/c-c_uns.png"));
+			v_selectedNewGameBtn[LOCAL_GAME] = ImageIO.read(new File("images/buttons/local_sel.png"));
+			v_selectedNewGameBtn[NETWORK_GAME] = ImageIO.read(new File("images/buttons/network_sel.png"));
+			v_selectedNewGameBtn[SERVER_GAME] = ImageIO.read(new File("images/buttons/server_sel.png"));
+			v_selectedNewGameBtn[CLIENT_GAME] = ImageIO.read(new File("images/buttons/client_sel.png"));
+			v_selectedNewGameBtn[HUM_HUM_GAME] = ImageIO.read(new File("images/buttons/h-h_sel.png"));
+			v_selectedNewGameBtn[HUM_CPU_GAME] = ImageIO.read(new File("images/buttons/h-c_sel.png"));
+			v_selectedNewGameBtn[CPU_CPU_GAME] = ImageIO.read(new File("images/buttons/c-c_sel.png"));
+			start_game = ImageIO.read(new File("images/buttons/start_game.png"));
+			return_game = ImageIO.read(new File("images/buttons/return_game.png"));
+		} catch(IOException e) {
 			e.printStackTrace();
 			System.out.println("Resources missing");
 			System.exit(-1);
 		}
-		v_mainmenu_buttons_coords[NEW_GAME_BTN] = new Coord(159, 310);
-		v_mainmenu_buttons_coords[OPTIONS_BTN] = new Coord(274, 310);
-		v_mainmenu_buttons_coords[EXIT_BTN] = new Coord(389, 310);
-		about_button_coord = new Coord(311, 160);
 	}
 	
-	public Image[] getMainMenuButtons(int buttonsState) {
-		switch (buttonsState) {
-		case MAIN_MENU_NORMAL:
-			return v_mainmenu_buttons_normal;
-		case MAIN_MENU_HOVER:
-			return v_mainmenu_buttons_hover;
-		case MAIN_MENU_ACTIVE:
-			return v_mainmenu_buttons_active;
-		default:
-			throw new ArrayIndexOutOfBoundsException();
-		}
-	}
-	
-	public Coord[] getMainMenuButtonsCoord() {
-		return v_mainmenu_buttons_coords;
-	}
-	
-	public Coord getAboutButtonCoord() {
-		return about_button_coord;
-	}
-	
-	public Image[] getAboutButtons() {
-		return v_about_buttons;
+	private void initCoords() {
+		game_level_check_coords = new Coord[5];
+		int x = 70;
+		
+		game_level_check_coords[0] = new Coord(x, 210);
+		game_level_check_coords[1] = new Coord(x, 283);
+		game_level_check_coords[2] = new Coord(x, 356);
+		game_level_check_coords[3] = new Coord(x, 429);
+		game_level_check_coords[4] = new Coord(x, 502);
+		
+		new_game_btns_coords = new Coord[7];
+		new_game_btns_coords[0] = new Coord(106, 177);
+		new_game_btns_coords[1] = new Coord(221, 177);
+		new_game_btns_coords[2] = new Coord(106, 292);
+		new_game_btns_coords[3] = new Coord(221, 292);
+		new_game_btns_coords[4] = new Coord(106, 407);
+		new_game_btns_coords[5] = new Coord(221, 407);
+		new_game_btns_coords[6] = new Coord(221, 522);
+		
+		start_game_btn_coord = new Coord(272, 640);
+		return_game_btn_coord = new Coord(993, 663);
+		
+		board_positions_coords = new Coord[24];
+		board_positions_coords[0] = new Coord(379,66);
+		board_positions_coords[1] = new Coord(624,66);
+		board_positions_coords[2] = new Coord(870,66);
+		board_positions_coords[3] = new Coord(451,138);
+		board_positions_coords[4] = new Coord(624,138);
+		board_positions_coords[5] = new Coord(798,138);
+		board_positions_coords[6] = new Coord(525,212);
+		board_positions_coords[7] = new Coord(624,212);
+		board_positions_coords[8] = new Coord(724,212);
+		board_positions_coords[9] = new Coord(379,310);
+		board_positions_coords[10] = new Coord(451,310);
+		board_positions_coords[11] = new Coord(525,310);
+		board_positions_coords[12] = new Coord(724,310);
+		board_positions_coords[13] = new Coord(798,310);
+		board_positions_coords[14] = new Coord(870,310);
+		board_positions_coords[15] = new Coord(525,411);
+		board_positions_coords[16] = new Coord(624,411);
+		board_positions_coords[17] = new Coord(724,411);
+		board_positions_coords[18] = new Coord(451,485);
+		board_positions_coords[19] = new Coord(624,485);
+		board_positions_coords[20] = new Coord(798,485);
+		board_positions_coords[21] = new Coord(379,557);
+		board_positions_coords[22] = new Coord(624,557);
+		board_positions_coords[23] = new Coord(870,557);
 	}
 	
 	private void initPieces() {
-		v_selectedPieces = new Image[5];
-		v_unselectedPieces = new Image[5];
-		
 		try {
-			v_unselectedPieces[BLUE_PIECE] = ImageIO.read(new File("images/pieces/blue.png"));
-			v_unselectedPieces[GREEN_PIECE] = ImageIO.read(new File("images/pieces/green.png"));
-			v_unselectedPieces[PURPLE_PIECE] = ImageIO.read(new File("images/pieces/purple.png"));
-			v_unselectedPieces[YELLOW_PIECE] = ImageIO.read(new File("images/pieces/yellow.png"));
-			v_unselectedPieces[RED_PIECE] = ImageIO.read(new File("images/pieces/red.png"));
-			v_selectedPieces[BLUE_PIECE] = ImageIO.read(new File("images/pieces/blue_selected.png"));
-			v_selectedPieces[GREEN_PIECE] = ImageIO.read(new File("images/pieces/green_selected.png"));
-			v_selectedPieces[PURPLE_PIECE] = ImageIO.read(new File("images/pieces/purple_selected.png"));
-			v_selectedPieces[YELLOW_PIECE] = ImageIO.read(new File("images/pieces/yellow_selected.png"));
-			v_selectedPieces[RED_PIECE] = ImageIO.read(new File("images/pieces/red_selected.png"));
+			v_unselectedPieces = new Image[2];
+			v_selectedPieces = new Image[2];
+			
+			v_unselectedPieces[0] = ImageIO.read(new File("images/pieces/pieceP1_uns.png"));
+			v_unselectedPieces[1] = ImageIO.read(new File("images/pieces/pieceP2_uns.png"));
 		} catch (IOException e) {
 			e.printStackTrace();
 			System.out.println("Resources missing");
@@ -137,17 +161,28 @@ public class UIResourcesLoader {
 		}
 	}
 	
-	public Image getSelectedPiece(int piece) {
-		if(piece < BLUE_PIECE || piece > RED_PIECE) {
-			throw new ArrayIndexOutOfBoundsException();
+	public Image getUnselectedPiece(Token player) throws GameException {
+		if(player != Token.PLAYER_1 && player != Token.PLAYER_2) {
+			throw new GameException("Invalid Token to get unselected piece");
 		}
-		return v_selectedPieces[piece];
+		if(player == Token.PLAYER_1) {
+			return v_unselectedPieces[0];
+		} else {
+			return v_unselectedPieces[1];
+		}
 	}
 	
-	public Image getUnselectedPiece(int piece) {
-		if(piece < BLUE_PIECE || piece > RED_PIECE) {
+	public Image getUnselectedNewGameBtn(int btn) {
+		if(btn < LOCAL_GAME || btn > CPU_CPU_GAME) {
 			throw new ArrayIndexOutOfBoundsException();
 		}
-		return v_unselectedPieces[piece];
+		return v_unselectedNewGameBtn[btn];
+	}
+	
+	public Image getSelectedNewGameBtn(int btn) {
+		if(btn < LOCAL_GAME || btn > CPU_CPU_GAME) {
+			throw new ArrayIndexOutOfBoundsException();
+		}
+		return v_selectedNewGameBtn[btn];
 	}
 }
