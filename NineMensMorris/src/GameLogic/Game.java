@@ -28,6 +28,20 @@ public class Game {
 		return gamePhase;
 	}
 	
+	public Board getGameBoard() {
+		return gameBoard;
+	}
+	
+	public Token getPlayerInBoardPosition(int boardPosition) {
+		try {
+			return gameBoard.getPosition(boardPosition).getPlayerOccupyingIt();
+		} catch (GameException e) {
+			e.printStackTrace();
+			System.exit(-1);
+		}
+		return Token.NO_PLAYER;
+	}
+	
 	public boolean positionIsAvailable(int boardIndex) throws GameException {
         return gameBoard.positionIsAvailable(boardIndex);
 }

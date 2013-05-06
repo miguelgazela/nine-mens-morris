@@ -66,5 +66,5 @@ public abstract class Player {
 		return canFly;
 	}
 	
-	public abstract boolean isIA();
+	public abstract boolean isAI();
 }

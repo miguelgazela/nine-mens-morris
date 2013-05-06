@@ -95,7 +95,7 @@ public class Main {
 				Player p = ((LocalGame)game).getCurrentTurnPlayer();
 				int boardIndex;
 				
-				if(p.isIA()) {
+				if(p.isAI()) {
 					long startTime = System.nanoTime();
 					boardIndex = ((MinimaxIAPlayer)p).getIndexToPlacePiece(game.gameBoard);
 					long endTime = System.nanoTime();
@@ -118,7 +118,7 @@ public class Main {
 						Token opponentPlayer = (p.getPlayerToken() == Token.PLAYER_1) ? Token.PLAYER_2 : Token.PLAYER_1;
 						
 						while(true) {
-							if(p.isIA()){
+							if(p.isAI()){
 								boardIndex = ((MinimaxIAPlayer)p).getIndexToRemovePieceOfOpponent(game.gameBoard);
 								System.out.println(p.getName()+" removes opponent piece on "+boardIndex);
 							} else {
@@ -150,7 +150,7 @@ public class Main {
 				int srcIndex, destIndex;
 				Move move = null;
 				
-				if(p.isIA()) {
+				if(p.isAI()) {
 					long startTime = System.nanoTime();
 					move = ((IAPlayer)p).getPieceMove(game.gameBoard, game.getCurrentGamePhase());
 					long endTime = System.nanoTime();
@@ -178,7 +178,7 @@ public class Main {
 						int boardIndex;
 						
 						while(true) {
-							if(p.isIA()){
+							if(p.isAI()){
 								boardIndex = move.removePieceOnIndex;
 								System.out.println(p.getName()+" removes opponent piece on "+boardIndex);
 							} else {

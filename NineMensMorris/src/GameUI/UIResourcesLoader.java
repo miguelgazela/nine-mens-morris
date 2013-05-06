@@ -6,6 +6,8 @@ import java.io.File;
 import java.io.IOException;
 
 import javax.imageio.ImageIO;
+import javax.swing.ImageIcon;
+import javax.swing.JFrame;
 
 import GameLogic.GameException;
 import GameLogic.Token;
@@ -38,16 +40,21 @@ public class UIResourcesLoader {
 	public Coord[] board_positions_coords;
 	public Coord start_game_btn_coord;
 	public Coord return_game_btn_coord;
+	public Coord turn_coord;
 	
 	private Image[] v_unselectedNewGameBtn;
 	private Image[] v_selectedNewGameBtn;
 	private Image[] v_unselectedPieces;
 	private Image[] v_selectedPieces;
+	private Image[] v_turns;
+	
 	
 	private UIResourcesLoader() {
 		initPieces();
+		initImages();
 		initBtns();
 		initCoords();
+		
 		try {
 			mainmenu_bg = ImageIO.read(new File("images/backgrounds/mainmenu_bg.png"));
 			settings_bg = ImageIO.read(new File("images/backgrounds/settings_bg.png"));
@@ -68,6 +75,18 @@ public class UIResourcesLoader {
 			instanceLoader = new UIResourcesLoader();
 		}
 		return instanceLoader;
+	}
+	
+	private void initImages() {
+		try {
+			v_turns = new Image[2];
+			v_turns[0] = ImageIO.read(new File("images/pieces/turnP1.png"));
+			v_turns[1] = ImageIO.read(new File("images/pieces/turnP2.png"));
+		} catch(IOException e) {
+			e.printStackTrace();
+			System.out.println("Resources missing");
+			System.exit(-1);
+		}
 	}
 	
 	private void initBtns() {
@@ -145,6 +164,8 @@ public class UIResourcesLoader {
 		board_positions_coords[21] = new Coord(379,557);
 		board_positions_coords[22] = new Coord(624,557);
 		board_positions_coords[23] = new Coord(870,557);
+		
+		turn_coord = new Coord(272, 671);
 	}
 	
 	private void initPieces() {
@@ -154,10 +175,23 @@ public class UIResourcesLoader {
 			
 			v_unselectedPieces[0] = ImageIO.read(new File("images/pieces/pieceP1_uns.png"));
 			v_unselectedPieces[1] = ImageIO.read(new File("images/pieces/pieceP2_uns.png"));
+			v_selectedPieces[0] = ImageIO.read(new File("images/pieces/pieceP1_sel.png"));
+			v_selectedPieces[1] = ImageIO.read(new File("images/pieces/pieceP2_sel.png"));
 		} catch (IOException e) {
 			e.printStackTrace();
 			System.out.println("Resources missing");
 			System.exit(-1);
+		}
+	}
+	
+	public Image getPlayerTurn(Token player) throws GameException {
+		if(player != Token.PLAYER_1 && player != Token.PLAYER_2) {
+			throw new GameException("Invalid Token to get turn player");
+		}
+		if(player == Token.PLAYER_1) {
+			return v_turns[0];
+		} else {
+			return v_turns[1];
 		}
 	}
 	
@@ -169,6 +203,17 @@ public class UIResourcesLoader {
 			return v_unselectedPieces[0];
 		} else {
 			return v_unselectedPieces[1];
+		}
+	}
+	
+	public Image getSelectedPiece(Token player) throws GameException {
+		if(player != Token.PLAYER_1 && player != Token.PLAYER_2) {
+			throw new GameException("Invalid Token to get selected piece");
+		}
+		if(player == Token.PLAYER_1) {
+			return v_selectedPieces[0];
+		} else {
+			return v_selectedPieces[1];
 		}
 	}
 	

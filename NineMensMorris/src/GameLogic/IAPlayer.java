@@ -31,7 +31,7 @@ public abstract class IAPlayer extends Player {
 	}
 
 	@Override
-	public boolean isIA() {
+	public boolean isAI() {
 		return true;
 	}
 	
