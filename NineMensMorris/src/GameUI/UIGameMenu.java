@@ -725,21 +725,24 @@ public class UIGameMenu extends JFrame {
 				public void run() {
 					while(true) {
 						if(!((NetworkGame)game).isThisPlayerTurn()) {
-							try { Thread.sleep(100); } catch (InterruptedException e1) { e1.printStackTrace(); }
+							//System.out.println("IT'S NOT MY TURN");
 							if(gClient.isThisPlayerTurn()) {
 								
 								// update game with opponent moves
 								try {
+									Log.info("Updating game with opponent moves");
 									ArrayList<Move> opponentMoves = gClient.getOpponentMoves();
 									((NetworkGame)game).updateGameWithOpponentMoves(opponentMoves);
+									((NetworkGame)game).setTurn(true);
+									turnPlayer = uiResourcesLoader.getPlayerTurn(game.getPlayer().getPlayerToken());
+									repaint();
 								} catch (GameException e) {
 									e.printStackTrace();
 									System.exit(-1);
 								}
 							}
-							repaint();
-							((NetworkGame)game).setTurn(true);
 						}
+						try { Thread.sleep(100); } catch (InterruptedException e1) { e1.printStackTrace(); }
 					}
 				}
 			}).start();
@@ -965,12 +968,13 @@ public class UIGameMenu extends JFrame {
 									if(game.getCurrentGamePhase() == Game.PLACING_PHASE) {
 										if(gClient.validatePiecePlacing(i)) { // validate placing with the server
 											if(game.placePieceOfPlayer(i, player.getPlayerToken())) {
-												repaint();
 												if(game.madeAMill(i, player.getPlayerToken())) {
 													millWasMade = true;
 												} else {
 													((NetworkGame)game).setTurn(false);
+													turnPlayer = uiResourcesLoader.getPlayerTurn(player.getPlayerToken() == Token.PLAYER_1 ? Token.PLAYER_2 : Token.PLAYER_1);
 												}
+												repaint();
 											} else {
 												Log.warn("The placing was considered valid with the server, but not locally");
 											}
