@@ -16,7 +16,7 @@ public class LocalGame extends Game {
 		currentTurnPlayer = player1;
 	}
 	
-	public Player getCurrentTurnPlayer() {
+	public Player getPlayer() {
 		return currentTurnPlayer;
 	}
 	
@@ -38,15 +38,16 @@ public class LocalGame extends Game {
 		return false;
 	}
 	
-	public void checkGameIsOver() {
+	public boolean isTheGameOver() {
 		try {
 			if(gameBoard.getNumberOfPiecesOfPlayer(Token.PLAYER_1) == Game.MIN_NUM_PIECES
 					|| gameBoard.getNumberOfPiecesOfPlayer(Token.PLAYER_2) == Game.MIN_NUM_PIECES) {
-				gameIsOver = true;
+				return true;
 			}
 		} catch (GameException e) {
 			e.printStackTrace();
 			System.exit(-1);
 		}
+		return false;
 	}
 }

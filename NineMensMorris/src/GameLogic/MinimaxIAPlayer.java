@@ -25,7 +25,7 @@ public class MinimaxIAPlayer extends IAPlayer {
 	public int getIndexToPlacePiece(Board gameBoard) {
 		numberOfMoves = 0; // TODO TESTING
 		movesThatRemove = 0; // TODO TESTING
-		int minimax[] = minimax(playerToken,depth,gameBoard, Game.PLACING_PHASE);
+		int minimax[] = minimax(playerToken,depth, gameBoard, Game.PLACING_PHASE);
 		pieceToRemove = minimax[3];
 		return minimax[2];
 	}

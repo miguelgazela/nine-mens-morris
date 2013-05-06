@@ -45,10 +45,11 @@ public class NetworkGame extends Game {
 		return false;
 	}
 	
-	public void checkGameIsOver() {
+	public boolean isThisGameOver() {
 		if((player.getNumPiecesOnBoard() == Game.MIN_NUM_PIECES)) {
-			gameIsOver = true;
+			return true;
 		}
+		return false;
 	}
 	
 	public void updateGameWithOpponentMoves(ArrayList<Move> opponentMoves) throws GameException {

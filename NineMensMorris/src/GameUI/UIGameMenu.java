@@ -1,6 +1,5 @@
 package GameUI;
 
-import java.awt.Color;
 import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.Graphics;
@@ -11,25 +10,38 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.image.BufferedImage;
-import java.net.MalformedURLException;
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.net.SocketException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Enumeration;
 
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
-import org.junit.Ignore;
+import org.junit.experimental.theories.Theories;
+
+import com.esotericsoftware.minlog.Log;
 
 import GameLogic.Board;
 import GameLogic.Game;
+import GameLogic.GameClient;
 import GameLogic.GameException;
+import GameLogic.GameServer;
 import GameLogic.HumanPlayer;
 import GameLogic.IAPlayer;
 import GameLogic.LocalGame;
 import GameLogic.MinimaxIAPlayer;
+import GameLogic.Move;
 import GameLogic.NetworkGame;
 import GameLogic.Player;
+import GameLogic.Position;
 import GameLogic.RandomIAPlayer;
 import GameLogic.Token;
 import aurelienribon.slidinglayout.SLAnimator;
@@ -472,7 +484,9 @@ public class UIGameMenu extends JFrame {
 						startGame = true;
 					}
 					if(startGame) {
-						uiGamePanel.startGame();
+						if(game_type == UIResourcesLoader.LOCAL_GAME) {
+							uiGamePanel.startGame();
+						}
 						new Runnable() {@Override public void run() {
 							panel.createTransition()
 							.push(new SLKeyframe(GameCfg, 1f)
@@ -483,6 +497,9 @@ public class UIGameMenu extends JFrame {
 							.setDelay(0.3f, uiMainMenuPanel)
 							.setCallback(new SLKeyframe.Callback() {@Override public void done() {
 								currentMenuState = MenuState.Game;
+								if(game_type == UIResourcesLoader.NETWORK_GAME) {
+									uiGamePanel.startGame();
+								}
 							}}))
 							.play();
 						}}.run();
@@ -529,6 +546,10 @@ public class UIGameMenu extends JFrame {
 		private Graphics graphics;
 		public boolean hasGameRunning = false;
 		private boolean millWasMade = false;
+		private boolean waitingForAI = false;
+		private GameServer gServer = null;
+		private GameClient gClient = null;
+		private Token[] boardPositions;
 		private int selectedPiece = -1;
 		private int game_type = -1;
 		private Game game;
@@ -541,15 +562,25 @@ public class UIGameMenu extends JFrame {
 		
 		public void startGame() {
 			hasGameRunning = true;
+			
+			// this is used due to some graphics problems of panel transitions of local games with AI
+			boardPositions = new Token[Board.NUM_POSITIONS_OF_BOARD];
+			for(int i = 0; i < boardPositions.length; i++) {
+				boardPositions[i] = Token.NO_PLAYER; 
+			}
+			
 			try {
 				if(uiNewGamePanel.game_type == UIResourcesLoader.LOCAL_GAME) {
 					game_type = UIResourcesLoader.LOCAL_GAME;
 					createLocalGame();
 				} else if(uiNewGamePanel.game_type == UIResourcesLoader.NETWORK_GAME) {
-					game_type = uiResourcesLoader.NETWORK_GAME;
+					game_type = UIResourcesLoader.NETWORK_GAME;
 					createNetworkGame();
 				}
 			} catch(GameException e) {
+				e.printStackTrace();
+				System.exit(-1);
+			} catch (IOException e) {
 				e.printStackTrace();
 				System.exit(-1);
 			}
@@ -576,8 +607,27 @@ public class UIGameMenu extends JFrame {
 			
 			System.out.println("Starting a new game");
 			if(p1.isAI()) {
-				makeAiMove(p1);
+				waitingForAI = true;
 			}
+			
+			new Thread(new Runnable(){
+				@Override
+				public void run() {
+					while(true) {
+						if(waitingForAI) {
+							System.out.println("Waiting for AI");
+							makeAiMove();
+						}
+						else {
+							try {
+								Thread.sleep(100);
+							} catch (InterruptedException e) {
+								e.printStackTrace();
+							}
+						}
+					}
+				}
+			}).start();
 		}
 		
 		private IAPlayer createAIPlayer(Token player) {
@@ -594,41 +644,151 @@ public class UIGameMenu extends JFrame {
 			return null;
 		}
 		
-		private void createNetworkGame() {
+		private void createNetworkGame() throws GameException, IOException {
 			game = new NetworkGame();
-			System.out.println("Class of game: "+game.getClass());
-		}
-		
-		private void makeAiMove(Player p) {
-			try {
-				if(game.getCurrentGamePhase() == Game.PLACING_PHASE) {
-					int boardIndex = ((IAPlayer)p).getIndexToPlacePiece(game.getGameBoard());
-					if(game.placePieceOfPlayer(boardIndex, p.getPlayerToken())) {
-						p.raiseNumPiecesOnBoard();
-						repaint();
-						System.out.println(p.getName()+" placed piece on "+boardIndex);
-						
-						if(game.madeAMill(boardIndex, p.getPlayerToken())) {
-							Token opponentPlayer = (p.getPlayerToken() == Token.PLAYER_1) ? Token.PLAYER_2 : Token.PLAYER_1;
-							boardIndex = ((IAPlayer)p).getIndexToRemovePieceOfOpponent(game.getGameBoard());
-							if(game.removePiece(boardIndex, opponentPlayer)) {
-								System.out.println(p.getName()+" removes opponent piece on "+boardIndex);
-							}
-						} 
-						
-						((LocalGame)game).updateCurrentTurnPlayer();
-						turnPlayer = uiResourcesLoader.getPlayerTurn(((LocalGame)game).getCurrentTurnPlayer().getPlayerToken());
-						repaint();
-						if(((LocalGame)game).getCurrentTurnPlayer().isAI()) {
-							makeAiMove(((LocalGame)game).getCurrentTurnPlayer());
+			Player p = null;
+			
+			if(uiNewGamePanel.network_type == UIResourcesLoader.SERVER_GAME) {
+				gServer = new GameServer();
+				gClient = new GameClient(Token.PLAYER_1);
+				p = new HumanPlayer("Player1", Token.PLAYER_1, Game.NUM_PIECES_PER_PLAYER);
+				
+				// display IP addresses
+				Enumeration<NetworkInterface> nets;
+		        try {
+		            nets = NetworkInterface.getNetworkInterfaces();
+		            for (NetworkInterface netint : Collections.list(nets)) {
+		                Enumeration<InetAddress> inetAddresses = netint.getInetAddresses();
+		                for (InetAddress inetAddress : Collections.list(inetAddresses)) {
+		                    Log.info(inetAddress.toString());
+		                }
+		            }
+		        } catch (SocketException e) { e.printStackTrace(); }
+				
+			} else if(uiNewGamePanel.network_type == UIResourcesLoader.CLIENT_GAME) {
+				gClient = new GameClient(Token.PLAYER_2);
+				p = new HumanPlayer("Player2", Token.PLAYER_2, Game.NUM_PIECES_PER_PLAYER);
+			}
+			
+			((NetworkGame)game).setPlayer(p);
+			int numberTries = 15;
+			
+			if(gServer == null) { // this is only a client trying to connect
+				while(true) {
+					System.out.println("Connect to GameServer at IP address: ");
+					String ip = JOptionPane.showInputDialog(null, "Connect to GameServer at IP address:",1);
+					try {
+					if(ip != null) {
+						gClient.connectToServer(ip);
+						break;
+					}
+					} catch (Exception e){
+						Log.info("No GameServer detected!");
+						if(--numberTries == 0) {
+							System.out.println("Giving up!");
+							// TODO improve this
 						}
-						repaint();
+						try { Thread.sleep(1000); } catch (InterruptedException e1) { e1.printStackTrace(); }
+						Log.info("Trying another connection.");
 					}
 				}
+			} else { // this computer has the GameServer
+				gClient.connectToServer("localhost");
+				
+				while(true) {
+					if(gServer.hasConnectionEstablished()){
+						break;
+					}
+					if(numberTries-- == 15) {
+						Log.info("Server initialized. Waiting for connection from GameClient of this computer");
+					}
+					try { Thread.sleep(50); } catch (InterruptedException e1) { e1.printStackTrace(); }
+				}
+			}
+			
+			while(gClient.isWaitingForGameStart()) {
+				Log.info("Waiting for game to start");
+				try { Thread.sleep(200); } catch (InterruptedException e1) { e1.printStackTrace(); }
+			}
+			
+			turnPlayer = uiResourcesLoader.getPlayerTurn(gClient.getPlayerThatPlaysFirst());
+			repaint();
+			
+			Log.info("Game is starting");
+			if(gClient.getPlayerThatPlaysFirst() == p.getPlayerToken()) {
+				Log.info("I'm the one who plays first");
+				((NetworkGame)game).setTurn(true);
+			}
+			
+			new Thread(new Runnable(){
+				@Override
+				public void run() {
+					while(true) {
+						if(!((NetworkGame)game).isThisPlayerTurn()) {
+							try { Thread.sleep(100); } catch (InterruptedException e1) { e1.printStackTrace(); }
+							if(gClient.isThisPlayerTurn()) {
+								
+								// update game with opponent moves
+								try {
+									ArrayList<Move> opponentMoves = gClient.getOpponentMoves();
+									((NetworkGame)game).updateGameWithOpponentMoves(opponentMoves);
+								} catch (GameException e) {
+									e.printStackTrace();
+									System.exit(-1);
+								}
+							}
+							((NetworkGame)game).setTurn(true);
+							repaint();
+						}
+					}
+				}
+			}).start();
+		}
+		
+		private void makeAiMove() {
+			waitingForAI = false;
+			Player p = game.getPlayer();
+			int indexToTest = -1;
+			
+			try {
+				if(game.getCurrentGamePhase() == Game.PLACING_PHASE) {
+					int boardIndex = indexToTest = ((IAPlayer)p).getIndexToPlacePiece(game.getGameBoard());
+					if(game.placePieceOfPlayer(boardIndex, p.getPlayerToken())) {
+						p.raiseNumPiecesOnBoard();
+						boardPositions[boardIndex] = p.getPlayerToken();
+						repaint();
+						System.out.println(p.getName()+" placed piece on "+boardIndex);
+					}
+				} else if (game.getCurrentGamePhase() == Game.MOVING_PHASE) {
+					Move move = ((IAPlayer)p).getPieceMove(game.getGameBoard(), game.getCurrentGamePhase());
+					if(game.movePieceFromTo(move.srcIndex, (indexToTest = move.destIndex), p.getPlayerToken()) == Game.VALID_MOVE) {
+						boardPositions[move.srcIndex] = Token.NO_PLAYER;
+						boardPositions[move.destIndex] = p.getPlayerToken();
+					}
+				}
+				
+				if(game.madeAMill(indexToTest, p.getPlayerToken())) {
+					Token opponentPlayer = (p.getPlayerToken() == Token.PLAYER_1) ? Token.PLAYER_2 : Token.PLAYER_1;
+					int boardIndex = ((IAPlayer)p).getIndexToRemovePieceOfOpponent(game.getGameBoard());
+					if(game.removePiece(boardIndex, opponentPlayer)) {
+						boardPositions[boardIndex] = Token.NO_PLAYER;
+						System.out.println(p.getName()+" removes opponent piece on "+boardIndex);
+					}
+				}
+				updateLocalGameTurn();
+				repaint();
+
 			} catch(GameException e){
 				e.printStackTrace();
 				System.exit(-1);
 			}
+		}
+		
+		private void updateLocalGameTurn() throws GameException {
+			((LocalGame)game).updateCurrentTurnPlayer();
+			turnPlayer = uiResourcesLoader.getPlayerTurn(game.getPlayer().getPlayerToken());
+			repaint();
+			waitingForAI = game.getPlayer().isAI();
 		}
 		
 		@Override
@@ -648,25 +808,26 @@ public class UIGameMenu extends JFrame {
 				graphics.drawImage(background, 0, 0, this);
 
 				if(hasGameRunning) {
-					for(int i = 0; i < 24; i++) {
-						try {
-							if(game.getPlayerInBoardPosition(i) != Token.NO_PLAYER) {
+					try {
+						for(int i = 0; i < boardPositions.length; i++) {
+							if(boardPositions[i] != Token.NO_PLAYER) {
 								Coord c = uiResourcesLoader.board_positions_coords[i];
-								Image piece = uiResourcesLoader.getUnselectedPiece(game.getPlayerInBoardPosition(i));
+								Image piece = uiResourcesLoader.getUnselectedPiece(boardPositions[i]);
 								graphics.drawImage(piece, c.x, c.y, this);
 								if(i == selectedPiece) {
-									piece = uiResourcesLoader.getSelectedPiece(game.getPlayerInBoardPosition(i));
+									piece = uiResourcesLoader.getSelectedPiece(boardPositions[i]);
 									graphics.drawImage(piece, c.x - 15, c.y - 15, this);
 								}
 							}
-						} catch (GameException e) {
-							e.printStackTrace();
-							System.exit(-1);
 						}
-					}
-					if(turnPlayer != null) {
-						Coord coord = uiResourcesLoader.turn_coord;
-						graphics.drawImage(turnPlayer, coord.x, coord.y, this);
+						
+						if(turnPlayer != null) {
+							Coord coord = uiResourcesLoader.turn_coord;
+							graphics.drawImage(turnPlayer, coord.x, coord.y, this);
+						}
+					} catch (GameException e) {
+						e.printStackTrace();
+						System.exit(-1);
 					}
 				}
 			}
@@ -694,89 +855,117 @@ public class UIGameMenu extends JFrame {
 			} else {
 				try {
 					Coord[] board_positions = uiResourcesLoader.board_positions_coords;
+					
 					for(int i = 0; i < board_positions.length; i++) {
 						Coord coord = board_positions[i];
-
-						// if the player has clicked in a board position
-						if(x >= coord.x && y >= coord.y && x <= (coord.x + 32) && y <= (coord.y + 32)) {
-							System.out.println("Clicked in a board position: "+i);
-							Player p = ((LocalGame)game).getCurrentTurnPlayer();
+						if(x >= coord.x && y >= coord.y && x <= (coord.x + 32) && y <= (coord.y + 32)) { // player has clicked in a board position
+							Log.info("Clicked in a board position: "+i);
+							Player p = game.getPlayer();
 							
-							if(millWasMade) { // it's waiting for a piece removal
-								
+							// it's waiting for a piece removal
+							if(millWasMade) { 
 								Token oppToken = (p.getPlayerToken() == Token.PLAYER_1) ? Token.PLAYER_2 : Token.PLAYER_1;
-								if(game.removePiece(i, oppToken)) {
-									millWasMade = false;
-									((LocalGame)game).updateCurrentTurnPlayer();
-									turnPlayer = uiResourcesLoader.getPlayerTurn(oppToken);
-									repaint();
-									if(((LocalGame)game).getCurrentTurnPlayer().isAI()) {
-										makeAiMove(((LocalGame)game).getCurrentTurnPlayer());
+								
+								if(game_type == UIResourcesLoader.LOCAL_GAME) {
+									if(game.removePiece(i, oppToken)) {
+										boardPositions[i] = Token.NO_PLAYER; 
+										millWasMade = false;
+										updateLocalGameTurn();
+									} else {
+										Log.warn("You can't remove a piece from there. Try again");
 									}
-								} else {
-									// TODO show negative msg
-									System.out.println("You can't remove a piece from there. Try again");
+								} else if(game_type == UIResourcesLoader.NETWORK_GAME) {
+									if(gClient.validatePieceRemoving(i)) {
+										if(game.removePiece(i, oppToken)) {
+											millWasMade = false;
+											((NetworkGame)game).setTurn(false);
+										} else {
+											Log.warn("You can't remove a piece from there. Try again");
+										}
+									} else {
+										Log.info("The server has considered that move invalid. Try again");
+									}
 								}
 							} else if(game_type == UIResourcesLoader.LOCAL_GAME) {
 
-								if(game.getCurrentGamePhase() == Game.PLACING_PHASE) {
-									
-									if(game.placePieceOfPlayer(i, p.getPlayerToken())) {
-										p.raiseNumPiecesOnBoard();
-										
-										if(game.madeAMill(i, p.getPlayerToken())) {
-											millWasMade = true; // needs to wait for at least another click
-											repaint();
-										} else {
-											((LocalGame)game).updateCurrentTurnPlayer();
-											turnPlayer = uiResourcesLoader.getPlayerTurn(((LocalGame)game).getCurrentTurnPlayer().getPlayerToken());
-											repaint();
-											if(((LocalGame)game).getCurrentTurnPlayer().isAI()) {
-												System.out.println("Entering AI Move");
-												makeAiMove(((LocalGame)game).getCurrentTurnPlayer());
-											}
-										}
-									} else {
-										// TODO show negative msg
-										System.out.println("You can't place a piece there. Try again");
-									}
-								} else if(game.getCurrentGamePhase() == Game.MOVING_PHASE) {
-									// first click selects a piece, the next one selects destination
-									if(selectedPiece == -1) {
-										if(game.positionHasPieceOfPlayer(i, p.getPlayerToken())) {
-											selectedPiece = i;
-											repaint();
-										} else {
-											System.out.println("You don't have a piece on that position");
-										}
-									} else { // a piece is selected, we just need a valid destination
-										if(selectedPiece == i) { // unselect piece
-											System.out.println("Piece was unselected");
-											selectedPiece = -1;
-											repaint();
-										} else {
-											if(game.movePieceFromTo(selectedPiece, i, p.getPlayerToken()) == Game.VALID_MOVE) {
+								if(!waitingForAI) {
+									if(game.getCurrentGamePhase() == Game.PLACING_PHASE) {
+										if(game.placePieceOfPlayer(i, p.getPlayerToken())) {
+											boardPositions[i] = p.getPlayerToken();
+											p.raiseNumPiecesOnBoard();
+
+											if(game.madeAMill(i, p.getPlayerToken())) {
+												millWasMade = true; // needs to wait for at least another click
 												repaint();
+											} else {
+												updateLocalGameTurn();
+											}
+										} else {
+											System.out.println("You can't place a piece there. Try again");
+										}
+									} else if(game.getCurrentGamePhase() == Game.MOVING_PHASE) {
+										// first click selects a piece, the next one selects destination
+										if(selectedPiece == -1) {
+											if(game.positionHasPieceOfPlayer(i, p.getPlayerToken())) {
+												selectedPiece = i;
+												repaint();
+											} else {
+												System.out.println("You don't have a piece on that position");
+											}
+										} else { // a piece is selected, we just need a valid destination
+											if(selectedPiece == i) { // unselect piece
+												System.out.println("Piece was unselected");
 												selectedPiece = -1;
-												if(game.madeAMill(i, p.getPlayerToken())) {
-													millWasMade = true;
-												} else {
-													((LocalGame)game).updateCurrentTurnPlayer();
-													turnPlayer = uiResourcesLoader.getPlayerTurn(((LocalGame)game).getCurrentTurnPlayer().getPlayerToken());
+												repaint();
+											} else {
+												if(game.movePieceFromTo(selectedPiece, i, p.getPlayerToken()) == Game.VALID_MOVE) {
+													boardPositions[i] = p.getPlayerToken();
+													boardPositions[selectedPiece] = Token.NO_PLAYER;
 													repaint();
-													if(((LocalGame)game).getCurrentTurnPlayer().isAI()) {
-														makeAiMove(((LocalGame)game).getCurrentTurnPlayer());
+													selectedPiece = -1;
+													
+													if(game.madeAMill(i, p.getPlayerToken())) {
+														millWasMade = true;
+													} else {
+														updateLocalGameTurn();
+													}
+													
+													if(game.isTheGameOver()) {
+														System.out.println("The GAME IS OVER!");
+													}
+												} else {
+													if(game.positionHasPieceOfPlayer(i, p.getPlayerToken())) {
+														selectedPiece = i;
+														repaint();
+													} else {
+														System.out.println("Invalid move. ");
 													}
 												}
-											} else {
-												if(game.positionHasPieceOfPlayer(i, p.getPlayerToken())) {
-													selectedPiece = i;
-													repaint();
-												} else {
-													System.out.println("Invalid move. ");
-												}
 											}
 										}
+									}
+								}
+							} else if(game_type == UIResourcesLoader.NETWORK_GAME) {
+								if(((NetworkGame)game).isThisPlayerTurn()) {
+									Player player = ((NetworkGame)game).getPlayer();
+									
+									if(game.getCurrentGamePhase() == Game.PLACING_PHASE) {
+										if(gClient.validatePiecePlacing(i)) { // validate placing with the server
+											if(game.placePieceOfPlayer(i, player.getPlayerToken())) {
+												repaint();
+												if(game.madeAMill(i, player.getPlayerToken())) {
+													millWasMade = true;
+												} else {
+													((NetworkGame)game).setTurn(false);
+												}
+											} else {
+												Log.warn("The placing was considered valid with the server, but not locally");
+											}
+										} else {
+											Log.info("The server has considered that move invalid. Try again");
+										}
+									} else if(game.getCurrentGamePhase() == Game.MOVING_PHASE) {
+										
 									}
 								}
 							}

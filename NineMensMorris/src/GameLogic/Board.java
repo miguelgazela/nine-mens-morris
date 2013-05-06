@@ -19,7 +19,7 @@ public class Board {
 		initBoard();
 		initMillCombinations();
 	}
-	
+
 	public Position getPosition(int posIndex) throws GameException {
 		if(posIndex >= 0 && posIndex < Board.NUM_POSITIONS_OF_BOARD) {
 			return boardPositions[posIndex];

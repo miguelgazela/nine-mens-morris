@@ -195,9 +195,9 @@ public class UIResourcesLoader {
 		}
 	}
 	
-	public Image getUnselectedPiece(Token player) throws GameException {
+	public Image getUnselectedPiece(Token player) {
 		if(player != Token.PLAYER_1 && player != Token.PLAYER_2) {
-			throw new GameException("Invalid Token to get unselected piece");
+			return null;
 		}
 		if(player == Token.PLAYER_1) {
 			return v_unselectedPieces[0];

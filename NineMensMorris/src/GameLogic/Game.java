@@ -16,12 +16,10 @@ public class Game {
 	
 	protected Board gameBoard;
 	protected int gamePhase;
-	protected boolean gameIsOver;
 	
 	public Game() {
 		gameBoard = new Board();
 		gamePhase = Game.PLACING_PHASE;
-		gameIsOver = false;
 	}
 	
 	public int getCurrentGamePhase() {
@@ -118,10 +116,6 @@ public class Game {
 		gameBoard.printBoard();
 	}
 
-	public boolean gameIsOver() {
-		return gameIsOver;
-	}
-	
 	public boolean removePiece(int boardIndex, Token player) throws GameException { 
 		if(!gameBoard.positionIsAvailable(boardIndex) && positionHasPieceOfPlayer(boardIndex, player)) {
 			gameBoard.getPosition(boardIndex).setAsUnoccupied();
@@ -131,5 +125,11 @@ public class Game {
 		return false;
 	}
 	
-	public void checkGameIsOver() {}
+	public Player getPlayer() {
+		return null;
+	}
+	
+	public boolean isTheGameOver() {
+		return false;
+	}
 }

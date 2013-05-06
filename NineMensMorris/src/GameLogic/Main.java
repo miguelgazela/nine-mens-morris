@@ -20,20 +20,6 @@ public class Main {
 	public BufferedReader input;
 	
 	public static void main(String []args) throws Exception {
-		int minimaxDepth = -1;
-		
-		if(args.length == 0 || args.length > 1) {
-			System.out.println("Usage: java Main <minimaxDepth>");
-			System.exit(-1);
-		} else {
-			try {
-				minimaxDepth = Integer.parseInt(args[0]);
-			} catch (Exception e) {
-				System.out.println("Invalid depth");
-				e.printStackTrace();
-				System.exit(-1);
-			}
-		}
 		
 		SLAnimator.start();
 		new UIGameMenu();

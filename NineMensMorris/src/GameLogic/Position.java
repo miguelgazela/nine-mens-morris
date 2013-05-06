@@ -13,7 +13,7 @@ public class Position {
 		this.positionIndex = position;
 		playerOccupying = Token.NO_PLAYER;
 	}
-	
+
 	public boolean isOccupied() {
 		return isOccupied;
 	}
