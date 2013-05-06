@@ -737,8 +737,8 @@ public class UIGameMenu extends JFrame {
 									System.exit(-1);
 								}
 							}
-							((NetworkGame)game).setTurn(true);
 							repaint();
+							((NetworkGame)game).setTurn(true);
 						}
 					}
 				}
