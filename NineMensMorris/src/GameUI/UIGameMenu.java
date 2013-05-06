@@ -676,7 +676,7 @@ public class UIGameMenu extends JFrame {
 			if(gServer == null) { // this is only a client trying to connect
 				while(true) {
 					System.out.println("Connect to GameServer at IP address: ");
-					String ip = JOptionPane.showInputDialog(null, "Connect to GameServer at IP address:",1);
+					String ip = JOptionPane.showInputDialog(null, "Connect to GameServer at IP address:","localhost");
 					try {
 					if(ip != null) {
 						gClient.connectToServer(ip);
@@ -810,13 +810,26 @@ public class UIGameMenu extends JFrame {
 				if(hasGameRunning) {
 					try {
 						for(int i = 0; i < boardPositions.length; i++) {
-							if(boardPositions[i] != Token.NO_PLAYER) {
-								Coord c = uiResourcesLoader.board_positions_coords[i];
-								Image piece = uiResourcesLoader.getUnselectedPiece(boardPositions[i]);
-								graphics.drawImage(piece, c.x, c.y, this);
-								if(i == selectedPiece) {
-									piece = uiResourcesLoader.getSelectedPiece(boardPositions[i]);
-									graphics.drawImage(piece, c.x - 15, c.y - 15, this);
+							if(game_type == UIResourcesLoader.LOCAL_GAME) {
+								if(boardPositions[i] != Token.NO_PLAYER) {
+									Coord c = uiResourcesLoader.board_positions_coords[i];
+									Image piece = uiResourcesLoader.getUnselectedPiece(boardPositions[i]);
+									graphics.drawImage(piece, c.x, c.y, this);
+									if(i == selectedPiece) {
+										piece = uiResourcesLoader.getSelectedPiece(boardPositions[i]);
+										graphics.drawImage(piece, c.x - 15, c.y - 15, this);
+									}
+								}
+							} else if(game_type == UIResourcesLoader.NETWORK_GAME) {
+								Token playerPos = game.getPlayerInBoardPosition(i);
+								if(playerPos != Token.NO_PLAYER) {
+									Coord c = uiResourcesLoader.board_positions_coords[i];
+									Image piece = uiResourcesLoader.getUnselectedPiece(playerPos);
+									graphics.drawImage(piece, c.x, c.y, this);
+									if(i == selectedPiece) {
+										piece = uiResourcesLoader.getSelectedPiece(playerPos);
+										graphics.drawImage(piece, c.x - 15, c.y - 15, this);
+									}
 								}
 							}
 						}
