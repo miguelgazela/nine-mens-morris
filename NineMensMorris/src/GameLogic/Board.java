@@ -4,7 +4,7 @@ public class Board {
 	static public final int NUM_POSITIONS_OF_BOARD = 24;
 	static public final int NUM_MILL_COMBINATIONS = 16;
 	static public final int NUM_POSITIONS_IN_EACH_MILL = 3;
-	
+
 	private Position[] boardPositions;
 	private Position[][] millCombinations;
 	private int numOfPiecesP1;
@@ -119,7 +119,7 @@ public class Board {
 		if(index >= 0 && index < Board.NUM_MILL_COMBINATIONS) {
 			return millCombinations[index];
 		} else {
-			throw new GameException(""+getClass().getName()+" - Invalid Mill Combination Index");
+			throw new GameException(""+getClass().getName()+" - Invalid Mill Combination Index: ");
 		}
 	}
 	
@@ -214,4 +214,9 @@ public class Board {
 			return null;
 		}
 	}
+
+	public int getNumTotalPiecesPlaced() {
+		return numberOfTotalPiecesPlaced;
+	}
+	
 }
