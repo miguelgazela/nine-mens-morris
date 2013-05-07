@@ -9,6 +9,7 @@ import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 
+import GameLogic.Game;
 import GameLogic.GameException;
 import GameLogic.Token;
 
@@ -34,25 +35,31 @@ public class UIResourcesLoader {
 	public Image game_level_check;
 	public Image start_game;
 	public Image return_game;
+	public Image you_str;
 	
 	public Coord[] game_level_check_coords;
 	public Coord[] new_game_btns_coords;
 	public Coord[] board_positions_coords;
+	private Coord[] you_str_coords;
+	
 	public Coord start_game_btn_coord;
 	public Coord return_game_btn_coord;
 	public Coord turn_coord;
+	public Coord game_phase_coord;
 	
 	private Image[] v_unselectedNewGameBtn;
 	private Image[] v_selectedNewGameBtn;
 	private Image[] v_unselectedPieces;
 	private Image[] v_selectedPieces;
 	private Image[] v_turns;
+	private Image[] v_gamePhases;
 	
 	
 	private UIResourcesLoader() {
 		initPieces();
 		initImages();
 		initBtns();
+		initStrings();
 		initCoords();
 		
 		try {
@@ -75,6 +82,19 @@ public class UIResourcesLoader {
 			instanceLoader = new UIResourcesLoader();
 		}
 		return instanceLoader;
+	}
+	
+	private void initStrings() {
+		try {
+			you_str = ImageIO.read(new File("images/strings/you.png"));
+			v_gamePhases = new Image[2];
+			v_gamePhases[0] = ImageIO.read(new File("images/strings/placing.png"));
+			v_gamePhases[1] = ImageIO.read(new File("images/strings/moving.png"));
+		} catch (IOException e) {
+			e.printStackTrace();
+			System.out.println("Background Resources Missing");
+			System.exit(-1);
+		}
 	}
 	
 	private void initImages() {
@@ -166,6 +186,12 @@ public class UIResourcesLoader {
 		board_positions_coords[23] = new Coord(870,557);
 		
 		turn_coord = new Coord(272, 671);
+		
+		you_str_coords = new Coord[2];
+		you_str_coords[0] = new Coord(210, 312);
+		you_str_coords[1] = new Coord(1011, 312);
+		
+		game_phase_coord = new Coord(545, 11);
 	}
 	
 	private void initPieces() {
@@ -184,9 +210,33 @@ public class UIResourcesLoader {
 		}
 	}
 	
+	public Image getGamePhaseStr(int gamePhase) throws GameException {
+		if(gamePhase != Game.PLACING_PHASE && gamePhase != Game.MOVING_PHASE && gamePhase != Game.FLYING_PHASE) {
+			throw new GameException("Invalid game phase: "+gamePhase);
+		}
+		if(gamePhase == Game.PLACING_PHASE) {
+			return v_gamePhases[0];
+		} else if(gamePhase == Game.MOVING_PHASE) {
+			return v_gamePhases[1];
+		} else {
+			return null;
+		}
+	}
+	
+	public Coord getPlayerYouStrCoord(Token player) throws GameException {
+		if(player != Token.PLAYER_1 && player != Token.PLAYER_2) {
+			throw new GameException("Invalid Token to get turn player: "+player);
+		}
+		if(player == Token.PLAYER_1) {
+			return you_str_coords[0];
+		} else {
+			return you_str_coords[1];
+		}
+	}
+	
 	public Image getPlayerTurn(Token player) throws GameException {
 		if(player != Token.PLAYER_1 && player != Token.PLAYER_2) {
-			throw new GameException("Invalid Token to get turn player");
+			throw new GameException("Invalid Token to get turn player: "+player);
 		}
 		if(player == Token.PLAYER_1) {
 			return v_turns[0];
@@ -208,7 +258,7 @@ public class UIResourcesLoader {
 	
 	public Image getSelectedPiece(Token player) throws GameException {
 		if(player != Token.PLAYER_1 && player != Token.PLAYER_2) {
-			throw new GameException("Invalid Token to get selected piece");
+			throw new GameException("Invalid Token to get selected piece: "+player);
 		}
 		if(player == Token.PLAYER_1) {
 			return v_selectedPieces[0];

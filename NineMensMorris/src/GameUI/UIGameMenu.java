@@ -25,8 +25,6 @@ import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
-import org.junit.experimental.theories.Theories;
-
 import com.esotericsoftware.minlog.Log;
 
 import GameLogic.Board;
@@ -841,10 +839,77 @@ public class UIGameMenu extends JFrame {
 							Coord coord = uiResourcesLoader.turn_coord;
 							graphics.drawImage(turnPlayer, coord.x, coord.y, this);
 						}
+						
+						// draw game phase
+						Coord coord = uiResourcesLoader.game_phase_coord;
+						Image str = uiResourcesLoader.getGamePhaseStr(game.getCurrentGamePhase());
+						graphics.drawImage(str,coord.x,coord.y,this);
+						
+						if(game_type == UIResourcesLoader.NETWORK_GAME) {
+							// draw the you string
+							Coord c = uiResourcesLoader.getPlayerYouStrCoord(game.getPlayer().getPlayerToken());
+							graphics.drawImage(uiResourcesLoader.you_str, c.x, c.y, this);
+						}
 					} catch (GameException e) {
 						e.printStackTrace();
 						System.exit(-1);
 					}
+				}
+			}
+		}
+
+		private void movingPhase(int boardIndex, Player player) throws GameException {
+			boolean invalidMove = false;
+			
+			// first click selects a piece, the next one selects destination
+			if(selectedPiece == -1) {
+				if(game.positionHasPieceOfPlayer(boardIndex, player.getPlayerToken())) {
+					selectedPiece = boardIndex;
+					repaint();
+				} else {
+					Log.info("You don't have a piece on that position");
+				}
+			} else { // a piece is selected, we just need a valid destination
+				if(selectedPiece == boardIndex) { // unselect piece
+					System.out.println("Piece was unselected");
+					selectedPiece = -1;
+					repaint();
+				} else {
+					if(game_type == UIResourcesLoader.LOCAL_GAME || (gClient != null && gClient.validatePieceMoving(selectedPiece, boardIndex))) {
+						if(game.movePieceFromTo(selectedPiece, boardIndex, player.getPlayerToken()) == Game.VALID_MOVE) {
+							if(game_type == UIResourcesLoader.LOCAL_GAME) {
+								boardPositions[boardIndex] = player.getPlayerToken();
+								boardPositions[selectedPiece] = Token.NO_PLAYER;
+							}
+							selectedPiece = -1;
+							repaint();
+							
+							if(game.madeAMill(boardIndex, player.getPlayerToken())) {
+								millWasMade = true;
+							} else {
+								if(game_type == UIResourcesLoader.LOCAL_GAME) {
+									updateLocalGameTurn();
+								} else {
+									((NetworkGame)game).setTurn(false);
+				                    turnPlayer = uiResourcesLoader.getPlayerTurn(player.getPlayerToken() == Token.PLAYER_1 ? Token.PLAYER_2 : Token.PLAYER_1);
+								}
+							}
+							if(game.isTheGameOver()) {
+			                    System.out.println("The GAME IS OVER!");
+			                }
+						}
+					} else {
+						invalidMove = true;
+					}
+				}
+			}
+			
+			if(invalidMove) {
+				if(game.positionHasPieceOfPlayer(boardIndex, player.getPlayerToken())) {
+					selectedPiece = boardIndex;
+					repaint();
+				} else {
+					Log.info("Invalid move");
 				}
 			}
 		}
@@ -902,6 +967,7 @@ public class UIGameMenu extends JFrame {
 										Log.info("The server has considered that move invalid. Try again");
 									}
 								}
+								repaint();
 							} else if(game_type == UIResourcesLoader.LOCAL_GAME) {
 
 								if(!waitingForAI) {
@@ -920,50 +986,12 @@ public class UIGameMenu extends JFrame {
 											System.out.println("You can't place a piece there. Try again");
 										}
 									} else if(game.getCurrentGamePhase() == Game.MOVING_PHASE) {
-										// first click selects a piece, the next one selects destination
-										if(selectedPiece == -1) {
-											if(game.positionHasPieceOfPlayer(i, p.getPlayerToken())) {
-												selectedPiece = i;
-												repaint();
-											} else {
-												System.out.println("You don't have a piece on that position");
-											}
-										} else { // a piece is selected, we just need a valid destination
-											if(selectedPiece == i) { // unselect piece
-												System.out.println("Piece was unselected");
-												selectedPiece = -1;
-												repaint();
-											} else {
-												if(game.movePieceFromTo(selectedPiece, i, p.getPlayerToken()) == Game.VALID_MOVE) {
-													boardPositions[i] = p.getPlayerToken();
-													boardPositions[selectedPiece] = Token.NO_PLAYER;
-													repaint();
-													selectedPiece = -1;
-													
-													if(game.madeAMill(i, p.getPlayerToken())) {
-														millWasMade = true;
-													} else {
-														updateLocalGameTurn();
-													}
-													
-													if(game.isTheGameOver()) {
-														System.out.println("The GAME IS OVER!");
-													}
-												} else {
-													if(game.positionHasPieceOfPlayer(i, p.getPlayerToken())) {
-														selectedPiece = i;
-														repaint();
-													} else {
-														System.out.println("Invalid move. ");
-													}
-												}
-											}
-										}
+										movingPhase(i, p);
 									}
 								}
 							} else if(game_type == UIResourcesLoader.NETWORK_GAME) {
 								if(((NetworkGame)game).isThisPlayerTurn()) {
-									Player player = ((NetworkGame)game).getPlayer();
+									Player player = game.getPlayer();
 									
 									if(game.getCurrentGamePhase() == Game.PLACING_PHASE) {
 										if(gClient.validatePiecePlacing(i)) { // validate placing with the server
@@ -982,7 +1010,7 @@ public class UIGameMenu extends JFrame {
 											Log.info("The server has considered that move invalid. Try again");
 										}
 									} else if(game.getCurrentGamePhase() == Game.MOVING_PHASE) {
-										
+										movingPhase(i, player);
 									}
 								}
 							}
