@@ -171,13 +171,13 @@ public class UIGameMenu extends JFrame {
 		
 		private Graphics graphics;
 		private BufferedImage background;
-		private Image game_level_check;
-		private int game_level = UISettingsPanel.NORMAL;
+		private Image gameLevelCheck;
+		private int gameLevel = UISettingsPanel.NORMAL;
 		
 		public UISettingsPanel() {
 			uiResourcesLoader = UIResourcesLoader.getInstanceLoader();
 			background = uiResourcesLoader.settings_bg;
-			game_level_check = uiResourcesLoader.game_level_check;
+			gameLevelCheck = uiResourcesLoader.gameLevelCheck.image;
 		}
 		
 		@Override
@@ -199,8 +199,8 @@ public class UIGameMenu extends JFrame {
 				graphics.drawImage(background, 0, 0, this);
 				
 				// draw check in the correct position
-				Coord c = uiResourcesLoader.game_level_check_coords[game_level];
-				graphics.drawImage(game_level_check, c.x, c.y, this);
+				Coord c = uiResourcesLoader.gameLevelCheckCoords[gameLevel];
+				graphics.drawImage(gameLevelCheck, c.x, c.y, this);
 			}
 		}
 		
@@ -232,15 +232,15 @@ public class UIGameMenu extends JFrame {
 						.play();
 					}}.run();
 				} else if(x >= 70 && y >= 210 && x <= 127 && y <= 267) { // very easy
-					game_level = UISettingsPanel.VERY_EASY;
+					gameLevel = UISettingsPanel.VERY_EASY;
 				} else if(x >= 70 && y >= 283 && x <= 127 && y <= 340) { // easy
-					game_level = UISettingsPanel.EASY;
+					gameLevel = UISettingsPanel.EASY;
 				} else if(x >= 70 && y >= 356 && x <= 127 && y <= 413) { // normal
-					game_level = UISettingsPanel.NORMAL;
+					gameLevel = UISettingsPanel.NORMAL;
 				} else if(x >= 70 && y >= 429 && x <= 127 && y <= 486) { // hard
-					game_level = UISettingsPanel.HARD;
+					gameLevel = UISettingsPanel.HARD;
 				} else if(x >= 70 && y >= 502 && x <= 127 && y <= 559) { // very hard
-					game_level = UISettingsPanel.VERY_HARD;
+					gameLevel = UISettingsPanel.VERY_HARD;
 				}
 				repaint();
 			}
@@ -451,9 +451,8 @@ public class UIGameMenu extends JFrame {
 		}
 		
 		private void drawStartGameBtn() {
-			Coord c = uiResourcesLoader.start_game_btn_coord;
-			Image btn = uiResourcesLoader.start_game;
-			graphics.drawImage(btn, c.x, c.y, this);
+			GameImage startGameBtn = uiResourcesLoader.startGameBtn;
+			graphics.drawImage(startGameBtn.image, startGameBtn.coord.x, startGameBtn.coord.y, this);
 		}
 		
 		@Override
@@ -482,6 +481,7 @@ public class UIGameMenu extends JFrame {
 						startGame = true;
 					}
 					if(startGame) {
+						uiGamePanel.clearPossibleGame();
 						if(game_type == UIResourcesLoader.LOCAL_GAME) {
 							uiGamePanel.startGame();
 						}
@@ -584,6 +584,22 @@ public class UIGameMenu extends JFrame {
 			}
 			repaint();
 		}
+		
+		public void clearPossibleGame() {
+			millWasMade = false;
+			hasGameRunning = false;
+			waitingForAI = false;
+			gServer = null;
+			gClient = null;
+			boardPositions = new Token[Board.NUM_POSITIONS_OF_BOARD];
+			for(int i = 0; i < boardPositions.length; i++) {
+				boardPositions[i] = Token.NO_PLAYER; 
+			}
+			selectedPiece = -1;
+			game_type = -1;
+			game = null;
+			turnPlayer = null;
+		}
 
 		private void createLocalGame() throws GameException {
 			game = new LocalGame();
@@ -613,15 +629,9 @@ public class UIGameMenu extends JFrame {
 				public void run() {
 					while(true) {
 						if(waitingForAI) {
-							System.out.println("Waiting for AI");
 							makeAiMove();
-						}
-						else {
-							try {
-								Thread.sleep(100);
-							} catch (InterruptedException e) {
-								e.printStackTrace();
-							}
+						} else {
+							try { Thread.sleep(100); } catch (InterruptedException e) { e.printStackTrace(); }
 						}
 					}
 				}
@@ -630,10 +640,10 @@ public class UIGameMenu extends JFrame {
 		
 		private IAPlayer createAIPlayer(Token player) {
 			try {
-				if(uiSettingsPanel.game_level == UISettingsPanel.VERY_EASY) {
+				if(uiSettingsPanel.gameLevel == UISettingsPanel.VERY_EASY) {
 					return new RandomIAPlayer(player, Game.NUM_PIECES_PER_PLAYER);
 				} else {
-					return new MinimaxIAPlayer(player, Game.NUM_PIECES_PER_PLAYER, uiSettingsPanel.game_level+2);
+					return new MinimaxIAPlayer(player, Game.NUM_PIECES_PER_PLAYER, uiSettingsPanel.gameLevel+2);
 				}
 			} catch(GameException e) {
 				e.printStackTrace();
@@ -747,7 +757,7 @@ public class UIGameMenu extends JFrame {
 		}
 		
 		private void makeAiMove() {
-			waitingForAI = false;
+//			waitingForAI = false;
 			Player p = game.getPlayer();
 			int indexToTest = -1;
 			
@@ -776,6 +786,7 @@ public class UIGameMenu extends JFrame {
 						System.out.println(p.getName()+" removes opponent piece on "+boardIndex);
 					}
 				}
+				waitingForAI = false;
 				updateLocalGameTurn();
 				repaint();
 
@@ -788,8 +799,8 @@ public class UIGameMenu extends JFrame {
 		private void updateLocalGameTurn() throws GameException {
 			((LocalGame)game).updateCurrentTurnPlayer();
 			turnPlayer = uiResourcesLoader.getPlayerTurn(game.getPlayer().getPlayerToken());
-			repaint();
 			waitingForAI = game.getPlayer().isAI();
+			repaint();
 		}
 		
 		@Override
@@ -845,11 +856,42 @@ public class UIGameMenu extends JFrame {
 						Image str = uiResourcesLoader.getGamePhaseStr(game.getCurrentGamePhase());
 						graphics.drawImage(str,coord.x,coord.y,this);
 						
-						if(game_type == UIResourcesLoader.NETWORK_GAME) {
-							// draw the you string
-							Coord c = uiResourcesLoader.getPlayerYouStrCoord(game.getPlayer().getPlayerToken());
-							graphics.drawImage(uiResourcesLoader.you_str, c.x, c.y, this);
+						if(waitingForAI) {
+							graphics.drawImage(uiResourcesLoader.getGameStatus("waitingAI"), uiResourcesLoader.game_status_coord.x, uiResourcesLoader.game_status_coord.y, this);
 						}
+						
+						// draw game status
+						if(game_type == UIResourcesLoader.NETWORK_GAME
+							|| (game_type == UIResourcesLoader.LOCAL_GAME 
+								&& (uiNewGamePanel.players_type == UIResourcesLoader.HUM_HUM_GAME
+									|| (uiNewGamePanel.players_type == UIResourcesLoader.HUM_CPU_GAME && game.getPlayer().getPlayerToken() == Token.PLAYER_1)))) {
+							Image status = null;
+							
+							if(millWasMade) {
+								status = uiResourcesLoader.getGameStatus("remove");
+							} else if(selectedPiece != -1) {
+								if(game.getPlayer().canItFly()) {
+									status = uiResourcesLoader.getGameStatus("fly");
+								} else {
+									status = uiResourcesLoader.getGameStatus("move");
+								}
+							} else if(game.getCurrentGamePhase() == Game.PLACING_PHASE) {
+								status = uiResourcesLoader.getGameStatus("place");
+							} else if(game.getCurrentGamePhase() == Game.MOVING_PHASE) {
+								status = uiResourcesLoader.getGameStatus("select");
+							}
+							graphics.drawImage(status, uiResourcesLoader.game_status_coord.x, uiResourcesLoader.game_status_coord.y, this);
+						}
+									
+						// draw the you string
+						if(game_type == UIResourcesLoader.NETWORK_GAME) {
+							Coord c = uiResourcesLoader.getPlayerYouStrCoord(game.getPlayer().getPlayerToken());
+							graphics.drawImage(uiResourcesLoader.youStr.image, c.x, c.y, this);
+						} else if(uiNewGamePanel.players_type == UIResourcesLoader.HUM_CPU_GAME) {
+							Coord c = uiResourcesLoader.getPlayerYouStrCoord(Token.PLAYER_1);
+							graphics.drawImage(uiResourcesLoader.youStr.image, c.x, c.y, this);
+						}
+						
 					} catch (GameException e) {
 						e.printStackTrace();
 						System.exit(-1);
@@ -897,6 +939,8 @@ public class UIGameMenu extends JFrame {
 							if(game.isTheGameOver()) {
 			                    System.out.println("The GAME IS OVER!");
 			                }
+						} else {
+							invalidMove = true;
 						}
 					} else {
 						invalidMove = true;
@@ -1060,9 +1104,8 @@ public class UIGameMenu extends JFrame {
 				graphics.drawImage(background, 0, 0, this);
 				
 				if(uiGamePanel.hasGameRunning) {
-					Image btn = uiResourcesLoader.return_game;
-					Coord coord = uiResourcesLoader.return_game_btn_coord;
-					graphics.drawImage(btn, coord.x, coord.y, this);
+					GameImage returnToGameBtn = uiResourcesLoader.returnToGameBtn;
+					graphics.drawImage(returnToGameBtn.image, returnToGameBtn.coord.x, returnToGameBtn.coord.y, this);
 				}
 			}
 		}

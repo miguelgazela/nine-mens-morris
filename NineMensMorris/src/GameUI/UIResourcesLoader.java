@@ -32,20 +32,14 @@ public class UIResourcesLoader {
 	public BufferedImage newgame_bg;
 	public BufferedImage game_bg;
 	
-	public Image game_level_check;
-	public Image start_game;
-	public Image return_game;
-	public Image you_str;
-	
-	public Coord[] game_level_check_coords;
+	public Coord[] gameLevelCheckCoords;
 	public Coord[] new_game_btns_coords;
 	public Coord[] board_positions_coords;
-	private Coord[] you_str_coords;
+	private Coord[] youStrCoords;
 	
-	public Coord start_game_btn_coord;
-	public Coord return_game_btn_coord;
 	public Coord turn_coord;
 	public Coord game_phase_coord;
+	public Coord game_status_coord;
 	
 	private Image[] v_unselectedNewGameBtn;
 	private Image[] v_selectedNewGameBtn;
@@ -53,7 +47,9 @@ public class UIResourcesLoader {
 	private Image[] v_selectedPieces;
 	private Image[] v_turns;
 	private Image[] v_gamePhases;
+	private Image[] v_gameStatus;
 	
+	public GameImage waitingForConnection, startGameBtn, gameLevelCheck, returnToGameBtn, youStr;
 	
 	private UIResourcesLoader() {
 		initPieces();
@@ -62,13 +58,15 @@ public class UIResourcesLoader {
 		initStrings();
 		initCoords();
 		
+		waitingForConnection = new GameImage("images/backgrounds/waitingConnection.png", 0, 0);
+		
+		// initialize backgrounds
 		try {
 			mainmenu_bg = ImageIO.read(new File("images/backgrounds/mainmenu_bg.png"));
 			settings_bg = ImageIO.read(new File("images/backgrounds/settings_bg.png"));
 			about_bg = ImageIO.read(new File("images/backgrounds/about.png"));
 			devteam_bg = ImageIO.read(new File("images/backgrounds/devteam.png"));
 			newgame_bg = ImageIO.read(new File("images/backgrounds/newgame_bg.png"));
-			game_level_check = ImageIO.read(new File("images/buttons/check.png"));
 			game_bg = ImageIO.read(new File("images/backgrounds/game.png"));
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -86,10 +84,19 @@ public class UIResourcesLoader {
 	
 	private void initStrings() {
 		try {
-			you_str = ImageIO.read(new File("images/strings/you.png"));
+			youStr = new GameImage("images/strings/you.png");
+			
 			v_gamePhases = new Image[2];
 			v_gamePhases[0] = ImageIO.read(new File("images/strings/placing.png"));
 			v_gamePhases[1] = ImageIO.read(new File("images/strings/moving.png"));
+			
+			v_gameStatus = new Image[6];
+			v_gameStatus[0] = ImageIO.read(new File("images/strings/placePiece.png"));
+			v_gameStatus[1] = ImageIO.read(new File("images/strings/selectPiece.png"));
+			v_gameStatus[2] = ImageIO.read(new File("images/strings/movePiece.png"));
+			v_gameStatus[3] = ImageIO.read(new File("images/strings/removePiece.png"));
+			v_gameStatus[4] = ImageIO.read(new File("images/strings/flyPiece.png"));
+			v_gameStatus[5] = ImageIO.read(new File("images/strings/waitingAI.png"));
 		} catch (IOException e) {
 			e.printStackTrace();
 			System.out.println("Background Resources Missing");
@@ -102,6 +109,7 @@ public class UIResourcesLoader {
 			v_turns = new Image[2];
 			v_turns[0] = ImageIO.read(new File("images/pieces/turnP1.png"));
 			v_turns[1] = ImageIO.read(new File("images/pieces/turnP2.png"));
+			gameLevelCheck = new GameImage("images/buttons/check.png");
 		} catch(IOException e) {
 			e.printStackTrace();
 			System.out.println("Resources missing");
@@ -128,8 +136,9 @@ public class UIResourcesLoader {
 			v_selectedNewGameBtn[HUM_HUM_GAME] = ImageIO.read(new File("images/buttons/h-h_sel.png"));
 			v_selectedNewGameBtn[HUM_CPU_GAME] = ImageIO.read(new File("images/buttons/h-c_sel.png"));
 			v_selectedNewGameBtn[CPU_CPU_GAME] = ImageIO.read(new File("images/buttons/c-c_sel.png"));
-			start_game = ImageIO.read(new File("images/buttons/start_game.png"));
-			return_game = ImageIO.read(new File("images/buttons/return_game.png"));
+			
+			returnToGameBtn = new GameImage("images/buttons/return_game.png", 993, 663);
+			startGameBtn = new GameImage("images/buttons/start_game.png", 272, 640);
 		} catch(IOException e) {
 			e.printStackTrace();
 			System.out.println("Resources missing");
@@ -138,14 +147,13 @@ public class UIResourcesLoader {
 	}
 	
 	private void initCoords() {
-		game_level_check_coords = new Coord[5];
 		int x = 70;
-		
-		game_level_check_coords[0] = new Coord(x, 210);
-		game_level_check_coords[1] = new Coord(x, 283);
-		game_level_check_coords[2] = new Coord(x, 356);
-		game_level_check_coords[3] = new Coord(x, 429);
-		game_level_check_coords[4] = new Coord(x, 502);
+		gameLevelCheckCoords = new Coord[5];
+		gameLevelCheckCoords[0] = new Coord(x, 210);
+		gameLevelCheckCoords[1] = new Coord(x, 283);
+		gameLevelCheckCoords[2] = new Coord(x, 356);
+		gameLevelCheckCoords[3] = new Coord(x, 429);
+		gameLevelCheckCoords[4] = new Coord(x, 502);
 		
 		new_game_btns_coords = new Coord[7];
 		new_game_btns_coords[0] = new Coord(106, 177);
@@ -155,9 +163,6 @@ public class UIResourcesLoader {
 		new_game_btns_coords[4] = new Coord(106, 407);
 		new_game_btns_coords[5] = new Coord(221, 407);
 		new_game_btns_coords[6] = new Coord(221, 522);
-		
-		start_game_btn_coord = new Coord(272, 640);
-		return_game_btn_coord = new Coord(993, 663);
 		
 		board_positions_coords = new Coord[24];
 		board_positions_coords[0] = new Coord(379,66);
@@ -187,11 +192,13 @@ public class UIResourcesLoader {
 		
 		turn_coord = new Coord(272, 671);
 		
-		you_str_coords = new Coord[2];
-		you_str_coords[0] = new Coord(210, 312);
-		you_str_coords[1] = new Coord(1011, 312);
+		youStrCoords = new Coord[2];
+		youStrCoords[0] = new Coord(210, 312);
+		youStrCoords[1] = new Coord(1011, 312);
 		
 		game_phase_coord = new Coord(545, 11);
+		
+		game_status_coord = new Coord(363, 668);
 	}
 	
 	private void initPieces() {
@@ -207,6 +214,25 @@ public class UIResourcesLoader {
 			e.printStackTrace();
 			System.out.println("Resources missing");
 			System.exit(-1);
+		}
+	}
+	
+	public Image getGameStatus(String str) {
+		switch (str) {
+		case "place":
+			return v_gameStatus[0];
+		case "select":
+			return v_gameStatus[1];
+		case "move":
+			return v_gameStatus[2];
+		case "remove":
+			return v_gameStatus[3];
+		case "fly":
+			return v_gameStatus[4];
+		case "waitingAI":
+			return v_gameStatus[5];
+		default:
+			return null;
 		}
 	}
 	
@@ -228,9 +254,9 @@ public class UIResourcesLoader {
 			throw new GameException("Invalid Token to get turn player: "+player);
 		}
 		if(player == Token.PLAYER_1) {
-			return you_str_coords[0];
+			return youStrCoords[0];
 		} else {
-			return you_str_coords[1];
+			return youStrCoords[1];
 		}
 	}
 	
