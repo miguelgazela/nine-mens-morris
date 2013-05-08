@@ -21,10 +21,10 @@ public class Main {
 	
 	public static void main(String []args) throws Exception {
 		
-		SLAnimator.start();
-		new UIGameMenu();
+		//SLAnimator.start();
+		//new UIGameMenu();
 		
-		/*
+		
 		System.out.println("Nine Men's Morris starting...");
 		Log.set(Log.LEVEL_INFO);
 		Main maingame = new Main();
@@ -35,14 +35,14 @@ public class Main {
 		userInput = userInput.toUpperCase();
 		
 		if(userInput.compareTo("LOCAL") == 0 || userInput.compareTo("L") == 0) {
-			maingame.createLocalGame(minimaxDepth);
+			maingame.createLocalGame(4);
 		} else if(userInput.compareTo("NETWORK") == 0 || userInput.compareTo("N") == 0) {
 			maingame.createNetworkGame();
 		} else {
 			System.out.println("UNKNOWN COMMAND");
 			System.exit(-1);
 		}
-		*/
+		
 	}
 	
 	public void createLocalGame(int minimaxDepth) throws IOException, GameException {
@@ -55,7 +55,7 @@ public class Main {
 		if(userInput.compareTo("HUMAN") == 0 || userInput.compareTo("H") == 0) {
 			p1 = new HumanPlayer("Miguel", Token.PLAYER_1, Game.NUM_PIECES_PER_PLAYER);
 		} else if(userInput.compareTo("CPU") == 0 || userInput.compareTo("C") == 0) {
-			p1 = new MinimaxIAPlayer(Token.PLAYER_2, Game.NUM_PIECES_PER_PLAYER, minimaxDepth);
+			p1 = new MinimaxIAPlayer(Token.PLAYER_1, Game.NUM_PIECES_PER_PLAYER, minimaxDepth);
 		} else {
 			System.out.println("Command unknown");
 			System.exit(-1);
@@ -85,10 +85,12 @@ public class Main {
 					long startTime = System.nanoTime();
 					boardIndex = ((MinimaxIAPlayer)p).getIndexToPlacePiece(game.gameBoard);
 					long endTime = System.nanoTime();
+					game.printGameBoard();
 					System.out.println("Number of moves: "+((MinimaxIAPlayer)p).numberOfMoves);
 					System.out.println("Moves that removed: "+((MinimaxIAPlayer)p).movesThatRemove);
 					System.out.println("It took: "+ (endTime - startTime)/1000000+" miliseconds");
 					System.out.println(p.getName()+" placed piece on "+boardIndex);
+					
 				} else {
 					game.printGameBoard();
 					System.out.println(p.getName()+" place piece on: ");
@@ -129,7 +131,7 @@ public class Main {
 		}
 		
 		System.out.println("The pieces are all placed. Starting the fun part...");
-		while(!game.gameIsOver()) {
+		while(!game.isTheGameOver()) {
 			
 			while(true) {
 				Player p = ((LocalGame)game).getCurrentTurnPlayer();
@@ -181,8 +183,8 @@ public class Main {
 						}
 					}
 					
-					game.checkGameIsOver();
-					if(game.gameIsOver()) {
+					
+					if(game.isTheGameOver()) {
 						game.printGameBoard();
 						break;
 					}
@@ -341,7 +343,7 @@ public class Main {
 			game.setTurn(true);
 		}
 		
-		while(!game.gameIsOver()) {
+		while(!game.isTheGameOver()) {
 			while(true) {
 				if(game.isThisPlayerTurn()) {
 					Player player = game.getPlayer();
@@ -381,7 +383,7 @@ public class Main {
 									}
 								}
 							}
-							game.checkGameIsOver();
+							// TODO game.checkGameIsOver();
 							game.setTurn(false);
 							break;
 						} else {

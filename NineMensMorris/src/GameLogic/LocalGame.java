@@ -50,4 +50,8 @@ public class LocalGame extends Game {
 		}
 		return false;
 	}
+
+	public Player getCurrentTurnPlayer() {
+		return currentTurnPlayer;
+	}
 }
