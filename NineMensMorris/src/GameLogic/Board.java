@@ -68,7 +68,7 @@ public class Board {
 		} else if (player == Token.PLAYER_2) {
 			return --numOfPiecesP2;
 		} else {
-			throw new GameException(""+getClass().getName()+" - Invalid Player Token");
+			throw new GameException(""+getClass().getName()+" - Invalid Player Token "+ player);
 		}
 	}
 	
@@ -119,7 +119,7 @@ public class Board {
 		if(index >= 0 && index < Board.NUM_MILL_COMBINATIONS) {
 			return millCombinations[index];
 		} else {
-			throw new GameException(""+getClass().getName()+" - Invalid Mill Combination Index: ");
+			throw new GameException(""+getClass().getName()+" - Invalid Mill Combination Index: "+ index);
 		}
 	}
 	

@@ -151,10 +151,10 @@ public class MinimaxIAPlayer extends IAPlayer {
 							if(!adjacentPos.isOccupied()) {
 								adjacentPos.setAsOccupied(player);
 								move.destIndex = adjacent[j];
-
+								position.setAsUnoccupied();
 								// TODO THE NEXT BLOCK OF CODE IS DUPLICATED. MOVE IT TO A SEPARATE FUNCTION IF POSSIBLE
 
-								for(int k = 0; k < Board.NUM_POSITIONS_OF_BOARD; k++) { //check if piece made a mill
+								for(int k = 0; k < Board.NUM_MILL_COMBINATIONS; k++) { //check if piece made a mill
 									int playerPieces = 0; 
 									boolean selectedPiece = false;
 									Position[] row = gameBoard.getMillCombination(k);
@@ -170,10 +170,10 @@ public class MinimaxIAPlayer extends IAPlayer {
 
 									if(playerPieces==3 && selectedPiece) { // made a mill - select piece to remove
 										madeMill = true;
-										for(int l = 0; l < Board.NUM_POSITIONS_OF_BOARD; l++) {
-											Position pos = gameBoard.getPosition(l);
+										for(int m = 0; m < Board.NUM_POSITIONS_OF_BOARD; m++) {
+											Position pos = gameBoard.getPosition(m);
 											if(pos.getPlayerOccupyingIt() != player && pos.getPlayerOccupyingIt() != Token.NO_PLAYER) {
-												move.removePieceOnIndex = l;
+												move.removePieceOnIndex = m;
 												nextMoves.add(move); // add a move for each piece that can be removed, this way it will check what's the best one to remove
 												movesThatRemove++; // TODO TESTING
 											}
@@ -187,8 +187,74 @@ public class MinimaxIAPlayer extends IAPlayer {
 								} else {
 									madeMill = false;
 								}
-								position.setAsUnoccupied();
+								position.setAsOccupied(player);
+								adjacentPos.setAsUnoccupied();
 							}
+						}
+					}
+				}
+			} else if (gamePhase == Game.FLYING_PHASE) {
+				/* por cada peca do jogador, verifica para onde se consegue mover e 
+				 * adiciona esse movimento a lista. Se consegue remover uma peca do oponente
+				 * gracas a esse movimento, adiciona a peca removida ao movimento e adiciona tbm a lista
+				 */
+				List<Integer> freeSpaces = null;
+				List<Integer> playerSpaces = null;
+				for(int i = 0; i < Board.NUM_POSITIONS_OF_BOARD; i++) {
+					Position position = gameBoard.getPosition(i);
+
+					if(position.getPlayerOccupyingIt() == player)
+						playerSpaces.add(i);
+					if(!position.isOccupied())
+						freeSpaces.add(i);
+
+					for(int n=0;n<playerSpaces.size();n++) {
+
+						for(int j = 0; j < freeSpaces.size(); j++) {
+							Move move = new Move(i, -1, -1, Move.MOVING);
+							Position destPos = gameBoard.getPosition(freeSpaces.get(j));
+
+							destPos.setAsOccupied(player);
+							move.destIndex = freeSpaces.get(j);
+							position.setAsUnoccupied();
+							// TODO THE NEXT BLOCK OF CODE IS DUPLICATED. MOVE IT TO A SEPARATE FUNCTION IF POSSIBLE
+
+							for(int k = 0; k < Board.NUM_MILL_COMBINATIONS; k++) { //check if piece made a mill
+								int playerPieces = 0; 
+								boolean selectedPiece = false;
+								Position[] row = gameBoard.getMillCombination(k);
+
+								for(int l = 0; l < Board.NUM_POSITIONS_IN_EACH_MILL; l++) {
+									if(row[l].getPlayerOccupyingIt() == player) {
+										playerPieces++;
+									}
+									if(row[l].getPositionIndex() == move.destIndex) {
+										selectedPiece = true;
+									}
+								}
+
+								if(playerPieces==3 && selectedPiece) { // made a mill - select piece to remove
+									madeMill = true;
+									for(int m = 0; m < Board.NUM_POSITIONS_OF_BOARD; m++) {
+										Position pos = gameBoard.getPosition(m);
+										if(pos.getPlayerOccupyingIt() != player && pos.getPlayerOccupyingIt() != Token.NO_PLAYER) {
+											move.removePieceOnIndex = m;
+											nextMoves.add(move); // add a move for each piece that can be removed, this way it will check what's the best one to remove
+											movesThatRemove++; // TODO TESTING
+										}
+									}
+								}
+								selectedPiece = false;					
+							}
+
+							if(!madeMill) { // don't add repeated moves
+								nextMoves.add(move);
+							} else {
+								madeMill = false;
+							}
+							position.setAsOccupied(player);
+							destPos.setAsUnoccupied();
+
 						}
 					}
 				}
@@ -204,10 +270,14 @@ public class MinimaxIAPlayer extends IAPlayer {
 		int bestScore = (player == this.playerToken) ? Integer.MIN_VALUE : Integer.MAX_VALUE;
 		int currentScore = 0, bestPosDest = -1, bestPosSrc = -1, removePos = -1;
 		Token removedPlayer = Token.NO_PLAYER;
-		List<Move> nextMoves;
-		
+		List<Move> nextMoves = null;
+
 		int gamePhase = getGamePhase(gameBoard);
-		
+		if(gamePhase==Game.FLYING_PHASE)
+		{
+			System.out.println("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAaAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
+			System.exit(0);
+		}
 		if (depth == 0 || (nextMoves = generateMoves(gameBoard, player, gamePhase)).isEmpty()) { // gameover or depth reached, evaluate score
 			bestScore = evaluate(gameBoard);
 		} else {
@@ -219,12 +289,12 @@ public class MinimaxIAPlayer extends IAPlayer {
 
 					// Try this move for the current player
 					position.setAsOccupied(player);
-					
+
 					if(gamePhase == Game.PLACING_PHASE)
 						gameBoard.incNumPiecesOfPlayer(player);
 					else
 						gameBoard.getPosition(move.srcIndex).setAsUnoccupied();
-					
+
 					if(move.removePieceOnIndex != -1) { // this move removed a piece from opponent
 						Position removed = gameBoard.getPosition(move.removePieceOnIndex);
 						removedPlayer = removed.getPlayerOccupyingIt();
@@ -252,7 +322,7 @@ public class MinimaxIAPlayer extends IAPlayer {
 
 					// Undo move
 					position.setAsUnoccupied();
-					
+
 					if(gamePhase == Game.PLACING_PHASE)
 						gameBoard.decNumPiecesOfPlayer(player);
 					else
