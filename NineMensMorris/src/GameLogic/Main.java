@@ -129,7 +129,7 @@ public class Main {
 			}
 		}
 		
-		System.out.println("The pieces are all placed. Starting the fun part...");
+		System.out.println("The pieces are all placed. Starting the fun part... ");
 		while(!game.isTheGameOver()) {
 			
 			while(true) {
@@ -141,6 +141,16 @@ public class Main {
 					long startTime = System.nanoTime();
 					move = ((IAPlayer)p).getPieceMove(game.gameBoard, game.getCurrentGamePhase());
 					long endTime = System.nanoTime();
+					game.printGameBoard();
+					
+					try {
+						Thread.sleep(1000);
+					} catch (InterruptedException e) {
+						// TODO remover depois de testar
+						e.printStackTrace();
+					}
+					System.out.println("Peças jogador1: " + game.gameBoard.getNumberOfPiecesOfPlayer(Token.PLAYER_1));
+					System.out.println("Peças jogador2: " + game.gameBoard.getNumberOfPiecesOfPlayer(Token.PLAYER_2));
 					System.out.println("Number of moves: "+((MinimaxIAPlayer)p).numberOfMoves);
 					System.out.println("Moves that removed: "+((MinimaxIAPlayer)p).movesThatRemove);
 					System.out.println("It took: "+ (endTime - startTime)/1000000+" miliseconds");
