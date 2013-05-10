@@ -1120,6 +1120,8 @@ public class UIGameMenu extends JFrame {
 														//winner = ? 
 													}
 													((NetworkGame)game).setTurn(false);
+								                    turnPlayer = uiResourcesLoader.getPlayerTurn(p.getPlayerToken() == Token.PLAYER_1 ? Token.PLAYER_2 : Token.PLAYER_1);
+													
 												} else {
 													Log.info("You can't remove a piece from there. Try again");
 												}
@@ -1142,7 +1144,7 @@ public class UIGameMenu extends JFrame {
 														updateLocalGameTurn();
 													}
 												} else {
-													System.out.println("You can't place a piece there. Try again");
+													Log.info("You can't place a piece there. Try again");
 												}
 											} else if(game.getCurrentGamePhase() == Game.MOVING_PHASE || game.getCurrentGamePhase() == Game.FLYING_PHASE) {
 												movingPhase(i, p);
@@ -1163,7 +1165,7 @@ public class UIGameMenu extends JFrame {
 														}
 														repaint();
 													} else {
-														Log.warn("The placing was considered valid with the server, but not locally");
+														Log.info("The placing was considered valid with the server, but not locally");
 													}
 												} else {
 													Log.info("The server has considered that move invalid. Try again");
