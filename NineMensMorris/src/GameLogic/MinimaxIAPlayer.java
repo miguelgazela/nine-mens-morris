@@ -282,7 +282,7 @@ public class MinimaxIAPlayer extends IAPlayer {
 			bestScore = evaluate(gameBoard);
 		} else if((nextMoves = generateMoves(gameBoard, player, gamePhase)).isEmpty())
 		{
-			bestScore = -10000;
+			bestScore = Integer.MIN_VALUE;
 		} else if((gameOver = checkGameOver(gameBoard,player)) != 0) {
 			bestScore = gameOver;
 		} else {
@@ -375,9 +375,9 @@ public class MinimaxIAPlayer extends IAPlayer {
 
 			try {
 				if(gameBoard.getNumberOfPiecesOfPlayer(player)<=Game.MIN_NUM_PIECES)
-					return -10000;
+					return Integer.MIN_VALUE;
 				else if(gameBoard.getNumberOfPiecesOfPlayer(oppPlayer)<=Game.MIN_NUM_PIECES)
-					return 10000;
+					return Integer.MAX_VALUE;
 				else
 					return 0;
 			} catch (GameException e) {
