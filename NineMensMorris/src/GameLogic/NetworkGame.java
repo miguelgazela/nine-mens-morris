@@ -37,6 +37,8 @@ public class NetworkGame extends Game {
 	@Override
 	public boolean removePiece(int boardIndex, Token player) throws GameException {
 		if(super.removePiece(boardIndex, player)) {
+			Log.info("removePiece - Num Pieces of player 1: "+gameBoard.getNumberOfPiecesOfPlayer(Token.PLAYER_1));
+			Log.info("removePiece - Num Pieces of player 2: "+gameBoard.getNumberOfPiecesOfPlayer(Token.PLAYER_2));
 			if(player == this.player.getPlayerToken()) {
 				this.player.lowerNumPiecesOnBoard();
 			}

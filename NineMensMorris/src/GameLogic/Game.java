@@ -125,7 +125,6 @@ public class Game {
 			gameBoard.decNumPiecesOfPlayer(player);
 			if(gamePhase == Game.MOVING_PHASE && gameBoard.getNumberOfPiecesOfPlayer(player) == (Game.MIN_NUM_PIECES+1)) {
 				gamePhase = Game.FLYING_PHASE;
-				Log.info("New game phase is: "+gamePhase);
 			}
 			return true;
 		}
