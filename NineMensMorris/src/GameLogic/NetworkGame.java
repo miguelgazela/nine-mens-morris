@@ -2,6 +2,8 @@ package GameLogic;
 
 import java.util.ArrayList;
 
+import com.esotericsoftware.minlog.Log;
+
 
 public class NetworkGame extends Game {
 	
@@ -34,9 +36,7 @@ public class NetworkGame extends Game {
 	
 	@Override
 	public boolean removePiece(int boardIndex, Token player) throws GameException {
-		if(!gameBoard.positionIsAvailable(boardIndex) && positionHasPieceOfPlayer(boardIndex, player)) {
-			gameBoard.getPosition(boardIndex).setAsUnoccupied();
-			gameBoard.decNumPiecesOfPlayer(player);
+		if(super.removePiece(boardIndex, player)) {
 			if(player == this.player.getPlayerToken()) {
 				this.player.lowerNumPiecesOnBoard();
 			}
