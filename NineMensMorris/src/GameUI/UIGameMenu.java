@@ -624,6 +624,10 @@ public class UIGameMenu extends JFrame {
 								if(game.getCurrentGamePhase() != Game.PLACING_PHASE && game.isTheGameOver()) {
 									Token opp = (game.getPlayer().getPlayerToken() == Token.PLAYER_1 ? Token.PLAYER_2 : Token.PLAYER_1);
 									Log.info("Game Over! "+opp+" won!");
+									gClient.stop();
+									if(gServer != null) {
+										gServer.stop();
+									}
 									gameIsOver = true;
 									winner = (opp == Token.PLAYER_1) ? "p1" : "p2";
 								}
@@ -941,6 +945,7 @@ public class UIGameMenu extends JFrame {
 						// draw game status
 						Image status = null;
 						if(gameIsOver) {
+							Log.info("Entered HEREIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII");
 							status = uiResourcesLoader.getGameStatus(winner);
 							graphics.drawImage(status, uiResourcesLoader.game_status_coord.x, uiResourcesLoader.game_status_coord.y, this);
 						} else if(game_type == UIResourcesLoader.NETWORK_GAME
@@ -1032,13 +1037,13 @@ public class UIGameMenu extends JFrame {
 									Log.info("Game Over! "+player.getPlayerToken()+" won");
 									gameIsOver = true;
 									winner = (player.getPlayerToken() == Token.PLAYER_1) ? "p1" : "p2";
+								}
+								if(game_type == UIResourcesLoader.LOCAL_GAME) {
+									updateLocalGameTurn();
 								} else {
-									if(game_type == UIResourcesLoader.LOCAL_GAME) {
-										updateLocalGameTurn();
-									} else {
-										((NetworkGame)game).setTurn(false);
-										turnPlayer = uiResourcesLoader.getPlayerTurn(player.getPlayerToken() == Token.PLAYER_1 ? Token.PLAYER_2 : Token.PLAYER_1);
-									}
+									Log.info("Entering here!");
+									((NetworkGame)game).setTurn(false);
+									turnPlayer = uiResourcesLoader.getPlayerTurn(player.getPlayerToken() == Token.PLAYER_1 ? Token.PLAYER_2 : Token.PLAYER_1);
 								}
 							}	
 						} else {
