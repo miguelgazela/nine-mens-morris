@@ -157,6 +157,10 @@ public class GameClient extends Network {
 	public Token getPlayerThatPlaysFirst() {
 		return playerThatPlaysFirst;
 	}
+	
+	public void stop() {
+		client.stop();
+	}
 
 	/**
 	 * 

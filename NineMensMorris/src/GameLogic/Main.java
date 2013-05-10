@@ -21,28 +21,27 @@ public class Main {
 	
 	public static void main(String []args) throws Exception {
 		
-		//SLAnimator.start();
-		//new UIGameMenu();
 		
+		SLAnimator.start();
+		new UIGameMenu();
 		
-		System.out.println("Nine Men's Morris starting...");
-		Log.set(Log.LEVEL_INFO);
-		Main maingame = new Main();
-		maingame.input = new BufferedReader(new InputStreamReader(System.in));
-		
-		System.out.println("(L)OCAL or (N)ETWORK?");
-		String userInput = maingame.input.readLine();
-		userInput = userInput.toUpperCase();
-		
-		if(userInput.compareTo("LOCAL") == 0 || userInput.compareTo("L") == 0) {
-			maingame.createLocalGame(4);
-		} else if(userInput.compareTo("NETWORK") == 0 || userInput.compareTo("N") == 0) {
-			maingame.createNetworkGame();
-		} else {
-			System.out.println("UNKNOWN COMMAND");
-			System.exit(-1);
-		}
-		
+//		System.out.println("Nine Men's Morris starting...");
+//		Log.set(Log.LEVEL_INFO);
+//		Main maingame = new Main();
+//		maingame.input = new BufferedReader(new InputStreamReader(System.in));
+//		
+//		System.out.println("(L)OCAL or (N)ETWORK?");
+//		String userInput = maingame.input.readLine();
+//		userInput = userInput.toUpperCase();
+//		
+//		if(userInput.compareTo("LOCAL") == 0 || userInput.compareTo("L") == 0) {
+//			maingame.createLocalGame(4);
+//		} else if(userInput.compareTo("NETWORK") == 0 || userInput.compareTo("N") == 0) {
+//			maingame.createNetworkGame();
+//		} else {
+//			System.out.println("UNKNOWN COMMAND");
+//			System.exit(-1);
+//		}
 	}
 	
 	public void createLocalGame(int minimaxDepth) throws IOException, GameException {
@@ -66,7 +65,7 @@ public class Main {
 		userInput = userInput.toUpperCase();
 		
 		if(userInput.compareTo("HUMAN") == 0 || userInput.compareTo("H") == 0) {
-			p2 = new HumanPlayer("Miguel", Token.PLAYER_1, Game.NUM_PIECES_PER_PLAYER);
+			p2 = new HumanPlayer("Miguel", Token.PLAYER_2, Game.NUM_PIECES_PER_PLAYER);
 		} else if(userInput.compareTo("CPU") == 0 || userInput.compareTo("C") == 0) {
 			p2 = new MinimaxIAPlayer(Token.PLAYER_2,Game.NUM_PIECES_PER_PLAYER, minimaxDepth);
 		} else {

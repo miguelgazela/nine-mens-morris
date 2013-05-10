@@ -29,8 +29,7 @@ public class LocalGame extends Game {
 	}
 	
 	public boolean removePiece(int boardIndex, Token player) throws GameException {
-		if(!gameBoard.positionIsAvailable(boardIndex) && positionHasPieceOfPlayer(boardIndex, player)) {
-			gameBoard.getPosition(boardIndex).setAsUnoccupied();
+		if(super.removePiece(boardIndex, player)) {
 			Player p = currentTurnPlayer.equals(player1) ? player2 : player1;
 			p.lowerNumPiecesOnBoard();
 			return true;

@@ -12,6 +12,7 @@ import java.awt.event.MouseMotionListener;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.net.InetAddress;
+import java.net.MalformedURLException;
 import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.net.URI;
@@ -150,12 +151,14 @@ public class UIGameMenu extends JFrame {
 	    }
 	}
 
-	private void openWebpage(URL url) {
+	private void openWebpage(String url) {
 	    try {
-	        openWebpage(url.toURI());
+	        openWebpage((new URL(url)).toURI());
 	    } catch (URISyntaxException e) {
 	        e.printStackTrace();
-	    }
+	    } catch (MalformedURLException e) {
+			e.printStackTrace();
+		}
 	}
 
 	private class UISettingsPanel extends JPanel implements MouseListener, MouseMotionListener {
@@ -172,7 +175,8 @@ public class UIGameMenu extends JFrame {
 		private Graphics graphics;
 		private BufferedImage background;
 		private Image gameLevelCheck;
-		private int gameLevel = UISettingsPanel.NORMAL;
+		private int gameLevelCPU1 = UISettingsPanel.NORMAL;
+		private int gameLevelCPU2 = UISettingsPanel.NORMAL;
 		
 		public UISettingsPanel() {
 			uiResourcesLoader = UIResourcesLoader.getInstanceLoader();
@@ -199,7 +203,10 @@ public class UIGameMenu extends JFrame {
 				graphics.drawImage(background, 0, 0, this);
 				
 				// draw check in the correct position
-				Coord c = uiResourcesLoader.gameLevelCheckCoords[gameLevel];
+				Coord c = uiResourcesLoader.gameLevelCheckCoords[gameLevelCPU1];
+				graphics.drawImage(gameLevelCheck, c.x, c.y, this);
+				
+				c = uiResourcesLoader.gameLevelCheckCoords[gameLevelCPU2+5];
 				graphics.drawImage(gameLevelCheck, c.x, c.y, this);
 			}
 		}
@@ -219,8 +226,9 @@ public class UIGameMenu extends JFrame {
 				int x = e.getX();
 				int y = e.getY();
 //				System.out.println("X: "+x+" Y: "+y);
+				int CPU = 0, levelAI = -1;
 				
-				if(x > 348 && y > 643 && x < 398 && y < 690) {
+				if(x > 348 && y > 643 && x < 398 && y < 690) { // back to main menu
 					new Runnable() {@Override public void run() {
 						panel.createTransition()
 						.push(new SLKeyframe(mainCfg, 1f)
@@ -231,16 +239,32 @@ public class UIGameMenu extends JFrame {
 						}}))
 						.play();
 					}}.run();
-				} else if(x >= 70 && y >= 210 && x <= 127 && y <= 267) { // very easy
-					gameLevel = UISettingsPanel.VERY_EASY;
-				} else if(x >= 70 && y >= 283 && x <= 127 && y <= 340) { // easy
-					gameLevel = UISettingsPanel.EASY;
-				} else if(x >= 70 && y >= 356 && x <= 127 && y <= 413) { // normal
-					gameLevel = UISettingsPanel.NORMAL;
-				} else if(x >= 70 && y >= 429 && x <= 127 && y <= 486) { // hard
-					gameLevel = UISettingsPanel.HARD;
-				} else if(x >= 70 && y >= 502 && x <= 127 && y <= 559) { // very hard
-					gameLevel = UISettingsPanel.VERY_HARD;
+				} else if(x >= 37 && x <= 82) { // possible CPU1
+					CPU = 1;
+				} else if(x >= 344 && x <= 389) { // possible CPU2
+					CPU = 2;
+				}
+				
+				if(CPU != 0) {
+					if(y >= 264 && y <= 309) { // very easy
+						levelAI = UISettingsPanel.VERY_EASY;
+					} else if(y >= 325 && y <= 370) { // easy
+						levelAI = UISettingsPanel.EASY;
+					} else if(y >= 386 && y <= 431) { // normal
+						levelAI = UISettingsPanel.NORMAL;
+					} else if(y >= 447 && y <= 492) { // hard
+						levelAI = UISettingsPanel.HARD;
+					} else if(y >= 508 && y <= 553) { // very hard
+						levelAI = UISettingsPanel.VERY_HARD;
+					}
+					
+					if(levelAI != -1) {
+						if(CPU == 1) {
+							gameLevelCPU1 = levelAI;
+						} else {
+							gameLevelCPU2 = levelAI;
+						}
+					}
 				}
 				repaint();
 			}
@@ -338,8 +362,9 @@ public class UIGameMenu extends JFrame {
 		public void mouseClicked(MouseEvent e) {
 			int x = e.getX();
 			int y = e.getY();
+//			System.out.println("X: "+x+" Y: "+y);
 
-			if(x > 1200 && y > 642 && x < 1249 && y < 689) {
+			if(x > 1200 && y > 642 && x < 1249 && y < 689) { // getting back to main menu
 				new Runnable() {@Override public void run() {
 					panel.createTransition()
 					.push(new SLKeyframe(mainCfg, 2f)
@@ -350,6 +375,10 @@ public class UIGameMenu extends JFrame {
 					}}))
 					.play();
 				}}.run();
+			} else if(x > 292 && y > 460 && x < 431 && y < 495) { // sifeup miguel
+				openWebpage("http://sigarra.up.pt/feup/pt/fest_geral.cursos_list?pv_num_unico=200700604");
+			} else if(x > 850 && y > 460 && x < 989 && y < 495) { // sifeup afonso
+				openWebpage("http://sigarra.up.pt/feup/pt/fest_geral.cursos_list?pv_num_unico=201009023");
 			}
 		}
 		@Override public void mousePressed(MouseEvent e) {}
@@ -460,7 +489,7 @@ public class UIGameMenu extends JFrame {
 			if(currentMenuState == MenuState.NewGame) {
 				int x = e.getX();
 				int y = e.getY();
-				System.out.println("X: "+x+" Y: "+y);
+				//System.out.println("X: "+x+" Y: "+y);
 				
 				if(x > 30 && y > 643 && x < 79 && y < 690) { // back to main menu
 					new Runnable() {@Override public void run() {
@@ -545,6 +574,10 @@ public class UIGameMenu extends JFrame {
 		public boolean hasGameRunning = false;
 		private boolean millWasMade = false;
 		private boolean waitingForAI = false;
+		private boolean gameIsOver = false;
+		private boolean waitingForConnection = true;
+		private boolean showingResetWarning = false;
+		private String winner = "";
 		private GameServer gServer = null;
 		private GameClient gClient = null;
 		private Token[] boardPositions;
@@ -552,10 +585,51 @@ public class UIGameMenu extends JFrame {
 		private int game_type = -1;
 		private Game game;
 		private Image turnPlayer = null;
+		private Thread bgGameCheckThread;
 		
 		public UIGamePanel() {
 			uiResourcesLoader = UIResourcesLoader.getInstanceLoader();
 			background = uiResourcesLoader.game_bg;
+		}
+		
+		private class LocalGameRunnable implements Runnable {
+			@Override
+			public void run() {
+				while(true) {
+					if(waitingForAI) {
+						makeAiMove();
+					} else {
+						try { Thread.sleep(100); } catch (InterruptedException e) { e.printStackTrace(); }
+					}
+				}
+			}
+		}
+		
+		private class NetworkGameRunnable implements Runnable {
+			@Override
+			public void run() {
+				while(true) {
+					if(!((NetworkGame)game).isThisPlayerTurn()) {
+						//System.out.println("IT'S NOT MY TURN");
+						if(gClient.isThisPlayerTurn()) {
+							
+							// update game with opponent moves
+							try {
+								Log.info("Updating game with opponent moves");
+								ArrayList<Move> opponentMoves = gClient.getOpponentMoves();
+								((NetworkGame)game).updateGameWithOpponentMoves(opponentMoves);
+								((NetworkGame)game).setTurn(true);
+								turnPlayer = uiResourcesLoader.getPlayerTurn(game.getPlayer().getPlayerToken());
+								repaint();
+							} catch (GameException e) {
+								e.printStackTrace();
+								System.exit(-1);
+							}
+						}
+					}
+					try { Thread.sleep(100); } catch (InterruptedException e1) { e1.printStackTrace(); }
+				}
+			}
 		}
 		
 		public void startGame() {
@@ -586,9 +660,13 @@ public class UIGameMenu extends JFrame {
 		}
 		
 		public void clearPossibleGame() {
-			millWasMade = false;
 			hasGameRunning = false;
+			millWasMade = false;
 			waitingForAI = false;
+			gameIsOver = false;
+			waitingForConnection = true;
+			showingResetWarning = false;
+			winner = "";
 			gServer = null;
 			gClient = null;
 			boardPositions = new Token[Board.NUM_POSITIONS_OF_BOARD];
@@ -599,6 +677,9 @@ public class UIGameMenu extends JFrame {
 			game_type = -1;
 			game = null;
 			turnPlayer = null;
+			if(bgGameCheckThread != null) {
+				bgGameCheckThread.stop(); // it's not a problem for our game
+			}
 		}
 
 		private void createLocalGame() throws GameException {
@@ -611,10 +692,10 @@ public class UIGameMenu extends JFrame {
 			} else if(uiNewGamePanel.players_type == UIResourcesLoader.HUM_CPU_GAME) {
 				System.out.println("Creating new HUM-CPU game!");
 				p1 = new HumanPlayer("Player 1", Token.PLAYER_1, Game.NUM_PIECES_PER_PLAYER);
-				p2 = createAIPlayer(Token.PLAYER_2);
+				p2 = createAIPlayer(Token.PLAYER_2, uiSettingsPanel.gameLevelCPU1);
 			} else if(uiNewGamePanel.players_type == UIResourcesLoader.CPU_CPU_GAME) {
-				p1 = createAIPlayer(Token.PLAYER_1);
-				p2 = createAIPlayer(Token.PLAYER_2);
+				p1 = createAIPlayer(Token.PLAYER_1, uiSettingsPanel.gameLevelCPU1);
+				p2 = createAIPlayer(Token.PLAYER_2, uiSettingsPanel.gameLevelCPU2);
 			}
 			((LocalGame)game).setPlayers(p1, p2);
 			turnPlayer = uiResourcesLoader.getPlayerTurn(p1.getPlayerToken());
@@ -624,26 +705,16 @@ public class UIGameMenu extends JFrame {
 				waitingForAI = true;
 			}
 			
-			new Thread(new Runnable(){
-				@Override
-				public void run() {
-					while(true) {
-						if(waitingForAI) {
-							makeAiMove();
-						} else {
-							try { Thread.sleep(100); } catch (InterruptedException e) { e.printStackTrace(); }
-						}
-					}
-				}
-			}).start();
+			bgGameCheckThread = new Thread(new LocalGameRunnable());
+			bgGameCheckThread.start();
 		}
 		
-		private IAPlayer createAIPlayer(Token player) {
+		private IAPlayer createAIPlayer(Token player, int playerLevel) {
 			try {
-				if(uiSettingsPanel.gameLevel == UISettingsPanel.VERY_EASY) {
+				if(playerLevel == UISettingsPanel.VERY_EASY) {
 					return new RandomIAPlayer(player, Game.NUM_PIECES_PER_PLAYER);
 				} else {
-					return new MinimaxIAPlayer(player, Game.NUM_PIECES_PER_PLAYER, uiSettingsPanel.gameLevel+2);
+					return new MinimaxIAPlayer(player, Game.NUM_PIECES_PER_PLAYER, playerLevel+2); // TODO temporary
 				}
 			} catch(GameException e) {
 				e.printStackTrace();
@@ -679,26 +750,37 @@ public class UIGameMenu extends JFrame {
 			}
 			
 			((NetworkGame)game).setPlayer(p);
-			int numberTries = 15;
+			int numberTries = 3;
 			
 			if(gServer == null) { // this is only a client trying to connect
+				boolean backMenu = false;
 				while(true) {
-					System.out.println("Connect to GameServer at IP address: ");
 					String ip = JOptionPane.showInputDialog(null, "Connect to GameServer at IP address:","localhost");
 					try {
-					if(ip != null) {
-						gClient.connectToServer(ip);
-						break;
-					}
+						if(ip != null) {
+							gClient.connectToServer(ip);
+							break;
+						}
+						else {
+							backMenu = true;
+							break;
+						}
 					} catch (Exception e){
 						Log.info("No GameServer detected!");
 						if(--numberTries == 0) {
-							System.out.println("Giving up!");
-							// TODO improve this
+							Log.info("No more tries. Going back to main menu.");
+							backMenu = true;
+							break;
 						}
-						try { Thread.sleep(1000); } catch (InterruptedException e1) { e1.printStackTrace(); }
+						try { Thread.sleep(50); } catch (InterruptedException e1) { e1.printStackTrace(); }
 						Log.info("Trying another connection.");
 					}
+				}
+				if(backMenu) {
+					gClient.stop();
+					clearPossibleGame();
+					goBackToMenu(); // TODO not working, why?
+					return;
 				}
 			} else { // this computer has the GameServer
 				gClient.connectToServer("localhost");
@@ -720,6 +802,7 @@ public class UIGameMenu extends JFrame {
 			}
 			
 			turnPlayer = uiResourcesLoader.getPlayerTurn(gClient.getPlayerThatPlaysFirst());
+			waitingForConnection = false;
 			repaint();
 			
 			Log.info("Game is starting");
@@ -728,32 +811,8 @@ public class UIGameMenu extends JFrame {
 				((NetworkGame)game).setTurn(true);
 			}
 			
-			new Thread(new Runnable(){
-				@Override
-				public void run() {
-					while(true) {
-						if(!((NetworkGame)game).isThisPlayerTurn()) {
-							//System.out.println("IT'S NOT MY TURN");
-							if(gClient.isThisPlayerTurn()) {
-								
-								// update game with opponent moves
-								try {
-									Log.info("Updating game with opponent moves");
-									ArrayList<Move> opponentMoves = gClient.getOpponentMoves();
-									((NetworkGame)game).updateGameWithOpponentMoves(opponentMoves);
-									((NetworkGame)game).setTurn(true);
-									turnPlayer = uiResourcesLoader.getPlayerTurn(game.getPlayer().getPlayerToken());
-									repaint();
-								} catch (GameException e) {
-									e.printStackTrace();
-									System.exit(-1);
-								}
-							}
-						}
-						try { Thread.sleep(100); } catch (InterruptedException e1) { e1.printStackTrace(); }
-					}
-				}
-			}).start();
+			bgGameCheckThread = new Thread(new NetworkGameRunnable());
+			bgGameCheckThread.start();
 		}
 		
 		private void makeAiMove() {
@@ -783,11 +842,17 @@ public class UIGameMenu extends JFrame {
 					int boardIndex = ((IAPlayer)p).getIndexToRemovePieceOfOpponent(game.getGameBoard());
 					if(game.removePiece(boardIndex, opponentPlayer)) {
 						boardPositions[boardIndex] = Token.NO_PLAYER;
-						System.out.println(p.getName()+" removes opponent piece on "+boardIndex);
+						Log.info(p.getPlayerToken()+" removes opponent piece on board index: "+boardIndex);
 					}
 				}
 				waitingForAI = false;
-				updateLocalGameTurn();
+				if(game.getCurrentGamePhase() == Game.FLYING_PHASE && game.isTheGameOver()) {
+					Log.info("Game Over! "+p.getPlayerToken()+" won");
+					gameIsOver = true;
+					winner = (p.getPlayerToken() == Token.PLAYER_1) ? "p1" : "p2";
+				} else {
+					updateLocalGameTurn();
+				}
 				repaint();
 
 			} catch(GameException e){
@@ -818,6 +883,11 @@ public class UIGameMenu extends JFrame {
 			super.paintComponent(graphics = g); // clear off-screen bitmap
 			if (background != null) {
 				graphics.drawImage(background, 0, 0, this);
+				
+				if(uiNewGamePanel.game_type == UIResourcesLoader.NETWORK_GAME && waitingForConnection) {
+					GameImage waitConnection = uiResourcesLoader.waitingForConnection;
+					graphics.drawImage(waitConnection.image, waitConnection.coord.x, waitConnection.coord.y, this);
+				}
 
 				if(hasGameRunning) {
 					try {
@@ -860,12 +930,16 @@ public class UIGameMenu extends JFrame {
 							graphics.drawImage(uiResourcesLoader.getGameStatus("waitingAI"), uiResourcesLoader.game_status_coord.x, uiResourcesLoader.game_status_coord.y, this);
 						}
 						
+						
 						// draw game status
-						if(game_type == UIResourcesLoader.NETWORK_GAME
+						Image status = null;
+						if(gameIsOver) {
+							status = uiResourcesLoader.getGameStatus(winner);
+							graphics.drawImage(status, uiResourcesLoader.game_status_coord.x, uiResourcesLoader.game_status_coord.y, this);
+						} else if(game_type == UIResourcesLoader.NETWORK_GAME
 							|| (game_type == UIResourcesLoader.LOCAL_GAME 
 								&& (uiNewGamePanel.players_type == UIResourcesLoader.HUM_HUM_GAME
 									|| (uiNewGamePanel.players_type == UIResourcesLoader.HUM_CPU_GAME && game.getPlayer().getPlayerToken() == Token.PLAYER_1)))) {
-							Image status = null;
 							
 							if(millWasMade) {
 								status = uiResourcesLoader.getGameStatus("remove");
@@ -877,7 +951,7 @@ public class UIGameMenu extends JFrame {
 								}
 							} else if(game.getCurrentGamePhase() == Game.PLACING_PHASE) {
 								status = uiResourcesLoader.getGameStatus("place");
-							} else if(game.getCurrentGamePhase() == Game.MOVING_PHASE) {
+							} else if(game.getCurrentGamePhase() == Game.MOVING_PHASE || game.getCurrentGamePhase() == Game.FLYING_PHASE) {
 								status = uiResourcesLoader.getGameStatus("select");
 							}
 							graphics.drawImage(status, uiResourcesLoader.game_status_coord.x, uiResourcesLoader.game_status_coord.y, this);
@@ -892,6 +966,11 @@ public class UIGameMenu extends JFrame {
 							graphics.drawImage(uiResourcesLoader.youStr.image, c.x, c.y, this);
 						}
 						
+						if(showingResetWarning) {
+							GameImage reset = uiResourcesLoader.confirmReset;
+							graphics.drawImage(reset.image, reset.coord.x, reset.coord.y, this);
+						}
+						
 					} catch (GameException e) {
 						e.printStackTrace();
 						System.exit(-1);
@@ -900,6 +979,19 @@ public class UIGameMenu extends JFrame {
 			}
 		}
 
+		private void goBackToMenu() {
+			new Runnable() {@Override public void run() {
+				panel.createTransition()
+				.push(new SLKeyframe(mainCfg, 2f)
+				.setStartSide(SLSide.LEFT, uiMainMenuPanel)
+				.setEndSide(SLSide.RIGHT, uiGamePanel)
+				.setCallback(new SLKeyframe.Callback() {@Override public void done() {
+					currentMenuState = MenuState.Main;
+				}}))
+				.play();
+			}}.run();
+		}
+		
 		private void movingPhase(int boardIndex, Player player) throws GameException {
 			boolean invalidMove = false;
 			
@@ -909,11 +1001,11 @@ public class UIGameMenu extends JFrame {
 					selectedPiece = boardIndex;
 					repaint();
 				} else {
-					Log.info("You don't have a piece on that position");
+					Log.info(player.getPlayerToken()+" doesn't have a piece on board index: "+boardIndex);
 				}
 			} else { // a piece is selected, we just need a valid destination
 				if(selectedPiece == boardIndex) { // unselect piece
-					System.out.println("Piece was unselected");
+					Log.info("Piece on board index: "+boardIndex+" was unselected");
 					selectedPiece = -1;
 					repaint();
 				} else {
@@ -936,9 +1028,6 @@ public class UIGameMenu extends JFrame {
 				                    turnPlayer = uiResourcesLoader.getPlayerTurn(player.getPlayerToken() == Token.PLAYER_1 ? Token.PLAYER_2 : Token.PLAYER_1);
 								}
 							}
-							if(game.isTheGameOver()) {
-			                    System.out.println("The GAME IS OVER!");
-			                }
 						} else {
 							invalidMove = true;
 						}
@@ -957,6 +1046,20 @@ public class UIGameMenu extends JFrame {
 				}
 			}
 		}
+		
+		private void resetGame() {
+			if(game_type == UIResourcesLoader.LOCAL_GAME) {
+				clearPossibleGame();
+				try {
+					hasGameRunning = true;
+					game_type = UIResourcesLoader.LOCAL_GAME;
+					createLocalGame();
+				} catch (GameException e1) {
+					e1.printStackTrace();
+					System.exit(-1);
+				}
+			}
+		}
 
 		@Override
 		public void mouseClicked(MouseEvent e) {
@@ -965,105 +1068,118 @@ public class UIGameMenu extends JFrame {
 			System.out.println("X: "+x+" Y: "+y);
 
 			if(x >= 14 && y >= 668 && x <= 58 && y <= 709) { // return to main menu
-				new Runnable() {@Override public void run() {
-					panel.createTransition()
-					.push(new SLKeyframe(mainCfg, 2f)
-					.setStartSide(SLSide.LEFT, uiMainMenuPanel)
-					.setEndSide(SLSide.RIGHT, uiGamePanel)
-					.setCallback(new SLKeyframe.Callback() {@Override public void done() {
-						currentMenuState = MenuState.Main;
-					}}))
-					.play();
-				}}.run();
-			} else if(x >= 1225 && y >= 668 && x <= 1268 && y <= 708) { // reset game
-				
+				goBackToMenu();
+			} else if(x >= 1225 && y >= 664 && x <= 1266 && y <= 708) { // reset game
+				if(!gameIsOver) {
+					showingResetWarning = true;
+				} else {
+					resetGame();
+				}
+				repaint();
 			} else {
-				try {
-					Coord[] board_positions = uiResourcesLoader.board_positions_coords;
-					
-					for(int i = 0; i < board_positions.length; i++) {
-						Coord coord = board_positions[i];
-						if(x >= coord.x && y >= coord.y && x <= (coord.x + 32) && y <= (coord.y + 32)) { // player has clicked in a board position
-							Log.info("Clicked in a board position: "+i);
-							Player p = game.getPlayer();
-							
-							// it's waiting for a piece removal
-							if(millWasMade) { 
-								Token oppToken = (p.getPlayerToken() == Token.PLAYER_1) ? Token.PLAYER_2 : Token.PLAYER_1;
-								
-								if(game_type == UIResourcesLoader.LOCAL_GAME) {
-									if(game.removePiece(i, oppToken)) {
-										boardPositions[i] = Token.NO_PLAYER; 
-										millWasMade = false;
-										updateLocalGameTurn();
-									} else {
-										Log.warn("You can't remove a piece from there. Try again");
-									}
-								} else if(game_type == UIResourcesLoader.NETWORK_GAME) {
-									if(gClient.validatePieceRemoving(i)) {
-										if(game.removePiece(i, oppToken)) {
-											millWasMade = false;
-											((NetworkGame)game).setTurn(false);
-										} else {
-											Log.warn("You can't remove a piece from there. Try again");
-										}
-									} else {
-										Log.info("The server has considered that move invalid. Try again");
-									}
-								}
-								repaint();
-							} else if(game_type == UIResourcesLoader.LOCAL_GAME) {
+				if(!gameIsOver) {
+					try {
+						if(!showingResetWarning) {
+							Coord[] board_positions = uiResourcesLoader.board_positions_coords;
 
-								if(!waitingForAI) {
-									if(game.getCurrentGamePhase() == Game.PLACING_PHASE) {
-										if(game.placePieceOfPlayer(i, p.getPlayerToken())) {
-											boardPositions[i] = p.getPlayerToken();
-											p.raiseNumPiecesOnBoard();
+							for(int i = 0; i < board_positions.length; i++) {
+								Coord coord = board_positions[i];
+								if(x >= coord.x && y >= coord.y && x <= (coord.x + 32) && y <= (coord.y + 32)) { // player has clicked in a board position
+									Log.info("Clicked in a board position: "+i);
+									Player p = game.getPlayer();
 
-											if(game.madeAMill(i, p.getPlayerToken())) {
-												millWasMade = true; // needs to wait for at least another click
-												repaint();
-											} else {
-												updateLocalGameTurn();
-											}
-										} else {
-											System.out.println("You can't place a piece there. Try again");
-										}
-									} else if(game.getCurrentGamePhase() == Game.MOVING_PHASE) {
-										movingPhase(i, p);
-									}
-								}
-							} else if(game_type == UIResourcesLoader.NETWORK_GAME) {
-								if(((NetworkGame)game).isThisPlayerTurn()) {
-									Player player = game.getPlayer();
-									
-									if(game.getCurrentGamePhase() == Game.PLACING_PHASE) {
-										if(gClient.validatePiecePlacing(i)) { // validate placing with the server
-											if(game.placePieceOfPlayer(i, player.getPlayerToken())) {
-												if(game.madeAMill(i, player.getPlayerToken())) {
-													millWasMade = true;
-												} else {
-													((NetworkGame)game).setTurn(false);
-													turnPlayer = uiResourcesLoader.getPlayerTurn(player.getPlayerToken() == Token.PLAYER_1 ? Token.PLAYER_2 : Token.PLAYER_1);
+									// it's waiting for a piece removal
+									if(millWasMade) { 
+										Token oppToken = (p.getPlayerToken() == Token.PLAYER_1) ? Token.PLAYER_2 : Token.PLAYER_1;
+
+										if(game_type == UIResourcesLoader.LOCAL_GAME) {
+											if(game.removePiece(i, oppToken)) {
+												boardPositions[i] = Token.NO_PLAYER; 
+												millWasMade = false;
+												if(game.getCurrentGamePhase() == Game.FLYING_PHASE && game.isTheGameOver()) {
+													Log.info("Game Over! "+p.getPlayerToken()+" won");
+													gameIsOver = true;
+													winner = (p.getPlayerToken() == Token.PLAYER_1) ? "p1" : "p2";
 												}
-												repaint();
+												updateLocalGameTurn();
 											} else {
-												Log.warn("The placing was considered valid with the server, but not locally");
+												Log.warn("You can't remove a piece from there. Try again");
 											}
-										} else {
-											Log.info("The server has considered that move invalid. Try again");
+										} else if(game_type == UIResourcesLoader.NETWORK_GAME) {
+											if(gClient.validatePieceRemoving(i)) {
+												if(game.removePiece(i, oppToken)) {
+													millWasMade = false;
+													((NetworkGame)game).setTurn(false);
+												} else {
+													Log.warn("You can't remove a piece from there. Try again");
+												}
+											} else {
+												Log.info("The server has considered that move invalid. Try again");
+											}
 										}
-									} else if(game.getCurrentGamePhase() == Game.MOVING_PHASE) {
-										movingPhase(i, player);
+										repaint();
+									} else if(game_type == UIResourcesLoader.LOCAL_GAME) {
+
+										if(!waitingForAI) {
+											if(game.getCurrentGamePhase() == Game.PLACING_PHASE) {
+												if(game.placePieceOfPlayer(i, p.getPlayerToken())) {
+													boardPositions[i] = p.getPlayerToken();
+													p.raiseNumPiecesOnBoard();
+
+													if(game.madeAMill(i, p.getPlayerToken())) {
+														millWasMade = true; // needs to wait for at least another click
+														repaint();
+													} else {
+														updateLocalGameTurn();
+													}
+												} else {
+													System.out.println("You can't place a piece there. Try again");
+												}
+											} else if(game.getCurrentGamePhase() == Game.MOVING_PHASE || game.getCurrentGamePhase() == Game.FLYING_PHASE) {
+												movingPhase(i, p);
+											}
+										}
+									} else if(game_type == UIResourcesLoader.NETWORK_GAME) {
+										if(((NetworkGame)game).isThisPlayerTurn()) {
+											Player player = game.getPlayer();
+
+											if(game.getCurrentGamePhase() == Game.PLACING_PHASE) {
+												if(gClient.validatePiecePlacing(i)) { // validate placing with the server
+													if(game.placePieceOfPlayer(i, player.getPlayerToken())) {
+														if(game.madeAMill(i, player.getPlayerToken())) {
+															millWasMade = true;
+														} else {
+															((NetworkGame)game).setTurn(false);
+															turnPlayer = uiResourcesLoader.getPlayerTurn(player.getPlayerToken() == Token.PLAYER_1 ? Token.PLAYER_2 : Token.PLAYER_1);
+														}
+														repaint();
+													} else {
+														Log.warn("The placing was considered valid with the server, but not locally");
+													}
+												} else {
+													Log.info("The server has considered that move invalid. Try again");
+												}
+											} else if(game.getCurrentGamePhase() == Game.MOVING_PHASE || game.getCurrentGamePhase() == Game.FLYING_PHASE) {
+												movingPhase(i, player);
+											}
+										}
 									}
+									break;
 								}
 							}
-							break;
+						} else { // it's showing the reset warning
+							if(x >= 499 && y >= 407 && x <= 593 && y <= 446) { // yes
+								resetGame();
+								repaint();
+							} else if(x >= 686 && y >= 407 && x <= 780 && y <= 446) {
+								showingResetWarning = false;
+								repaint();
+							}
 						}
+					} catch(GameException exc){
+						exc.printStackTrace();
+						System.exit(-1);
 					}
-				} catch(GameException exc){
-					exc.printStackTrace();
-					System.exit(-1);
 				}
 			}
 		}
@@ -1136,7 +1252,7 @@ public class UIGameMenu extends JFrame {
 						}}))
 						.play();
 					}}.run();
-				} else if (y > 485 && y < 622 && x > 101 && x < 386) { // settings
+				} else if (x > 101 && y > 485 && x < 238 && y < 622) { // settings
 					new Runnable() {@Override public void run() {
 						panel.createTransition()
 						.push(new SLKeyframe(SettingsCfg, 1f)
@@ -1146,7 +1262,9 @@ public class UIGameMenu extends JFrame {
 						}}))
 						.play();
 					}}.run();
-				} else if (y > 485 && y < 622 && x > 397 && x < 716) { // exit game
+				} else if(x > 249 && y > 485 && x < 386 && y < 622) { // source code
+					openWebpage("https://bitbucket.org/miguelgazela/ninemensmorris");
+				}else if (y > 485 && y < 622 && x > 397 && x < 716) { // exit game
 					System.exit(0);
 				} else if (x > 397 && x < 551 && y > 337 && y < 474) { // about info
 					new Runnable() {@Override public void run() {

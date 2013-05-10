@@ -55,6 +55,7 @@ public class Game {
 	public int movePieceFromTo(int srcIndex, int destIndex, Token player) throws GameException {
 		if(positionHasPieceOfPlayer(srcIndex, player)) {
 			if(positionIsAvailable(destIndex)) {
+				System.out.println("Number of pieces: "+gameBoard.getNumberOfPiecesOfPlayer(player));
 				if(validMove(srcIndex, destIndex) || (gameBoard.getNumberOfPiecesOfPlayer(player) == Game.MIN_NUM_PIECES + 1)) {
 					gameBoard.getPosition(srcIndex).setAsUnoccupied();
 					gameBoard.getPosition(destIndex).setAsOccupied(player);
@@ -117,9 +118,13 @@ public class Game {
 	}
 
 	public boolean removePiece(int boardIndex, Token player) throws GameException { 
+		System.out.println("removePiece do Game");
 		if(!gameBoard.positionIsAvailable(boardIndex) && positionHasPieceOfPlayer(boardIndex, player)) {
 			gameBoard.getPosition(boardIndex).setAsUnoccupied();
 			gameBoard.decNumPiecesOfPlayer(player);
+			if(gamePhase == Game.MOVING_PHASE && gameBoard.getNumberOfPiecesOfPlayer(player) == (Game.MIN_NUM_PIECES+1)) {
+				gamePhase = Game.FLYING_PHASE;
+			}
 			return true;
 		}
 		return false;

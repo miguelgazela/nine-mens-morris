@@ -50,6 +50,7 @@ public class UIResourcesLoader {
 	private Image[] v_gameStatus;
 	
 	public GameImage waitingForConnection, startGameBtn, gameLevelCheck, returnToGameBtn, youStr;
+	public GameImage confirmReset;
 	
 	private UIResourcesLoader() {
 		initPieces();
@@ -57,8 +58,6 @@ public class UIResourcesLoader {
 		initBtns();
 		initStrings();
 		initCoords();
-		
-		waitingForConnection = new GameImage("images/backgrounds/waitingConnection.png", 0, 0);
 		
 		// initialize backgrounds
 		try {
@@ -86,17 +85,20 @@ public class UIResourcesLoader {
 		try {
 			youStr = new GameImage("images/strings/you.png");
 			
-			v_gamePhases = new Image[2];
+			v_gamePhases = new Image[3];
 			v_gamePhases[0] = ImageIO.read(new File("images/strings/placing.png"));
 			v_gamePhases[1] = ImageIO.read(new File("images/strings/moving.png"));
+			v_gamePhases[2] = ImageIO.read(new File("images/strings/flying.png"));
 			
-			v_gameStatus = new Image[6];
+			v_gameStatus = new Image[8];
 			v_gameStatus[0] = ImageIO.read(new File("images/strings/placePiece.png"));
 			v_gameStatus[1] = ImageIO.read(new File("images/strings/selectPiece.png"));
 			v_gameStatus[2] = ImageIO.read(new File("images/strings/movePiece.png"));
 			v_gameStatus[3] = ImageIO.read(new File("images/strings/removePiece.png"));
 			v_gameStatus[4] = ImageIO.read(new File("images/strings/flyPiece.png"));
 			v_gameStatus[5] = ImageIO.read(new File("images/strings/waitingAI.png"));
+			v_gameStatus[6] = ImageIO.read(new File("images/strings/p1Won.png"));
+			v_gameStatus[7] = ImageIO.read(new File("images/strings/p2Won.png"));
 		} catch (IOException e) {
 			e.printStackTrace();
 			System.out.println("Background Resources Missing");
@@ -110,6 +112,8 @@ public class UIResourcesLoader {
 			v_turns[0] = ImageIO.read(new File("images/pieces/turnP1.png"));
 			v_turns[1] = ImageIO.read(new File("images/pieces/turnP2.png"));
 			gameLevelCheck = new GameImage("images/buttons/check.png");
+			waitingForConnection = new GameImage("images/backgrounds/waitingConnection.png", 0, 0);
+			confirmReset = new GameImage("images/backgrounds/confirmReset.png", 0, 0);
 		} catch(IOException e) {
 			e.printStackTrace();
 			System.out.println("Resources missing");
@@ -147,13 +151,19 @@ public class UIResourcesLoader {
 	}
 	
 	private void initCoords() {
-		int x = 70;
-		gameLevelCheckCoords = new Coord[5];
-		gameLevelCheckCoords[0] = new Coord(x, 210);
-		gameLevelCheckCoords[1] = new Coord(x, 283);
-		gameLevelCheckCoords[2] = new Coord(x, 356);
-		gameLevelCheckCoords[3] = new Coord(x, 429);
-		gameLevelCheckCoords[4] = new Coord(x, 502);
+		int x = 37;
+		gameLevelCheckCoords = new Coord[10];
+		gameLevelCheckCoords[0] = new Coord(x, 264);
+		gameLevelCheckCoords[1] = new Coord(x, 325);
+		gameLevelCheckCoords[2] = new Coord(x, 386);
+		gameLevelCheckCoords[3] = new Coord(x, 447);
+		gameLevelCheckCoords[4] = new Coord(x, 508);
+		x = 344;
+		gameLevelCheckCoords[5] = new Coord(x, 264);
+		gameLevelCheckCoords[6] = new Coord(x, 325);
+		gameLevelCheckCoords[7] = new Coord(x, 386);
+		gameLevelCheckCoords[8] = new Coord(x, 447);
+		gameLevelCheckCoords[9] = new Coord(x, 508);
 		
 		new_game_btns_coords = new Coord[7];
 		new_game_btns_coords[0] = new Coord(106, 177);
@@ -231,6 +241,10 @@ public class UIResourcesLoader {
 			return v_gameStatus[4];
 		case "waitingAI":
 			return v_gameStatus[5];
+		case "p1":
+			return v_gameStatus[6];
+		case "p2":
+			return v_gameStatus[7];
 		default:
 			return null;
 		}
@@ -245,7 +259,7 @@ public class UIResourcesLoader {
 		} else if(gamePhase == Game.MOVING_PHASE) {
 			return v_gamePhases[1];
 		} else {
-			return null;
+			return v_gamePhases[2];
 		}
 	}
 	

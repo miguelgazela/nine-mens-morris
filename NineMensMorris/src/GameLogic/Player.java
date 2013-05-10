@@ -1,8 +1,7 @@
 package GameLogic;
 
+
 public abstract class Player {
-	//public static final int PLAYER_1 = 1;
-	//public static final int PLAYER_2 = 2;
 	
 	protected String name;
 	protected int gamesWon;
@@ -20,7 +19,7 @@ public abstract class Player {
 	protected Player(Token player, int numPiecesPerPlayer) throws GameException {
 		this();
 		if(player != Token.PLAYER_1 && player != Token.PLAYER_2) {
-			throw new GameException(""+getClass().getName()+" - Invalid Player Token");
+			throw new GameException(""+getClass().getName()+" - Invalid Player Token: "+player);
 		} else {
 			numPieces = numPiecesPerPlayer;
 			playerToken = player;
@@ -48,11 +47,12 @@ public abstract class Player {
 	}
 	
 	public int raiseNumPiecesOnBoard() {
+		canFly = false; // it's still placing pieces
 		return ++numPiecesOnBoard;
 	}
 	
 	public int lowerNumPiecesOnBoard() {
-		if (--numPiecesOnBoard == 3) {
+		if(--numPiecesOnBoard == 3) {
 			canFly = true;
 		}
 		return numPiecesOnBoard;

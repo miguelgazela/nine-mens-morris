@@ -3,6 +3,8 @@ package GameLogic;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.esotericsoftware.minlog.Log;
+
 public class MinimaxIAPlayer extends IAPlayer {
 	private int depth;
 	private Token opponentPlayer;
@@ -154,7 +156,7 @@ public class MinimaxIAPlayer extends IAPlayer {
 
 								// TODO THE NEXT BLOCK OF CODE IS DUPLICATED. MOVE IT TO A SEPARATE FUNCTION IF POSSIBLE
 
-								for(int k = 0; k < Board.NUM_POSITIONS_OF_BOARD; k++) { //check if piece made a mill
+								for(int k = 0; k < Board.NUM_MILL_COMBINATIONS; k++) { //check if piece made a mill
 									int playerPieces = 0; 
 									boolean selectedPiece = false;
 									Position[] row = gameBoard.getMillCombination(k);
@@ -168,14 +170,14 @@ public class MinimaxIAPlayer extends IAPlayer {
 										}
 									}
 
-									if(playerPieces==3 && selectedPiece) { // made a mill - select piece to remove
+									if(playerPieces == 3 && selectedPiece) { // made a mill - select piece to remove
 										madeMill = true;
 										for(int l = 0; l < Board.NUM_POSITIONS_OF_BOARD; l++) {
 											Position pos = gameBoard.getPosition(l);
 											if(pos.getPlayerOccupyingIt() != player && pos.getPlayerOccupyingIt() != Token.NO_PLAYER) {
 												move.removePieceOnIndex = l;
 												nextMoves.add(move); // add a move for each piece that can be removed, this way it will check what's the best one to remove
-												movesThatRemove++; // TODO TESTING
+												movesThatRemove++; // TODO REMOVE
 											}
 										}
 									}
@@ -195,6 +197,7 @@ public class MinimaxIAPlayer extends IAPlayer {
 			}
 		} catch (GameException e) {
 			e.printStackTrace();
+			System.exit(-1);
 		}
 		return nextMoves;
 	}
@@ -229,7 +232,7 @@ public class MinimaxIAPlayer extends IAPlayer {
 						Position removed = gameBoard.getPosition(move.removePieceOnIndex);
 						removedPlayer = removed.getPlayerOccupyingIt();
 						removed.setAsUnoccupied();
-						gameBoard.decNumPiecesOfPlayer(removedPlayer);
+						//gameBoard.decNumPiecesOfPlayer(removedPlayer);
 					}
 
 					if (player == this.playerToken) {  // maximizing player
@@ -259,11 +262,13 @@ public class MinimaxIAPlayer extends IAPlayer {
 						gameBoard.getPosition(move.srcIndex).setAsOccupied(player);
 					if(move.removePieceOnIndex != -1) {
 						gameBoard.getPosition(move.removePieceOnIndex).setAsOccupied(removedPlayer);
-						gameBoard.incNumPiecesOfPlayer(removedPlayer);
+						//gameBoard.incNumPiecesOfPlayer(removedPlayer);
 					}
 				}
 			} catch (GameException e) {
 				e.printStackTrace();
+				
+				System.exit(-1);
 			}
 		}
 		return new int[] {bestScore, bestPosSrc, bestPosDest, removePos};
@@ -280,10 +285,9 @@ public class MinimaxIAPlayer extends IAPlayer {
 					gamePhase = Game.FLYING_PHASE;
 			}
 		} catch (GameException e) {
-
+			e.printStackTrace();
+			System.exit(-1);
 		}
 		return gamePhase;		
-
-
 	}
 }
