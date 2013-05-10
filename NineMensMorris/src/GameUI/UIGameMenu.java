@@ -624,10 +624,12 @@ public class UIGameMenu extends JFrame {
 								if(game.getCurrentGamePhase() != Game.PLACING_PHASE && game.isTheGameOver()) {
 									Token opp = (game.getPlayer().getPlayerToken() == Token.PLAYER_1 ? Token.PLAYER_2 : Token.PLAYER_1);
 									Log.info("Game Over! "+opp+" won!");
+									/*
 									gClient.stop();
 									if(gServer != null) {
 										gServer.stop();
 									}
+									*/
 									gameIsOver = true;
 									winner = (opp == Token.PLAYER_1) ? "p1" : "p2";
 								}
@@ -1041,7 +1043,7 @@ public class UIGameMenu extends JFrame {
 								if(game_type == UIResourcesLoader.LOCAL_GAME) {
 									updateLocalGameTurn();
 								} else {
-									Log.info("Entering here!");
+									Log.info("Entering here!"); // TODO REMOVE
 									((NetworkGame)game).setTurn(false);
 									turnPlayer = uiResourcesLoader.getPlayerTurn(player.getPlayerToken() == Token.PLAYER_1 ? Token.PLAYER_2 : Token.PLAYER_1);
 								}
@@ -1128,11 +1130,12 @@ public class UIGameMenu extends JFrame {
 												if(game.removePiece(i, oppToken)) {
 													millWasMade = false;
 													if(game.getCurrentGamePhase() != Game.PLACING_PHASE && game.isTheGameOver()) {
-														Log.info("Game Over!");
+														Log.info("Game Over! You won");
 														gameIsOver = true;
-														//winner = ? 
+														winner =  (p.getPlayerToken() == Token.PLAYER_1) ? "p1" : "p2";
 													}
 													((NetworkGame)game).setTurn(false);
+													turnPlayer = uiResourcesLoader.getPlayerTurn(p.getPlayerToken() == Token.PLAYER_1 ? Token.PLAYER_2 : Token.PLAYER_1);
 												} else {
 													Log.info("You can't remove a piece from there. Try again");
 												}
