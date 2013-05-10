@@ -833,13 +833,14 @@ public class UIGameMenu extends JFrame {
 						p.raiseNumPiecesOnBoard();
 						boardPositions[boardIndex] = p.getPlayerToken();
 						repaint();
-						System.out.println(p.getName()+" placed piece on "+boardIndex);
+						Log.info(p.getName()+" placed piece on "+boardIndex);
 					}
-				} else if (game.getCurrentGamePhase() == Game.MOVING_PHASE) {
+				} else {
 					Move move = ((IAPlayer)p).getPieceMove(game.getGameBoard(), game.getCurrentGamePhase());
 					if(game.movePieceFromTo(move.srcIndex, (indexToTest = move.destIndex), p.getPlayerToken()) == Game.VALID_MOVE) {
 						boardPositions[move.srcIndex] = Token.NO_PLAYER;
 						boardPositions[move.destIndex] = p.getPlayerToken();
+						Log.info(p.getName()+" moved piece from "+move.srcIndex+" to " + move.destIndex);
 					}
 				}
 				
@@ -1127,8 +1128,6 @@ public class UIGameMenu extends JFrame {
 														//winner = ? 
 													}
 													((NetworkGame)game).setTurn(false);
-								                    turnPlayer = uiResourcesLoader.getPlayerTurn(p.getPlayerToken() == Token.PLAYER_1 ? Token.PLAYER_2 : Token.PLAYER_1);
-													
 												} else {
 													Log.info("You can't remove a piece from there. Try again");
 												}
@@ -1151,7 +1150,7 @@ public class UIGameMenu extends JFrame {
 														updateLocalGameTurn();
 													}
 												} else {
-													Log.info("You can't place a piece there. Try again");
+													System.out.println("You can't place a piece there. Try again");
 												}
 											} else if(game.getCurrentGamePhase() == Game.MOVING_PHASE || game.getCurrentGamePhase() == Game.FLYING_PHASE) {
 												movingPhase(i, p);
@@ -1172,7 +1171,7 @@ public class UIGameMenu extends JFrame {
 														}
 														repaint();
 													} else {
-														Log.info("The placing was considered valid with the server, but not locally");
+														Log.warn("The placing was considered valid with the server, but not locally");
 													}
 												} else {
 													Log.info("The server has considered that move invalid. Try again");

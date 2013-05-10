@@ -26,7 +26,7 @@ public class Main {
 		new UIGameMenu();
 		
 //		System.out.println("Nine Men's Morris starting...");
-//		Log.set(Log.LEVEL_INFO);
+		Log.set(Log.LEVEL_INFO);
 //		Main maingame = new Main();
 //		maingame.input = new BufferedReader(new InputStreamReader(System.in));
 //		
