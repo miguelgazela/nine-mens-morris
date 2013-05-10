@@ -139,13 +139,6 @@ public class GameServer extends Network {
 					
 					c.sendTCP(actionValidation);
 				}
-
-				/*
-				if(object instanceof GameOver) {
-					logThisMessage("You've won! Congrats.");
-					System.exit(-1); // TODO what to do here?
-				}
-				*/
 			}
 			
 			public void disconnected (Connection c) {

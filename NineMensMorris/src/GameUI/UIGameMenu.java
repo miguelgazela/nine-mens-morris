@@ -620,6 +620,13 @@ public class UIGameMenu extends JFrame {
 								((NetworkGame)game).updateGameWithOpponentMoves(opponentMoves);
 								((NetworkGame)game).setTurn(true);
 								turnPlayer = uiResourcesLoader.getPlayerTurn(game.getPlayer().getPlayerToken());
+								
+								if(game.getCurrentGamePhase() != Game.PLACING_PHASE && game.isTheGameOver()) {
+									Token opp = (game.getPlayer().getPlayerToken() == Token.PLAYER_1 ? Token.PLAYER_2 : Token.PLAYER_1);
+									Log.info("Game Over! "+opp+" won!");
+									gameIsOver = true;
+									winner = (opp == Token.PLAYER_1) ? "p1" : "p2";
+								}
 								repaint();
 							} catch (GameException e) {
 								e.printStackTrace();
@@ -816,7 +823,6 @@ public class UIGameMenu extends JFrame {
 		}
 		
 		private void makeAiMove() {
-//			waitingForAI = false;
 			Player p = game.getPlayer();
 			int indexToTest = -1;
 			
@@ -1025,14 +1031,15 @@ public class UIGameMenu extends JFrame {
 									Log.info("Game Over! "+player.getPlayerToken()+" won");
 									gameIsOver = true;
 									winner = (player.getPlayerToken() == Token.PLAYER_1) ? "p1" : "p2";
-								}
-								if(game_type == UIResourcesLoader.LOCAL_GAME) {
-									updateLocalGameTurn();
 								} else {
-									((NetworkGame)game).setTurn(false);
-				                    turnPlayer = uiResourcesLoader.getPlayerTurn(player.getPlayerToken() == Token.PLAYER_1 ? Token.PLAYER_2 : Token.PLAYER_1);
+									if(game_type == UIResourcesLoader.LOCAL_GAME) {
+										updateLocalGameTurn();
+									} else {
+										((NetworkGame)game).setTurn(false);
+										turnPlayer = uiResourcesLoader.getPlayerTurn(player.getPlayerToken() == Token.PLAYER_1 ? Token.PLAYER_2 : Token.PLAYER_1);
+									}
 								}
-							}
+							}	
 						} else {
 							invalidMove = true;
 						}
