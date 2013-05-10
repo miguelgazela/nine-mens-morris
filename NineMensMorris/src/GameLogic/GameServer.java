@@ -150,12 +150,16 @@ public class GameServer extends Network {
 			
 			public void disconnected (Connection c) {
 				logThisMessage("CLIENT HAS DISCONNECTED, STOPING SERVER!");
-				//server.stop();
+				server.stop();
 				//System.exit(-1);
 			}
 		});
 		server.bind(Network.TPC_PORT);
 		server.start();
+	}
+	
+	public void stop() {
+		server.stop();
 	}
 	
 	// This holds per connection state.

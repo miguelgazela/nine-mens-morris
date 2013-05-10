@@ -36,19 +36,6 @@ public class LocalGame extends Game {
 		}
 		return false;
 	}
-	
-	public boolean isTheGameOver() {
-		try {
-			if(gameBoard.getNumberOfPiecesOfPlayer(Token.PLAYER_1) == Game.MIN_NUM_PIECES
-					|| gameBoard.getNumberOfPiecesOfPlayer(Token.PLAYER_2) == Game.MIN_NUM_PIECES) {
-				return true;
-			}
-		} catch (GameException e) {
-			e.printStackTrace();
-			System.exit(-1);
-		}
-		return false;
-	}
 
 	public Player getCurrentTurnPlayer() {
 		return currentTurnPlayer;

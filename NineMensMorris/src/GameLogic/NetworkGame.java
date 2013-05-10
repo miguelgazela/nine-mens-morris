@@ -45,13 +45,6 @@ public class NetworkGame extends Game {
 		return false;
 	}
 	
-	public boolean isThisGameOver() {
-		if((player.getNumPiecesOnBoard() == Game.MIN_NUM_PIECES)) {
-			return true;
-		}
-		return false;
-	}
-	
 	public void updateGameWithOpponentMoves(ArrayList<Move> opponentMoves) throws GameException {
 		for(Move move : opponentMoves) {
 			if(move.typeOfMove == Move.PLACING) {

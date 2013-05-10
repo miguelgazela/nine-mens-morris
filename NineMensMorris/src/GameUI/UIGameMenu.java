@@ -1096,22 +1096,27 @@ public class UIGameMenu extends JFrame {
 											if(game.removePiece(i, oppToken)) {
 												boardPositions[i] = Token.NO_PLAYER; 
 												millWasMade = false;
-												if(game.getCurrentGamePhase() == Game.FLYING_PHASE && game.isTheGameOver()) {
+												if(game.getCurrentGamePhase() != Game.PLACING_PHASE && game.isTheGameOver()) {
 													Log.info("Game Over! "+p.getPlayerToken()+" won");
 													gameIsOver = true;
 													winner = (p.getPlayerToken() == Token.PLAYER_1) ? "p1" : "p2";
 												}
 												updateLocalGameTurn();
 											} else {
-												Log.warn("You can't remove a piece from there. Try again");
+												Log.info("You can't remove a piece from there. Try again");
 											}
 										} else if(game_type == UIResourcesLoader.NETWORK_GAME) {
 											if(gClient.validatePieceRemoving(i)) {
 												if(game.removePiece(i, oppToken)) {
 													millWasMade = false;
+													if(game.getCurrentGamePhase() != Game.PLACING_PHASE && game.isTheGameOver()) {
+														Log.info("Game Over!");
+														gameIsOver = true;
+														//winner = ? 
+													}
 													((NetworkGame)game).setTurn(false);
 												} else {
-													Log.warn("You can't remove a piece from there. Try again");
+													Log.info("You can't remove a piece from there. Try again");
 												}
 											} else {
 												Log.info("The server has considered that move invalid. Try again");

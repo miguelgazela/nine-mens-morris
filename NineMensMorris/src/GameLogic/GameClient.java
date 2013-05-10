@@ -56,19 +56,19 @@ public class GameClient extends Network {
 				}
 
 				if(object instanceof FullServer) {
-					logThisMessage("CANNOT JOIN GAME, SERVER IS FULL");
+					Log.info("CANNOT JOIN GAME, SERVER IS FULL");
 					System.exit(-1); // TODO exit or warn GUI?
 				}
 				
 				if(object instanceof StartGame) {
-					logThisMessage("GAMECLIENT HAS RECEIVED CONFIRMATION FOR GAME START FROM THE SERVER");
+					Log.info("GAMECLIENT HAS RECEIVED CONFIRMATION FOR GAME START FROM THE SERVER");
 					waitingForGameToStart = false;
 					playerThatPlaysFirst = ((StartGame)object).playerWhoPlaysFirst;
 					thisPlayerTurn = (playerToken == playerThatPlaysFirst);
 				}
 				
 				if(object instanceof ActionValidation) {
-					logThisMessage("RECEIVED ACTION VALIDATION");
+					Log.info("RECEIVED ACTION VALIDATION");
 					responseFromServer = ((ActionValidation)object).validAction;
 					waitingForServerResponse = false;
 				}
@@ -82,7 +82,7 @@ public class GameClient extends Network {
 						try {
 							opponentMoves.add(new Move(-1, boardIndex, -1, Move.PLACING));
 						} catch (GameException e) { e.printStackTrace(); }
-						logThisMessage("RECEIVED PIECE PLACING FROM OPPONENT");
+						Log.info("RECEIVED PIECE PLACING FROM OPPONENT");
 					}
 				}
 				
@@ -95,7 +95,7 @@ public class GameClient extends Network {
 						try {
 							opponentMoves.add(new Move(-1, -1, boardIndex, Move.REMOVING));
 						} catch (GameException e) { e.printStackTrace(); }
-						logThisMessage("RECEIVED PIECE REMOVING FROM OPPONENT");
+						Log.info("RECEIVED PIECE REMOVING FROM OPPONENT");
 					}
 				}
 				
@@ -109,14 +109,14 @@ public class GameClient extends Network {
 						try {
 							opponentMoves.add(new Move(srcIndex, destIndex, -1, Move.MOVING));
 						} catch (GameException e) { e.printStackTrace(); }
-						logThisMessage("RECEIVED PIECE MOVING FROM OPPONENT");
+						Log.info("RECEIVED PIECE MOVING FROM OPPONENT");
 					}
 				}
 				
 				if(object instanceof ThisPlayerTurn) {
 					thisPlayerTurn = (playerToken == ((ThisPlayerTurn)object).player);
 					if(thisPlayerTurn) {
-						logThisMessage("IT'S MY TURN NOW!");
+						Log.info("IT'S THIS PLAYER TURN");
 					}
 				}
 				
@@ -228,7 +228,7 @@ public class GameClient extends Network {
 	private void waitForServerResponse() {
 		while(waitingForServerResponse) {
 			logThisMessage("GAMECLIENT WAITING FOR VALIDATION FROM GAMESERVER");
-			try { Thread.sleep(10); } catch (InterruptedException e) { e.printStackTrace(); }
+			try { Thread.sleep(25); } catch (InterruptedException e) { e.printStackTrace(); }
 		}
 	}
 	

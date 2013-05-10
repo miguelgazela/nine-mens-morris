@@ -1,5 +1,7 @@
 package GameLogic;
 
+import com.esotericsoftware.minlog.Log;
+
 public class Game {
 	
 	static public final int NUM_PIECES_PER_PLAYER = 9;
@@ -118,12 +120,12 @@ public class Game {
 	}
 
 	public boolean removePiece(int boardIndex, Token player) throws GameException { 
-		System.out.println("removePiece do Game");
 		if(!gameBoard.positionIsAvailable(boardIndex) && positionHasPieceOfPlayer(boardIndex, player)) {
 			gameBoard.getPosition(boardIndex).setAsUnoccupied();
 			gameBoard.decNumPiecesOfPlayer(player);
 			if(gamePhase == Game.MOVING_PHASE && gameBoard.getNumberOfPiecesOfPlayer(player) == (Game.MIN_NUM_PIECES+1)) {
 				gamePhase = Game.FLYING_PHASE;
+				Log.info("New game phase is: "+gamePhase);
 			}
 			return true;
 		}
@@ -135,6 +137,42 @@ public class Game {
 	}
 	
 	public boolean isTheGameOver() {
-		return false;
+		Log.info("Executing isTheGameOver");
+		try {
+			if(gameBoard.getNumberOfPiecesOfPlayer(Token.PLAYER_1) == Game.MIN_NUM_PIECES
+					|| gameBoard.getNumberOfPiecesOfPlayer(Token.PLAYER_2) == Game.MIN_NUM_PIECES) {
+				return true;
+			} else {
+				boolean p1HasValidMove = false, p2HasValidMove = false;
+				Token player;
+				
+				// check if each player has at least one valid move
+				for(int i = 0; i < Board.NUM_POSITIONS_OF_BOARD; i++) {
+					Position position = gameBoard.getPosition(i);
+					if((player = position.getPlayerOccupyingIt()) != Token.NO_PLAYER) {
+						int[] adjacent = position.getAdjacentPositionsIndexes();
+						for(int j = 0; j < adjacent.length; j++) {
+							Position adjacentPos = gameBoard.getPosition(adjacent[j]);
+							if(!adjacentPos.isOccupied()) {
+								if(!p1HasValidMove) { // must only change if boolean is false
+									p1HasValidMove = (player == Token.PLAYER_1);
+								}
+								if(!p2HasValidMove) {
+									p2HasValidMove = (player == Token.PLAYER_2);
+								}
+								break;
+							}
+						}
+					}
+					if(p1HasValidMove && p2HasValidMove) {
+						return false;
+					}
+				}
+			}
+		} catch (GameException e) {
+			e.printStackTrace();
+			System.exit(-1);
+		}
+		return true;
 	}
 }
