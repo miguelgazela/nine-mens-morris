@@ -846,7 +846,7 @@ public class UIGameMenu extends JFrame {
 					}
 				}
 				waitingForAI = false;
-				if(game.getCurrentGamePhase() == Game.FLYING_PHASE && game.isTheGameOver()) {
+				if(game.getCurrentGamePhase() != Game.PLACING_PHASE && game.isTheGameOver()) {
 					Log.info("Game Over! "+p.getPlayerToken()+" won");
 					gameIsOver = true;
 					winner = (p.getPlayerToken() == Token.PLAYER_1) ? "p1" : "p2";
@@ -1021,6 +1021,11 @@ public class UIGameMenu extends JFrame {
 							if(game.madeAMill(boardIndex, player.getPlayerToken())) {
 								millWasMade = true;
 							} else {
+								if(game.getCurrentGamePhase() != Game.PLACING_PHASE && game.isTheGameOver()) {
+									Log.info("Game Over! "+player.getPlayerToken()+" won");
+									gameIsOver = true;
+									winner = (player.getPlayerToken() == Token.PLAYER_1) ? "p1" : "p2";
+								}
 								if(game_type == UIResourcesLoader.LOCAL_GAME) {
 									updateLocalGameTurn();
 								} else {
@@ -1124,7 +1129,6 @@ public class UIGameMenu extends JFrame {
 										}
 										repaint();
 									} else if(game_type == UIResourcesLoader.LOCAL_GAME) {
-
 										if(!waitingForAI) {
 											if(game.getCurrentGamePhase() == Game.PLACING_PHASE) {
 												if(game.placePieceOfPlayer(i, p.getPlayerToken())) {
