@@ -12,7 +12,7 @@ import java.util.Enumeration;
 
 import pt.up.fe.ninemensmorris.network.GameClient;
 import pt.up.fe.ninemensmorris.network.GameServer;
-import pt.up.fe.ninemensmorris.userinterface.UIGameMenu;
+import pt.up.fe.ninemensmorris.userinterface.UIGame;
 
 import com.esotericsoftware.minlog.Log;
 
@@ -26,7 +26,7 @@ public class Main {
 		
 		
 		SLAnimator.start();
-		new UIGameMenu();
+		new UIGame();
 		
 //		System.out.println("Nine Men's Morris starting...");
 		Log.set(Log.LEVEL_INFO);

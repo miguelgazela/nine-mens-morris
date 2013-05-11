@@ -49,7 +49,7 @@ import aurelienribon.slidinglayout.SLSide;
 import com.esotericsoftware.minlog.Log;
 
 
-public class UIGameMenu extends JFrame {
+public class UIGame extends JFrame {
 	private static final long serialVersionUID = -5256114500541984237L;
 	private SLPanel panel;
 	private final UIMainMenuPanel uiMainMenuPanel;
@@ -59,9 +59,9 @@ public class UIGameMenu extends JFrame {
 	private UIDevTeamPanel uiDevTeamPanel;
 	private UIGamePanel uiGamePanel;
 	private SLConfig mainCfg, SettingsCfg, AboutCfg, NewGameCfg, DevTeamCfg, GameCfg;
-	private MenuState currentMenuState;
+	protected MenuState currentMenuState;
 	
-	public UIGameMenu() {
+	public UIGame() {
 		super("Nine Men's Morris - by Afonso Caldas & Miguel Oliveira");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		panel = new SLPanel();
@@ -133,31 +133,6 @@ public class UIGameMenu extends JFrame {
 
 		panel.setTweenManager(SLAnimator.createTweenManager());
 		panel.initialize(mainCfg);
-	}
-
-	private enum MenuState {
-		Main, About, Settings, DevTeam, NewGame, Game;
-	}
-	
-	private void openWebpage(URI uri) {
-	    Desktop desktop = Desktop.isDesktopSupported() ? Desktop.getDesktop() : null;
-	    if (desktop != null && desktop.isSupported(Desktop.Action.BROWSE)) {
-	        try {
-	            desktop.browse(uri);
-	        } catch (Exception e) {
-	            e.printStackTrace();
-	        }
-	    }
-	}
-
-	private void openWebpage(String url) {
-	    try {
-	        openWebpage((new URL(url)).toURI());
-	    } catch (URISyntaxException e) {
-	        e.printStackTrace();
-	    } catch (MalformedURLException e) {
-			e.printStackTrace();
-		}
 	}
 
 	private class UISettingsPanel extends JPanel implements MouseListener, MouseMotionListener {
@@ -375,9 +350,9 @@ public class UIGameMenu extends JFrame {
 					.play();
 				}}.run();
 			} else if(x > 292 && y > 460 && x < 431 && y < 495) { // sifeup miguel
-				openWebpage("http://sigarra.up.pt/feup/pt/fest_geral.cursos_list?pv_num_unico=200700604");
+				WebPage.open("http://sigarra.up.pt/feup/pt/fest_geral.cursos_list?pv_num_unico=200700604");
 			} else if(x > 850 && y > 460 && x < 989 && y < 495) { // sifeup afonso
-				openWebpage("http://sigarra.up.pt/feup/pt/fest_geral.cursos_list?pv_num_unico=201009023");
+				WebPage.open("http://sigarra.up.pt/feup/pt/fest_geral.cursos_list?pv_num_unico=201009023");
 			}
 		}
 		@Override public void mousePressed(MouseEvent e) {}
@@ -1284,7 +1259,7 @@ public class UIGameMenu extends JFrame {
 						.play();
 					}}.run();
 				} else if(x > 249 && y > 485 && x < 386 && y < 622) { // source code
-					openWebpage("https://bitbucket.org/miguelgazela/ninemensmorris");
+					WebPage.open("https://bitbucket.org/miguelgazela/ninemensmorris");
 				}else if (y > 485 && y < 622 && x > 397 && x < 716) { // exit game
 					System.exit(0);
 				} else if (x > 397 && x < 551 && y > 337 && y < 474) { // about info

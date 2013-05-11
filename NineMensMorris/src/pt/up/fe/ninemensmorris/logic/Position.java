@@ -1,7 +1,6 @@
 package pt.up.fe.ninemensmorris.logic;
 
 public class Position {
-	//static public final int NO_PLAYER = -1;
 	
 	private boolean isOccupied;
 	private int positionIndex;
