@@ -276,16 +276,15 @@ public class MinimaxIAPlayer extends IAPlayer {
 		Token removedPlayer = Token.NO_PLAYER;
 		List<Move> nextMoves = null;
 
-		int gamePhase = getGamePhase(gameBoard);
+		int gamePhase = getGamePhase(gameBoard, player);
 
 		if (depth == 0) { // gameover or depth reached, evaluate score
 			bestScore = evaluate(gameBoard);
-		} else if((nextMoves = generateMoves(gameBoard, player, gamePhase)).isEmpty())
-		{
-			bestScore = Integer.MIN_VALUE;
 		} else if((gameOver = checkGameOver(gameBoard,player)) != 0) {
 			bestScore = gameOver;
-		} else {
+		} else if((nextMoves = generateMoves(gameBoard, player, gamePhase)).isEmpty()) {
+			bestScore = Integer.MIN_VALUE;
+		}  else {
 			numberOfMoves += nextMoves.size();
 
 			try {
@@ -346,14 +345,14 @@ public class MinimaxIAPlayer extends IAPlayer {
 		return new int[] {bestScore, bestPosSrc, bestPosDest, removePos};
 	}
 
-	private int getGamePhase(Board gameBoard) 
+	public int getGamePhase(Board gameBoard, Token player) 
 	{
 		int gamePhase = Game.PLACING_PHASE;
 		try {
 			if(gameBoard.getNumTotalPiecesPlaced() == (Game.NUM_PIECES_PER_PLAYER * 2))
 			{
 				gamePhase = Game.MOVING_PHASE;
-				if((gameBoard.getNumberOfPiecesOfPlayer(Token.PLAYER_1)<=3) || (gameBoard.getNumberOfPiecesOfPlayer(Token.PLAYER_2) <=3))
+				if(gameBoard.getNumberOfPiecesOfPlayer(player)<=3)
 					gamePhase = Game.FLYING_PHASE;
 			}
 		} catch (GameException e) {
