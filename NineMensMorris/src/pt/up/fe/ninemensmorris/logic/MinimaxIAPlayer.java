@@ -220,7 +220,7 @@ public class MinimaxIAPlayer extends IAPlayer {
 
 						destPos.setAsOccupied(player);
 						move.destIndex = freeSpaces.get(j);
-						
+
 						// TODO THE NEXT BLOCK OF CODE IS DUPLICATED. MOVE IT TO A SEPARATE FUNCTION IF POSSIBLE
 
 						for(int k = 0; k < Board.NUM_MILL_COMBINATIONS; k++) { //check if piece made a mill
@@ -269,9 +269,9 @@ public class MinimaxIAPlayer extends IAPlayer {
 		return nextMoves;
 	}
 
-	private int[] minimax(Token player, int depth,Board gameBoard) {
+	public int[] minimax(Token player, int depth,Board gameBoard) {
 
-		int bestScore = (player == this.playerToken) ? Integer.MIN_VALUE : Integer.MAX_VALUE;
+		int bestScore = (player == this.playerToken) ? (Integer.MIN_VALUE+1) : (Integer.MAX_VALUE-1);
 		int currentScore = 0, bestPosDest = -1, bestPosSrc = -1, removePos = -1, gameOver;
 		Token removedPlayer = Token.NO_PLAYER;
 		List<Move> nextMoves = null;
@@ -280,7 +280,7 @@ public class MinimaxIAPlayer extends IAPlayer {
 
 		if (depth == 0) { // gameover or depth reached, evaluate score
 			bestScore = evaluate(gameBoard);
-		} else if((gameOver = checkGameOver(gameBoard,player)) != 0) {
+		} else if((gameOver = checkGameOver(gameBoard)) != 0) {
 			bestScore = gameOver;
 		} else if((nextMoves = generateMoves(gameBoard, player, gamePhase)).isEmpty()) {
 			bestScore = Integer.MIN_VALUE;
@@ -290,10 +290,10 @@ public class MinimaxIAPlayer extends IAPlayer {
 			try {
 				for (Move move : nextMoves) {
 					Position position = gameBoard.getPosition(move.destIndex);
-
+					
 					// Try this move for the current player
 					position.setAsOccupied(player);
-
+					
 					if(gamePhase == Game.PLACING_PHASE)
 						gameBoard.incNumPiecesOfPlayer(player);
 					else
@@ -362,18 +362,18 @@ public class MinimaxIAPlayer extends IAPlayer {
 		return gamePhase;		
 	}
 
-	private int checkGameOver(Board gameBoard, Token player) {
+	private int checkGameOver(Board gameBoard) {
 		if(gameBoard.getNumTotalPiecesPlaced() == (Game.NUM_PIECES_PER_PLAYER * 2))
 		{
 			Token oppPlayer;
 
-			if(player==Token.PLAYER_1)
+			if(playerToken==Token.PLAYER_1)
 				oppPlayer = Token.PLAYER_2;
 			else
 				oppPlayer = Token.PLAYER_1;
 
 			try {
-				if(gameBoard.getNumberOfPiecesOfPlayer(player)<=Game.MIN_NUM_PIECES)
+				if(gameBoard.getNumberOfPiecesOfPlayer(playerToken)<=Game.MIN_NUM_PIECES)
 					return Integer.MIN_VALUE;
 				else if(gameBoard.getNumberOfPiecesOfPlayer(oppPlayer)<=Game.MIN_NUM_PIECES)
 					return Integer.MAX_VALUE;

@@ -9,6 +9,8 @@ import pt.up.fe.ninemensmorris.logic.Game;
 import pt.up.fe.ninemensmorris.logic.GameException;
 import pt.up.fe.ninemensmorris.logic.IAPlayer;
 import pt.up.fe.ninemensmorris.logic.MinimaxIAPlayer;
+import pt.up.fe.ninemensmorris.logic.Move;
+import pt.up.fe.ninemensmorris.logic.Position;
 import pt.up.fe.ninemensmorris.logic.Token;
 
 public class MinimaxTests {
@@ -81,5 +83,50 @@ public class MinimaxTests {
 			e.printStackTrace();
 			System.exit(-1);
 		}
+	}
+	
+	@Test
+	public void testGameOver() {
+
+		try {
+			IAPlayer player1 = new MinimaxIAPlayer(Token.PLAYER_1, Game.NUM_PIECES_PER_PLAYER, 4);
+			Board board = new Board();
+			for(int i=0;i<18;i++) {
+				board.incNumTotalPiecesPlaced();
+			}
+			
+			board.setPositionAsPlayer(0, Token.PLAYER_1);
+			board.incNumPiecesOfPlayer(Token.PLAYER_1);
+			board.setPositionAsPlayer(2, Token.PLAYER_1);
+			board.incNumPiecesOfPlayer(Token.PLAYER_1);
+			board.setPositionAsPlayer(4, Token.PLAYER_1);
+			board.incNumPiecesOfPlayer(Token.PLAYER_1);
+			board.setPositionAsPlayer(3, Token.PLAYER_2);
+			board.incNumPiecesOfPlayer(Token.PLAYER_2);
+			board.setPositionAsPlayer(5, Token.PLAYER_2);
+			board.incNumPiecesOfPlayer(Token.PLAYER_2);
+			board.setPositionAsPlayer(9, Token.PLAYER_2);
+			board.incNumPiecesOfPlayer(Token.PLAYER_2);
+			
+			assertSame(Game.FLYING_PHASE,((MinimaxIAPlayer) player1).getGamePhase(board, Token.PLAYER_1));
+			
+			Move move = player1.getPieceMove(board, Game.FLYING_PHASE);
+			assertSame(4, move.srcIndex);
+			assertSame(1, move.destIndex);
+			assertTrue(move.removePieceOnIndex != -1);
+
+		} catch (GameException e) {
+			e.printStackTrace();
+			System.exit(-1);
+		}
+	}
+	private int numPiecesFromPlayerInRow(Position[] pos, Token player) {
+		int counter = 0;
+		for(int i = 0; i < pos.length; i++) {
+			if(pos[i].getPlayerOccupyingIt() == player) {
+				counter++;
+			}
+		}
+		return counter;
 	}
 }
