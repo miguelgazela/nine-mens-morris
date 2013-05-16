@@ -1,6 +1,5 @@
 package pt.up.fe.ninemensmorris.userinterface;
 
-import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Image;
@@ -12,12 +11,8 @@ import java.awt.event.MouseMotionListener;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.net.InetAddress;
-import java.net.MalformedURLException;
 import java.net.NetworkInterface;
 import java.net.SocketException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;

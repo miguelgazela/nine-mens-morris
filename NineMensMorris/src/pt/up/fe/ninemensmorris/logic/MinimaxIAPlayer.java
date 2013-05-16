@@ -19,6 +19,9 @@ public class MinimaxIAPlayer extends IAPlayer {
 			throw new GameException(""+getClass().getName()+" - Invalid Minimax Player Depth");
 		}
 		this.depth = depth;
+		
+		
+		
 		opponentPlayer = (player == Token.PLAYER_1) ? Token.PLAYER_2 : Token.PLAYER_1;
 		pieceToRemove = -1;
 	}
@@ -352,8 +355,9 @@ public class MinimaxIAPlayer extends IAPlayer {
 			if(gameBoard.getNumTotalPiecesPlaced() == (Game.NUM_PIECES_PER_PLAYER * 2))
 			{
 				gamePhase = Game.MOVING_PHASE;
-				if(gameBoard.getNumberOfPiecesOfPlayer(player)<=3)
+				if(gameBoard.getNumberOfPiecesOfPlayer(player) <= 3) {
 					gamePhase = Game.FLYING_PHASE;
+				}
 			}
 		} catch (GameException e) {
 			e.printStackTrace();
@@ -373,12 +377,15 @@ public class MinimaxIAPlayer extends IAPlayer {
 				oppPlayer = Token.PLAYER_1;
 
 			try {
-				if(gameBoard.getNumberOfPiecesOfPlayer(player)<=Game.MIN_NUM_PIECES)
+				if(gameBoard.getNumberOfPiecesOfPlayer(player) <= Game.MIN_NUM_PIECES) {
 					return Integer.MIN_VALUE;
-				else if(gameBoard.getNumberOfPiecesOfPlayer(oppPlayer)<=Game.MIN_NUM_PIECES)
+				}
+				else if(gameBoard.getNumberOfPiecesOfPlayer(oppPlayer)<=Game.MIN_NUM_PIECES) {
 					return Integer.MAX_VALUE;
-				else
+				}
+				else {
 					return 0;
+				}
 			} catch (GameException e) {
 				e.printStackTrace();
 
