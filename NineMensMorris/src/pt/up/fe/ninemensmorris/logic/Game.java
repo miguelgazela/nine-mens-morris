@@ -137,7 +137,6 @@ public class Game {
 	}
 	
 	public boolean isTheGameOver() {
-		Log.info("Executing isTheGameOver");
 		try {
 			if(gameBoard.getNumberOfPiecesOfPlayer(Token.PLAYER_1) == Game.MIN_NUM_PIECES
 					|| gameBoard.getNumberOfPiecesOfPlayer(Token.PLAYER_2) == Game.MIN_NUM_PIECES) {

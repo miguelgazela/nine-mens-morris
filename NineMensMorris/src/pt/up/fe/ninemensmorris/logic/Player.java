@@ -26,6 +26,11 @@ public abstract class Player {
 		}
 	}
 	
+	public void reset() {
+		numPiecesOnBoard = 0;
+		canFly = false;
+	}
+	
 	public String getName() {
 		return name;
 	}
