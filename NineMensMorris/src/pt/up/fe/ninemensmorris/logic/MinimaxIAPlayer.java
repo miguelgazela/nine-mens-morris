@@ -6,7 +6,6 @@ import java.util.List;
 public class MinimaxIAPlayer extends IAPlayer {
 	private int depth;
 	private Token opponentPlayer;
-	private int pieceToRemove;
 	private Move bestMove;
 
 	public int numberOfMoves = 0; // TODO TESTING
@@ -20,7 +19,6 @@ public class MinimaxIAPlayer extends IAPlayer {
 		}
 		this.depth = depth;
 		opponentPlayer = (player == Token.PLAYER_1) ? Token.PLAYER_2 : Token.PLAYER_1;
-		pieceToRemove = -1;
 	}
 
 	@Override
@@ -34,14 +32,11 @@ public class MinimaxIAPlayer extends IAPlayer {
 			System.exit(-1);
 		}
 		bestScore = minimax(playerToken,depth, gameBoard, Integer.MIN_VALUE, Integer.MAX_VALUE);
-		//pieceToRemove = minimax[3];
-		//return minimax[2];
 		return bestMove.destIndex;
 	}
 
 	@Override
 	public int getIndexToRemovePieceOfOpponent(Board gameBoard) {
-		//return pieceToRemove;
 		return bestMove.removePieceOnIndex;
 	}
 
@@ -63,6 +58,9 @@ public class MinimaxIAPlayer extends IAPlayer {
 
 	private int evaluate(Board gameBoard, int gamePhase) throws GameException {
 		int score = 0;
+		int R1_numPlayerMills = 0, R1_numOppMills = 0;
+		int R2_numPlayerTwoPieceConf = 0, R2_numOppTwoPieceConf = 0;
+		
 		for(int i = 0; i < Board.NUM_MILL_COMBINATIONS; i++) {
 			int playerPieces = 0, emptyCells = 0, opponentPieces = 0;
 
@@ -82,19 +80,68 @@ public class MinimaxIAPlayer extends IAPlayer {
 			}
 
 			if(playerPieces == 3) {
-				score += 100;
+				R1_numPlayerMills++;
 			} else if(playerPieces == 2 && emptyCells == 1) {
-				score += 10;
+				R2_numPlayerTwoPieceConf++;
 			} else if(playerPieces == 1 && emptyCells == 2) {
 				score += 1;
 			} else if(opponentPieces == 3) {
-				score += -100;
+				R1_numOppMills++;
 			} else if(opponentPieces == 2 && emptyCells == 1) {
-				score += -10;
+				R2_numOppTwoPieceConf++;
 			} else if(opponentPieces == 1 && emptyCells == 2) {
 				score += -1;
 			}
 		}
+		
+		/**
+		 * Version 0.1
+		 * Depth: 2, MAX_MOVES: 100 => 53% win vs 6% random win
+		 * Depth: 3, MAX_MOVES: 100 => 82% win vs 0% random win
+		 */
+//		score += 100*R1_numPlayerMills + 10*R2_numPlayerTwoPieceConf;
+//		score -= 100*R1_numOppMills + 10*R2_numOppTwoPieceConf;
+//		score += 10*R2_numPlayerTwoPieceConf;
+//		score -= 10*R2_numOppTwoPieceConf;
+		
+		/**
+		 * Version 0.2
+		 * Depth: 2, MAX_MOVES: 100 => 57% win vs 5% random win
+		 * Depth: 3, MAX_MOVES: 100 => 83% win vs 0% random win
+		 * Depth: 4, MAX_MOVES: 100 => 91% win vs 0% random win
+		 */
+		int coef;
+		// number of mills
+		if(gamePhase == Game.PLACING_PHASE) {
+			coef = 80;
+		} else if(gamePhase == Game.MOVING_PHASE) {
+			coef = 120;
+		} else {
+			coef = 180;
+		}
+		score += coef*R1_numPlayerMills;
+		score -= coef*R1_numOppMills;
+		
+		// number of pieces
+		if(gamePhase == Game.PLACING_PHASE) {
+			coef = 10;
+		} else if(gamePhase == Game.MOVING_PHASE) {
+			coef = 8;
+		} else {
+			coef = 6;
+		}
+		score += coef*gameBoard.getNumberOfPiecesOfPlayer(playerToken);
+		score -= coef*gameBoard.getNumberOfPiecesOfPlayer(opponentPlayer);
+		
+		// number of 2 pieces and 1 free spot configuration
+		if(gamePhase == Game.PLACING_PHASE) {
+			coef = 12;
+		} else {
+			coef = 10;
+		}
+		score += coef*R2_numPlayerTwoPieceConf;
+		score -= coef*R2_numOppTwoPieceConf;
+		
 		return score;
 	}
 	
@@ -142,8 +189,7 @@ public class MinimaxIAPlayer extends IAPlayer {
 	private  List<Move> generateMoves(Board gameBoard, Token player, int gamePhase) {
 		List<Move> nextMoves = new ArrayList<Move>();
 		Position position, adjacentPos;
-		boolean madeMill = false;
-
+		
 		try {
 			if(gamePhase == Game.PLACING_PHASE) {
 				for(int i = 0; i < Board.NUM_POSITIONS_OF_BOARD; i++) { // Search for empty cells and add to the List
