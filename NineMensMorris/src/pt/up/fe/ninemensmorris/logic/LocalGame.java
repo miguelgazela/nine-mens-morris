@@ -7,7 +7,6 @@ public class LocalGame extends Game {
 	
 	public LocalGame() {
 		super();
-		System.out.println("Creating LocalGame.");
 	}
 	
 	public void setPlayers(Player p1, Player p2) {
