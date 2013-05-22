@@ -178,18 +178,25 @@ public class MinimaxIAPlayer extends IAPlayer {
 		movesThatRemove = 0; // TODO TESTING
 		
 		try {
-			List<Move> moves = generateMoves(gameBoard, playerToken, Game.MOVING_PHASE); // sorted already
+			
+			List<Move> moves = generateMoves(gameBoard, playerToken, getGamePhase(gameBoard, playerToken)); // sorted already
 
 			for(Move move : moves) {
 				applyMove(move, playerToken, gameBoard, Game.MOVING_PHASE);
+				if(move.srcIndex==7 && move.destIndex==6)
+					System.out.println("chegou");
 				move.score += alphaBeta(opponentPlayer, gameBoard, depth-1, Integer.MIN_VALUE+1, Integer.MAX_VALUE-1);
 				undoMove(move, playerToken, gameBoard, Game.MOVING_PHASE);
 			}
+			for(Move move : moves) {
+				System.out.println("Dest: "+move.destIndex+" Src: "+move.srcIndex+" Score: "+move.score);
+		}
+			System.out.println("-----------------------");
 			Collections.sort(moves, new HeuristicComparatorMax());
 
-//			for(Move move : moves) {
-//				System.out.println("Dest: "+move.destIndex+" Score: "+move.score);
-//			}
+			for(Move move : moves) {
+				System.out.println("Dest: "+move.destIndex+" Src: "+move.srcIndex+" Score: "+move.score);
+		}
 
 			// if there are different moves with the same score it returns one of them randomly
 			List<Move> bestMoves = new ArrayList<Move>();
@@ -203,6 +210,9 @@ public class MinimaxIAPlayer extends IAPlayer {
 				}
 			}
 			//System.out.println("Best Moves Size: "+bestMoves.size());
+			for(Move move : bestMoves) {
+				System.out.println("BEST Dest: "+move.destIndex+" Src: "+move.srcIndex+" Score: "+move.score);
+		}
 			currentBestMove = bestMoves.get(rand.nextInt(bestMoves.size()));
 			return currentBestMove;
 		} catch (GameException e) {
