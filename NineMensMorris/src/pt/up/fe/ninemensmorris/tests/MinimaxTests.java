@@ -109,7 +109,7 @@ public class MinimaxTests {
 			board.incNumPiecesOfPlayer(Token.PLAYER_2);
 			
 			assertSame(Game.FLYING_PHASE,((MinimaxIAPlayer) player1).getGamePhase(board, Token.PLAYER_1));
-			
+			board.printBoard();
 			Move move = player1.getPieceMove(board, Game.FLYING_PHASE);
 			assertSame(4, move.srcIndex);
 			assertSame(1, move.destIndex);

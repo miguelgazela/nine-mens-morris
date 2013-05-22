@@ -10,7 +10,7 @@ import com.esotericsoftware.minlog.Log;
 public class MinimaxIAPlayer extends IAPlayer {
 	private int depth;
 	private Token opponentPlayer;
-	private Move bestMove;
+	private Move currentBestMove;
 	public int bestScore = 0;
 
 	public MinimaxIAPlayer(Token player, int numPiecesPerPlayer, int depth) throws GameException {
@@ -22,69 +22,69 @@ public class MinimaxIAPlayer extends IAPlayer {
 		opponentPlayer = (player == Token.PLAYER_1) ? Token.PLAYER_2 : Token.PLAYER_1;
 	}
 
-	//	@Override
-	//	public int getIndexToPlacePiece(Board gameBoard) {
-	//		numberOfMoves = 0; // TODO TESTING
-	//		movesThatRemove = 0; // TODO TESTING
-	//		try {
-	//			bestMove = new Move(-1, -1, -1, Move.PLACING);
-	//		} catch (GameException e) {
-	//			e.printStackTrace();
-	//			System.exit(-1);
-	//		}
-	//		
-	//		bestScore = minimax(playerToken,depth, gameBoard, Integer.MIN_VALUE, Integer.MAX_VALUE);
-	//		System.out.println("BEST SCORE: "+bestScore);
-	//		return bestMove.destIndex;
-	//	}
+	private void applyMove(Move move, Token player, Board gameBoard, int gamePhase) throws GameException {
+		
+		// Try this move for the current player
+		Position position = gameBoard.getPosition(move.destIndex);
+		position.setAsOccupied(player);
+		
+		if(gamePhase == Game.PLACING_PHASE) {
+			gameBoard.incNumPiecesOfPlayer(player);
+		} else {
+			gameBoard.getPosition(move.srcIndex).setAsUnoccupied();
+		}
 
-	/**
-	 * V.0.2 =>
-	 */
+		if(move.removePieceOnIndex != -1) { // this move removed a piece from opponent
+			Position removed = gameBoard.getPosition(move.removePieceOnIndex);
+			removed.setAsUnoccupied();
+			gameBoard.decNumPiecesOfPlayer(getOpponentToken(player));
+		}
+	}
+	
+	private void undoMove(Move move, Token player, Board gameBoard, int gamePhase) throws GameException {
+		// Undo move
+		Position position = gameBoard.getPosition(move.destIndex);
+		position.setAsUnoccupied();
 
+		if(gamePhase == Game.PLACING_PHASE) {
+			gameBoard.decNumPiecesOfPlayer(player);
+		} else {
+			gameBoard.getPosition(move.srcIndex).setAsOccupied(player);
+		}
+
+		if(move.removePieceOnIndex != -1) {
+			Token opp = getOpponentToken(player);
+			gameBoard.getPosition(move.removePieceOnIndex).setAsOccupied(opp);
+			gameBoard.incNumPiecesOfPlayer(opp);
+		}
+	}
+	
+	private Token getOpponentToken(Token player) {
+		if(player == playerToken) {
+			return opponentPlayer;
+		} else {
+			return playerToken;
+		}
+	}
+	
 	@Override
 	public int getIndexToPlacePiece(Board gameBoard) {
 		numberOfMoves = 0; // TODO TESTING
 		movesThatRemove = 0; // TODO TESTING
 
 		try {
-			bestMove = new Move(-1, -1, -1, Move.PLACING);
 			List<Move> moves = generateMoves(gameBoard, playerToken, Game.PLACING_PHASE); // sorted already
 
-			for(Move move : moves) { // update score with child moves ?
-				Token removedPlayer = Token.NO_PLAYER;
-				Position position = gameBoard.getPosition(move.destIndex);
-
-				// Try this move for the current player
-				position.setAsOccupied(playerToken);
-
-				gameBoard.incNumPiecesOfPlayer(playerToken);
-
-				if(move.removePieceOnIndex != -1) { // this move removed a piece from opponent
-					Position removed = gameBoard.getPosition(move.removePieceOnIndex);
-					removedPlayer = removed.getPlayerOccupyingIt();
-					removed.setAsUnoccupied();
-					gameBoard.decNumPiecesOfPlayer(removedPlayer);
-				}
-
-				move.score += alphaBeta(playerToken, gameBoard, depth-1, Integer.MIN_VALUE+1, Integer.MAX_VALUE-1);
-
-				// Undo move
-				position.setAsUnoccupied();
-
-				gameBoard.decNumPiecesOfPlayer(playerToken);
-
-				if(move.removePieceOnIndex != -1) {
-					gameBoard.getPosition(move.removePieceOnIndex).setAsOccupied(removedPlayer);
-					gameBoard.incNumPiecesOfPlayer(removedPlayer);
-				}
-
+			for(Move move : moves) {
+				applyMove(move, playerToken, gameBoard, Game.PLACING_PHASE);
+				move.score += alphaBeta(opponentPlayer, gameBoard, depth-1, Integer.MIN_VALUE+1, Integer.MAX_VALUE-1);
+				undoMove(move, playerToken, gameBoard, Game.PLACING_PHASE);
 			}
 			Collections.sort(moves, new HeuristicComparatorMax());
 
-//			for(Move move : moves) {
-//				System.out.println("Dest: "+move.destIndex+" Score: "+move.score);
-//			}
+			for(Move move : moves) {
+				System.out.println("Dest: "+move.destIndex+" Score: "+move.score);
+			}
 
 			// if there are different moves with the same score it returns one of them randomly
 			List<Move> bestMoves = new ArrayList<Move>();
@@ -97,8 +97,9 @@ public class MinimaxIAPlayer extends IAPlayer {
 					break;
 				}
 			}
-			//System.out.println("Best Moves Size: "+bestMoves.size());
-			return bestMoves.get(rand.nextInt(bestMoves.size())).destIndex;
+			System.out.println("Best Moves Size: "+bestMoves.size());
+			currentBestMove = bestMoves.get(rand.nextInt(bestMoves.size()));
+			return currentBestMove.destIndex;
 		} catch (GameException e) {
 			e.printStackTrace();
 			System.exit(-1);
@@ -111,7 +112,6 @@ public class MinimaxIAPlayer extends IAPlayer {
 
 		int gameOver;
 		List<Move> childMoves;
-		Token removedPlayer = Token.NO_PLAYER;
 
 		try {
 			int gamePhase = getGamePhase(gameBoard, player);
@@ -130,78 +130,23 @@ public class MinimaxIAPlayer extends IAPlayer {
 
 				for (Move move : childMoves) {
 
-					Position position = gameBoard.getPosition(move.destIndex);
-
-					// Try this move for the current player
-					position.setAsOccupied(player);
-
-					if(gamePhase == Game.PLACING_PHASE) {
-						gameBoard.incNumPiecesOfPlayer(player);
-					} else {
-						gameBoard.getPosition(move.srcIndex).setAsUnoccupied();
-					}
-
-					if(move.removePieceOnIndex != -1) { // this move removed a piece from opponent
-						Position removed = gameBoard.getPosition(move.removePieceOnIndex);
-						removedPlayer = removed.getPlayerOccupyingIt();
-						removed.setAsUnoccupied();
-						gameBoard.decNumPiecesOfPlayer(removedPlayer);
-					}
+					applyMove(move, player, gameBoard, gamePhase);
 
 					if (player == playerToken) {  // maximizing player
 						alpha = Math.max(alpha, alphaBeta(opponentPlayer, gameBoard, depth - 1, alpha, beta));
 
 						if (beta <= alpha) {
-//							System.out.println("ALLLLLLLLLLLLPPPPPPPPPPPPPPHHHHHHHHHHHHHHHHHHHHHAAAAAAAAA!");
-							// Undo move
-							position.setAsUnoccupied();
-
-							if(gamePhase == Game.PLACING_PHASE) {
-								gameBoard.decNumPiecesOfPlayer(player);
-							} else {
-								gameBoard.getPosition(move.srcIndex).setAsOccupied(player);
-							}
-
-							if(move.removePieceOnIndex != -1) {
-								gameBoard.getPosition(move.removePieceOnIndex).setAsOccupied(removedPlayer);
-								gameBoard.incNumPiecesOfPlayer(removedPlayer);
-							}
+							undoMove(move, player, gameBoard, gamePhase);
 							break; // cutoff
 						}
 					} else {  //  minimizing player
 						beta = Math.min(beta, alphaBeta(playerToken, gameBoard, depth - 1, alpha, beta));
 						if (beta <= alpha) {
-//							System.out.println("BETTTAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA!");
-							// Undo move
-							position.setAsUnoccupied();
-
-							if(gamePhase == Game.PLACING_PHASE) {
-								gameBoard.decNumPiecesOfPlayer(player);
-							} else {
-								gameBoard.getPosition(move.srcIndex).setAsOccupied(player);
-							}
-
-							if(move.removePieceOnIndex != -1) {
-								gameBoard.getPosition(move.removePieceOnIndex).setAsOccupied(removedPlayer);
-								gameBoard.incNumPiecesOfPlayer(removedPlayer);
-							}
+							undoMove(move, player, gameBoard, gamePhase);
 							break; // cutoff
 						}
 					}
-					// Undo move
-					position.setAsUnoccupied();
-
-					if(gamePhase == Game.PLACING_PHASE) {
-						gameBoard.decNumPiecesOfPlayer(player);
-					} else {
-						gameBoard.getPosition(move.srcIndex).setAsOccupied(player);
-					}
-
-					if(move.removePieceOnIndex != -1) {
-						gameBoard.getPosition(move.removePieceOnIndex).setAsOccupied(removedPlayer);
-						gameBoard.incNumPiecesOfPlayer(removedPlayer);
-					}
-
+					undoMove(move, player, gameBoard, gamePhase);
 				}
 
 				if(player == playerToken) {
@@ -224,23 +169,48 @@ public class MinimaxIAPlayer extends IAPlayer {
 
 	@Override
 	public int getIndexToRemovePieceOfOpponent(Board gameBoard) {
-		return bestMove.removePieceOnIndex;
+		return currentBestMove.removePieceOnIndex;
 	}
 
 	@Override
 	public Move getPieceMove(Board gameBoard, int gamePhase) throws GameException {
 		numberOfMoves = 0; // TODO TESTING
 		movesThatRemove = 0; // TODO TESTING
+		
 		try {
-			bestMove = new Move(-1, -1, -1, Move.MOVING);
+			List<Move> moves = generateMoves(gameBoard, playerToken, Game.MOVING_PHASE); // sorted already
+
+			for(Move move : moves) {
+				applyMove(move, playerToken, gameBoard, Game.MOVING_PHASE);
+				move.score += alphaBeta(opponentPlayer, gameBoard, depth-1, Integer.MIN_VALUE+1, Integer.MAX_VALUE-1);
+				undoMove(move, playerToken, gameBoard, Game.MOVING_PHASE);
+			}
+			Collections.sort(moves, new HeuristicComparatorMax());
+
+//			for(Move move : moves) {
+//				System.out.println("Dest: "+move.destIndex+" Score: "+move.score);
+//			}
+
+			// if there are different moves with the same score it returns one of them randomly
+			List<Move> bestMoves = new ArrayList<Move>();
+			int bestScore = moves.get(0).score;
+			bestMoves.add(moves.get(0));
+			for(int i = 1; i < moves.size(); i++) {
+				if(moves.get(i).score == bestScore) {
+					bestMoves.add(moves.get(i));
+				} else {
+					break;
+				}
+			}
+			//System.out.println("Best Moves Size: "+bestMoves.size());
+			currentBestMove = bestMoves.get(rand.nextInt(bestMoves.size()));
+			return currentBestMove;
 		} catch (GameException e) {
 			e.printStackTrace();
 			System.exit(-1);
 		}
-		bestScore = minimax(playerToken, depth, gameBoard, Integer.MIN_VALUE, Integer.MAX_VALUE);
-		//pieceToRemove = minimax[3];
-		//return new Move(minimax[1], minimax[2], minimax[3], Move.MOVING);
-		return bestMove;
+		Log.error("Should not get here");
+		return null;
 	}
 
 	private int evaluate(Board gameBoard, int gamePhase) throws GameException {
@@ -278,6 +248,22 @@ public class MinimaxIAPlayer extends IAPlayer {
 				R2_numOppTwoPieceConf++;
 			} else if(opponentPieces == 1 && emptyCells == 2) {
 				score += -1;
+			}
+			
+			Token playerInPos = gameBoard.getPosition(i).getPlayerOccupyingIt();
+			if(i == 4 || i == 10 || i == 13 || i == 19) {
+				if(playerInPos == playerToken) {
+					score += 2;
+				} else if(playerInPos != Token.NO_PLAYER) {
+					score -= 2;
+				}
+			} else if(i == 1 || i == 9 || i == 14 || i == 22
+						|| i == 7 || i == 11 || i == 12 || i == 16) {
+				if(playerInPos == playerToken) {
+					score += 1;
+				} else if(playerInPos != Token.NO_PLAYER) {
+					score -= 1;
+				}
 			}
 		}
 
@@ -381,7 +367,7 @@ public class MinimaxIAPlayer extends IAPlayer {
 		try {
 			if(gamePhase == Game.PLACING_PHASE) {
 				for(int i = 0; i < Board.NUM_POSITIONS_OF_BOARD; i++) { // Search for empty cells and add to the List
-					Move move = new Move(-1, -1, -1, Move.PLACING);
+					Move move = new Move(-7, -1, -1, Move.PLACING);
 
 					if(!(position = gameBoard.getPosition(i)).isOccupied())	{
 						position.setAsOccupied(player);
@@ -515,91 +501,88 @@ public class MinimaxIAPlayer extends IAPlayer {
 		}
 	}
 
-	public int minimax(Token player, int depth, Board gameBoard, int alpha, int beta) {
-
-		int bestScore = (player == playerToken) ? (Integer.MIN_VALUE+1) : (Integer.MAX_VALUE-1);
-		int currentScore = 0, bestPosDest = -1, bestPosSrc = -1, removePos = -1, gameOver;
-		Token removedPlayer = Token.NO_PLAYER;
-		List<Move> nextMoves = null;
-
-		try {
-			int gamePhase = getGamePhase(gameBoard, player);
-
-			if (depth == 0) { // depth reached, evaluate score
-				bestScore = evaluate(gameBoard, gamePhase);
-			} else if((gameOver = checkGameOver(gameBoard)) != 0) { // gameover
-				bestScore = gameOver;
-			} else if((nextMoves = generateMoves(gameBoard, player, gamePhase)).isEmpty()) {
-				if(player == playerToken) { // IT SHOULD RETURN DIFFERENT VALUES RIGHT? IF THE BOT DOESN'T HAVE ANY POSSIBLE MOVES, THEN THE PLAYER WINS, AND RETURNS MAX VALUE???
-					bestScore = Integer.MIN_VALUE;
-				} else {
-					bestScore = Integer.MAX_VALUE;
-				}
-			}  else {
-				numberOfMoves += nextMoves.size();
-
-
-				for (Move move : nextMoves) {
-					Position position = gameBoard.getPosition(move.destIndex);
-
-					// Try this move for the current player
-					position.setAsOccupied(player);
-
-					if(gamePhase == Game.PLACING_PHASE) {
-						gameBoard.incNumPiecesOfPlayer(player);
-					} else {
-						gameBoard.getPosition(move.srcIndex).setAsUnoccupied();
-					}
-
-					if(move.removePieceOnIndex != -1) { // this move removed a piece from opponent
-						Position removed = gameBoard.getPosition(move.removePieceOnIndex);
-						removedPlayer = removed.getPlayerOccupyingIt();
-						removed.setAsUnoccupied();
-						gameBoard.decNumPiecesOfPlayer(removedPlayer);
-					}
-
-					if (player == playerToken) {  // maximizing player
-						currentScore = minimax(opponentPlayer, depth - 1, gameBoard, alpha, beta);
-						if (currentScore > bestScore) {
-							bestScore = currentScore;
-							bestPosDest = move.destIndex;
-							bestPosSrc = move.srcIndex;
-							removePos = move.removePieceOnIndex;
-						}
-					} else {  //  minimizing player
-						currentScore = minimax(this.playerToken, depth - 1, gameBoard, alpha, beta);
-						if (currentScore < bestScore) {
-							bestScore = currentScore;
-							bestPosDest = move.destIndex;
-							bestPosSrc = move.srcIndex;
-							removePos = move.removePieceOnIndex;
-						}
-					}
-
-					// Undo move
-					position.setAsUnoccupied();
-
-					if(gamePhase == Game.PLACING_PHASE) {
-						gameBoard.decNumPiecesOfPlayer(player);
-					} else {
-						gameBoard.getPosition(move.srcIndex).setAsOccupied(player);
-					}
-
-					if(move.removePieceOnIndex != -1) {
-						gameBoard.getPosition(move.removePieceOnIndex).setAsOccupied(removedPlayer);
-						gameBoard.incNumPiecesOfPlayer(removedPlayer);
-					}
-				}
-			}
-		} catch (GameException e) {
-			e.printStackTrace();
-			System.exit(-1);
-		}
-		bestMove.destIndex = bestPosDest;
-		bestMove.srcIndex = bestPosSrc;
-		bestMove.removePieceOnIndex = removePos;
-		return bestScore;
-	}
+//	public int minimax(Token player, int depth, Board gameBoard, int alpha, int beta) {
+//
+//		int bestScore = (player == playerToken) ? (Integer.MIN_VALUE+1) : (Integer.MAX_VALUE-1);
+//		int currentScore = 0, bestPosDest = -1, bestPosSrc = -1, removePos = -1, gameOver;
+//		Token removedPlayer = Token.NO_PLAYER;
+//		List<Move> nextMoves = null;
+//
+//		try {
+//			int gamePhase = getGamePhase(gameBoard, player);
+//
+//			if (depth == 0) { // depth reached, evaluate score
+//				bestScore = evaluate(gameBoard, gamePhase);
+//			} else if((gameOver = checkGameOver(gameBoard)) != 0) { // gameover
+//				bestScore = gameOver;
+//			} else if((nextMoves = generateMoves(gameBoard, player, gamePhase)).isEmpty()) {
+//				if(player == playerToken) { // IT SHOULD RETURN DIFFERENT VALUES RIGHT? IF THE BOT DOESN'T HAVE ANY POSSIBLE MOVES, THEN THE PLAYER WINS, AND RETURNS MAX VALUE???
+//					bestScore = Integer.MIN_VALUE;
+//				} else {
+//					bestScore = Integer.MAX_VALUE;
+//				}
+//			}  else {
+//				numberOfMoves += nextMoves.size();
+//
+//
+//				for (Move move : nextMoves) {
+//					Position position = gameBoard.getPosition(move.destIndex);
+//
+//					// Try this move for the current player
+//					position.setAsOccupied(player);
+//
+//					if(gamePhase == Game.PLACING_PHASE) {
+//						gameBoard.incNumPiecesOfPlayer(player);
+//					} else {
+//						gameBoard.getPosition(move.srcIndex).setAsUnoccupied();
+//					}
+//
+//					if(move.removePieceOnIndex != -1) { // this move removed a piece from opponent
+//						Position removed = gameBoard.getPosition(move.removePieceOnIndex);
+//						removedPlayer = removed.getPlayerOccupyingIt();
+//						removed.setAsUnoccupied();
+//						gameBoard.decNumPiecesOfPlayer(removedPlayer);
+//					}
+//
+//					if (player == playerToken) {  // maximizing player
+//						currentScore = minimax(opponentPlayer, depth - 1, gameBoard, alpha, beta);
+//						if (currentScore > bestScore) {
+//							bestScore = currentScore;
+//							bestPosDest = move.destIndex;
+//							bestPosSrc = move.srcIndex;
+//							removePos = move.removePieceOnIndex;
+//						}
+//					} else {  //  minimizing player
+//						currentScore = minimax(this.playerToken, depth - 1, gameBoard, alpha, beta);
+//						if (currentScore < bestScore) {
+//							bestScore = currentScore;
+//							bestPosDest = move.destIndex;
+//							bestPosSrc = move.srcIndex;
+//							removePos = move.removePieceOnIndex;
+//						}
+//					}
+//
+//					// Undo move
+//					position.setAsUnoccupied();
+//
+//					if(gamePhase == Game.PLACING_PHASE) {
+//						gameBoard.decNumPiecesOfPlayer(player);
+//					} else {
+//						gameBoard.getPosition(move.srcIndex).setAsOccupied(player);
+//					}
+//
+//					if(move.removePieceOnIndex != -1) {
+//						gameBoard.getPosition(move.removePieceOnIndex).setAsOccupied(removedPlayer);
+//						gameBoard.incNumPiecesOfPlayer(removedPlayer);
+//					}
+//				}
+//			}
+//		} catch (GameException e) {
+//			e.printStackTrace();
+//			System.exit(-1);
+//		}
+//		return bestScore;
+//	}
 
 	public int getGamePhase(Board gameBoard, Token player) 
 	{
@@ -630,38 +613,6 @@ public class MinimaxIAPlayer extends IAPlayer {
 					return Integer.MAX_VALUE;
 				}
 				else {
-					/* THIS IS NOT NECESSARY RIGHT? THE GENERATE MOVES FUNCTION WILL RETURN AN EMPTY LIST RIGHT?
-					boolean playerHasValidMove = false, opponentPlayerHasValidMove = false;
-					Token player; 
-
-					// check if each player has at least one valid move
-					for(int i = 0; i < Board.NUM_POSITIONS_OF_BOARD; i++) {
-						Position position = gameBoard.getPosition(i);
-						if((player = position.getPlayerOccupyingIt()) != Token.NO_PLAYER) {
-							int[] adjacent = position.getAdjacentPositionsIndexes();
-							for(int j = 0; j < adjacent.length; j++) {
-								Position adjacentPos = gameBoard.getPosition(adjacent[j]);
-								if(!adjacentPos.isOccupied()) {
-									if(!playerHasValidMove) { // must only change if boolean is false
-										playerHasValidMove = (player == playerToken);
-									}
-									if(!opponentPlayerHasValidMove) {
-										opponentPlayerHasValidMove = (player == opponentPlayer);
-									}
-									break;
-								}
-							}
-						}
-
-						if(playerHasValidMove && opponentPlayerHasValidMove) {
-							return 0;
-						} else if(!playerHasValidMove) {
-							return Integer.MIN_VALUE;
-						} else if(!opponentPlayerHasValidMove) {
-							return Integer.MAX_VALUE;
-						}
-					}
-					 */
 					return 0;
 				}
 			} catch (GameException e) {
