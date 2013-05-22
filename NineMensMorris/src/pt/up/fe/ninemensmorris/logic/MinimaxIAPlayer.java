@@ -12,7 +12,7 @@ public class MinimaxIAPlayer extends IAPlayer {
 	private Token opponentPlayer;
 	private Move currentBestMove;
 	public int bestScore = 0;
-
+	static final int maxScore = 1000000;
 	public MinimaxIAPlayer(Token player, int numPiecesPerPlayer, int depth) throws GameException {
 		super(player, numPiecesPerPlayer);
 		if(depth < 1) {
@@ -77,7 +77,7 @@ public class MinimaxIAPlayer extends IAPlayer {
 
 			for(Move move : moves) {
 				applyMove(move, playerToken, gameBoard, Game.PLACING_PHASE);
-				move.score += alphaBeta(opponentPlayer, gameBoard, depth-1, Integer.MIN_VALUE+1, Integer.MAX_VALUE-1);
+				move.score += alphaBeta(opponentPlayer, gameBoard, depth-1, Integer.MIN_VALUE, Integer.MAX_VALUE);
 				undoMove(move, playerToken, gameBoard, Game.PLACING_PHASE);
 			}
 			Collections.sort(moves, new HeuristicComparatorMax());
@@ -122,9 +122,9 @@ public class MinimaxIAPlayer extends IAPlayer {
 				return gameOver;
 			} else if((childMoves = generateMoves(gameBoard, player, gamePhase)).isEmpty()) {
 				if(player == playerToken) { // IT SHOULD RETURN DIFFERENT VALUES RIGHT? IF THE BOT DOESN'T HAVE ANY POSSIBLE MOVES, THEN THE PLAYER WINS, AND RETURNS MAX VALUE???
-					return Integer.MIN_VALUE;
+					return -maxScore;
 				} else {
-					return Integer.MAX_VALUE;
+					return maxScore;
 				}
 			}  else {
 
@@ -183,20 +183,16 @@ public class MinimaxIAPlayer extends IAPlayer {
 
 			for(Move move : moves) {
 				applyMove(move, playerToken, gameBoard, Game.MOVING_PHASE);
-				if(move.srcIndex==7 && move.destIndex==6)
+				if(move.srcIndex==4 && move.destIndex==1)
 					System.out.println("chegou");
-				move.score += alphaBeta(opponentPlayer, gameBoard, depth-1, Integer.MIN_VALUE+1, Integer.MAX_VALUE-1);
+				move.score += alphaBeta(opponentPlayer, gameBoard, depth-1, Integer.MIN_VALUE, Integer.MAX_VALUE);
 				undoMove(move, playerToken, gameBoard, Game.MOVING_PHASE);
 			}
 			for(Move move : moves) {
 				System.out.println("Dest: "+move.destIndex+" Src: "+move.srcIndex+" Score: "+move.score);
 		}
-			System.out.println("-----------------------");
-			Collections.sort(moves, new HeuristicComparatorMax());
 
-			for(Move move : moves) {
-				System.out.println("Dest: "+move.destIndex+" Src: "+move.srcIndex+" Score: "+move.score);
-		}
+			Collections.sort(moves, new HeuristicComparatorMax());
 
 			// if there are different moves with the same score it returns one of them randomly
 			List<Move> bestMoves = new ArrayList<Move>();
@@ -617,10 +613,10 @@ public class MinimaxIAPlayer extends IAPlayer {
 		{
 			try {
 				if(gameBoard.getNumberOfPiecesOfPlayer(playerToken) <= Game.MIN_NUM_PIECES) {
-					return Integer.MIN_VALUE;
+					return -maxScore;
 				}
 				else if(gameBoard.getNumberOfPiecesOfPlayer(opponentPlayer) <= Game.MIN_NUM_PIECES) {
-					return Integer.MAX_VALUE;
+					return maxScore;
 				}
 				else {
 					return 0;

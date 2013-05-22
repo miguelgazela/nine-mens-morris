@@ -86,15 +86,14 @@ public class MinimaxTests {
 	
 	@Test
 	public void testGameOver() {
-
 		try {
-			IAPlayer player1 = new MinimaxIAPlayer(Token.PLAYER_1, Game.NUM_PIECES_PER_PLAYER, 4);
+			IAPlayer player2 = new MinimaxIAPlayer(Token.PLAYER_2, Game.NUM_PIECES_PER_PLAYER, 5);
 			Board board = new Board();
 			for(int i=0;i<18;i++) {
 				board.incNumTotalPiecesPlaced();
 			}
 			
-			board.setPositionAsPlayer(0, Token.PLAYER_1);
+			/*board.setPositionAsPlayer(0, Token.PLAYER_1);
 			board.incNumPiecesOfPlayer(Token.PLAYER_1);
 			board.setPositionAsPlayer(2, Token.PLAYER_1);
 			board.incNumPiecesOfPlayer(Token.PLAYER_1);
@@ -105,11 +104,27 @@ public class MinimaxTests {
 			board.setPositionAsPlayer(5, Token.PLAYER_2);
 			board.incNumPiecesOfPlayer(Token.PLAYER_2);
 			board.setPositionAsPlayer(9, Token.PLAYER_2);
+			board.incNumPiecesOfPlayer(Token.PLAYER_2);*/
+			
+			board.setPositionAsPlayer(0, Token.PLAYER_1);
+			board.setPositionAsPlayer(2, Token.PLAYER_1);
+			board.setPositionAsPlayer(9, Token.PLAYER_1);
+			board.incNumPiecesOfPlayer(Token.PLAYER_1);
+			board.incNumPiecesOfPlayer(Token.PLAYER_1);
+			board.incNumPiecesOfPlayer(Token.PLAYER_1);
+			
+			board.setPositionAsPlayer(10, Token.PLAYER_2);
+			board.setPositionAsPlayer(12, Token.PLAYER_2);
+			board.setPositionAsPlayer(13, Token.PLAYER_2);
+			board.setPositionAsPlayer(14, Token.PLAYER_2);
+			board.incNumPiecesOfPlayer(Token.PLAYER_2);
+			board.incNumPiecesOfPlayer(Token.PLAYER_2);
+			board.incNumPiecesOfPlayer(Token.PLAYER_2);
 			board.incNumPiecesOfPlayer(Token.PLAYER_2);
 			
-			assertSame(Game.FLYING_PHASE,((MinimaxIAPlayer) player1).getGamePhase(board, Token.PLAYER_1));
+			//assertSame(Game.FLYING_PHASE,((MinimaxIAPlayer) player1).getGamePhase(board, Token.PLAYER_1));
 			board.printBoard();
-			Move move = player1.getPieceMove(board, Game.FLYING_PHASE);
+			Move move = player2.getPieceMove(board, Game.MOVING_PHASE);
 			assertSame(4, move.srcIndex);
 			assertSame(1, move.destIndex);
 			assertTrue(move.removePieceOnIndex != -1);
