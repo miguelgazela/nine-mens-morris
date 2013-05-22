@@ -75,7 +75,7 @@ public class Main {
 			bothCPU = false;
 		} else if(userInput.compareTo("CPU") == 0 || userInput.compareTo("C") == 0) {
 //			p2 = new RandomIAPlayer(Token.PLAYER_2,Game.NUM_PIECES_PER_PLAYER);
-			p2 = new MinimaxIAPlayer(Token.PLAYER_2,Game.NUM_PIECES_PER_PLAYER, minimaxDepth-2);
+			p2 = new MinimaxIAPlayer(Token.PLAYER_2,Game.NUM_PIECES_PER_PLAYER, minimaxDepth-1);
 		} else {
 			System.out.println("Command unknown");
 			System.exit(-1);
