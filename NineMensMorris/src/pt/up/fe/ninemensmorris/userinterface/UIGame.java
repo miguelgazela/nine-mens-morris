@@ -480,9 +480,9 @@ public class UIGame extends JFrame {
 					}
 					if(startGame) {
 						uiGamePanel.clearPossibleGame();
-						if(game_type == UIResourcesLoader.LOCAL_GAME) {
-							uiGamePanel.startGame();
-						}
+//						if(game_type == UIResourcesLoader.LOCAL_GAME) {
+//							uiGamePanel.startGame();
+//						}
 						new Runnable() {@Override public void run() {
 							panel.createTransition()
 							.push(new SLKeyframe(GameCfg, 1f)
@@ -493,9 +493,10 @@ public class UIGame extends JFrame {
 							.setDelay(0.3f, uiMainMenuPanel)
 							.setCallback(new SLKeyframe.Callback() {@Override public void done() {
 								currentMenuState = MenuState.Game;
-								if(game_type == UIResourcesLoader.NETWORK_GAME) {
-									uiGamePanel.startGame();
-								}
+								uiGamePanel.startGame();
+//								if(game_type == UIResourcesLoader.NETWORK_GAME) {
+//									uiGamePanel.startGame();
+//								}
 							}}))
 							.play();
 						}}.run();
@@ -798,49 +799,55 @@ public class UIGame extends JFrame {
 		}
 		
 		private void makeAiMove() {
-			System.out.println("Making AI move: "+numberAImoves++);
-			Player p = game.getPlayer();
-			int indexToTest = -1;
-			
-			try {
-				if(game.getCurrentGamePhase() == Game.PLACING_PHASE) {
-					int boardIndex = indexToTest = ((IAPlayer)p).getIndexToPlacePiece(game.getGameBoard());
-					if(game.placePieceOfPlayer(boardIndex, p.getPlayerToken())) {
-						p.raiseNumPiecesOnBoard();
-						boardPositions[boardIndex] = p.getPlayerToken();
-						repaint();
-						Log.info(p.getName()+" placed piece on "+boardIndex);
-					}
-				} else {
-					Move move = ((IAPlayer)p).getPieceMove(game.getGameBoard(), game.getCurrentGamePhase());
-					if(game.movePieceFromTo(move.srcIndex, (indexToTest = move.destIndex), p.getPlayerToken()) == Game.VALID_MOVE) {
-						boardPositions[move.srcIndex] = Token.NO_PLAYER;
-						boardPositions[move.destIndex] = p.getPlayerToken();
-						Log.info(p.getName()+" moved piece from "+move.srcIndex+" to " + move.destIndex);
-					}
-				}
-				
-				if(game.madeAMill(indexToTest, p.getPlayerToken())) {
-					Token opponentPlayer = (p.getPlayerToken() == Token.PLAYER_1) ? Token.PLAYER_2 : Token.PLAYER_1;
-					int boardIndex = ((IAPlayer)p).getIndexToRemovePieceOfOpponent(game.getGameBoard());
-					if(game.removePiece(boardIndex, opponentPlayer)) {
-						boardPositions[boardIndex] = Token.NO_PLAYER;
-						Log.info(p.getPlayerToken()+" removes opponent piece on board index: "+boardIndex);
-					}
-				}
+			if(numberAImoves == 100) {
 				waitingForAI = false;
-				if(game.getCurrentGamePhase() != Game.PLACING_PHASE && game.isTheGameOver()) {
-					Log.info("Game Over! "+p.getPlayerToken()+" won");
-					gameIsOver = true;
-					winner = (p.getPlayerToken() == Token.PLAYER_1) ? "p1" : "p2";
-				} else {
-					updateLocalGameTurn();
-				}
-				repaint();
+				gameIsOver = true;
+				winner = "draw";
+			} else {
+				numberAImoves++;
+				Player p = game.getPlayer();
+				int indexToTest = -1;
 
-			} catch(GameException e){
-				e.printStackTrace();
-				System.exit(-1);
+				try {
+					if(game.getCurrentGamePhase() == Game.PLACING_PHASE) {
+						int boardIndex = indexToTest = ((IAPlayer)p).getIndexToPlacePiece(game.getGameBoard());
+						if(game.placePieceOfPlayer(boardIndex, p.getPlayerToken())) {
+							p.raiseNumPiecesOnBoard();
+							boardPositions[boardIndex] = p.getPlayerToken();
+							repaint();
+							Log.info(p.getName()+" placed piece on "+boardIndex);
+						}
+					} else {
+						Move move = ((IAPlayer)p).getPieceMove(game.getGameBoard(), game.getCurrentGamePhase());
+						if(game.movePieceFromTo(move.srcIndex, (indexToTest = move.destIndex), p.getPlayerToken()) == Game.VALID_MOVE) {
+							boardPositions[move.srcIndex] = Token.NO_PLAYER;
+							boardPositions[move.destIndex] = p.getPlayerToken();
+							Log.info(p.getName()+" moved piece from "+move.srcIndex+" to " + move.destIndex);
+						}
+					}
+
+					if(game.madeAMill(indexToTest, p.getPlayerToken())) {
+						Token opponentPlayer = (p.getPlayerToken() == Token.PLAYER_1) ? Token.PLAYER_2 : Token.PLAYER_1;
+						int boardIndex = ((IAPlayer)p).getIndexToRemovePieceOfOpponent(game.getGameBoard());
+						if(game.removePiece(boardIndex, opponentPlayer)) {
+							boardPositions[boardIndex] = Token.NO_PLAYER;
+							Log.info(p.getPlayerToken()+" removes opponent piece on board index: "+boardIndex);
+						}
+					}
+					waitingForAI = false;
+					if(game.getCurrentGamePhase() != Game.PLACING_PHASE && game.isTheGameOver()) {
+						Log.info("Game Over! "+p.getPlayerToken()+" won");
+						gameIsOver = true;
+						winner = (p.getPlayerToken() == Token.PLAYER_1) ? "p1" : "p2";
+					} else {
+						updateLocalGameTurn();
+					}
+					repaint();
+
+				} catch(GameException e){
+					e.printStackTrace();
+					System.exit(-1);
+				}
 			}
 		}
 		

@@ -88,7 +88,7 @@ public class UIResourcesLoader {
 			v_gamePhases[1] = ImageIO.read(new File("images/strings/moving.png"));
 			v_gamePhases[2] = ImageIO.read(new File("images/strings/flying.png"));
 			
-			v_gameStatus = new Image[8];
+			v_gameStatus = new Image[9];
 			v_gameStatus[0] = ImageIO.read(new File("images/strings/placePiece.png"));
 			v_gameStatus[1] = ImageIO.read(new File("images/strings/selectPiece.png"));
 			v_gameStatus[2] = ImageIO.read(new File("images/strings/movePiece.png"));
@@ -97,6 +97,7 @@ public class UIResourcesLoader {
 			v_gameStatus[5] = ImageIO.read(new File("images/strings/waitingAI.png"));
 			v_gameStatus[6] = ImageIO.read(new File("images/strings/p1Won.png"));
 			v_gameStatus[7] = ImageIO.read(new File("images/strings/p2Won.png"));
+			v_gameStatus[8] = ImageIO.read(new File("images/strings/draw.png"));
 		} catch (IOException e) {
 			e.printStackTrace();
 			System.out.println("Background Resources Missing");
@@ -243,6 +244,8 @@ public class UIResourcesLoader {
 			return v_gameStatus[6];
 		case "p2":
 			return v_gameStatus[7];
+		case "draw":
+			return v_gameStatus[8];
 		default:
 			return null;
 		}

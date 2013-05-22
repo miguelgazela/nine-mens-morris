@@ -183,20 +183,21 @@ public class MinimaxIAPlayer extends IAPlayer {
 
 			for(Move move : moves) {
 				applyMove(move, playerToken, gameBoard, Game.MOVING_PHASE);
-				if(move.srcIndex==7 && move.destIndex==6)
-					System.out.println("chegou");
+//				if(move.srcIndex==7 && move.destIndex==6)
+//					System.out.println("chegou");
 				move.score += alphaBeta(opponentPlayer, gameBoard, depth-1, Integer.MIN_VALUE+1, Integer.MAX_VALUE-1);
 				undoMove(move, playerToken, gameBoard, Game.MOVING_PHASE);
 			}
+			System.out.println("Size of moves: "+moves.size());
 			for(Move move : moves) {
-				System.out.println("Dest: "+move.destIndex+" Src: "+move.srcIndex+" Score: "+move.score);
-		}
-			System.out.println("-----------------------");
-			Collections.sort(moves, new HeuristicComparatorMax());
+				System.out.println("Dest: "+move.destIndex+" Src: "+move.srcIndex+" Rem: "+move.removePieceOnIndex+" Score: "+move.score);
+			}
+//			System.out.println("-----------------------");
+//			Collections.sort(moves, new HeuristicComparatorMax());
 
-			for(Move move : moves) {
-				System.out.println("Dest: "+move.destIndex+" Src: "+move.srcIndex+" Score: "+move.score);
-		}
+//			for(Move move : moves) {
+//				System.out.println("Dest: "+move.destIndex+" Src: "+move.srcIndex+" Score: "+move.score);
+//			}
 
 			// if there are different moves with the same score it returns one of them randomly
 			List<Move> bestMoves = new ArrayList<Move>();
@@ -209,7 +210,7 @@ public class MinimaxIAPlayer extends IAPlayer {
 					break;
 				}
 			}
-			//System.out.println("Best Moves Size: "+bestMoves.size());
+			System.out.println("Best Moves Size: "+bestMoves.size());
 			for(Move move : bestMoves) {
 				System.out.println("BEST Dest: "+move.destIndex+" Src: "+move.srcIndex+" Score: "+move.score);
 		}
@@ -325,6 +326,15 @@ public class MinimaxIAPlayer extends IAPlayer {
 		score += coef*R2_numPlayerTwoPieceConf;
 		score -= coef*R2_numOppTwoPieceConf;
 
+		// difference of the number of pieces between 2 players (bigger the better)
+		if(gamePhase == Game.PLACING_PHASE) {
+			coef = 5;
+		} else {
+			coef = 15;
+		}
+		
+//		score += coef*(gameBoard.getNumberOfPiecesOfPlayer(playerToken)-gameBoard.getNumberOfPiecesOfPlayer(opponentPlayer));
+		
 		return score;
 	}
 
