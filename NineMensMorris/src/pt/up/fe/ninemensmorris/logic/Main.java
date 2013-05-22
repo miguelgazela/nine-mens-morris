@@ -25,26 +25,26 @@ public class Main {
 	
 	public static void main(String []args) throws Exception {
 		
-		SLAnimator.start();
-		new UIGame();
+//		SLAnimator.start();
+//		new UIGame();
 		
-//		System.out.println("Nine Men's Morris starting...");
-//		Log.set(Log.LEVEL_INFO);
-//		Main maingame = new Main();
-//		maingame.input = new BufferedReader(new InputStreamReader(System.in));
-//		
-//		System.out.println("(L)OCAL or (N)ETWORK?");
-//		String userInput = maingame.input.readLine();
-//		userInput = userInput.toUpperCase();
-//		
-//		if(userInput.compareTo("LOCAL") == 0 || userInput.compareTo("L") == 0) {
-//			maingame.createLocalGame(5);
-//		} else if(userInput.compareTo("NETWORK") == 0 || userInput.compareTo("N") == 0) {
-//			maingame.createNetworkGame();
-//		} else {
-//			System.out.println("UNKNOWN COMMAND");
-//			System.exit(-1);
-//		}
+		System.out.println("Nine Men's Morris starting...");
+		Log.set(Log.LEVEL_INFO);
+		Main maingame = new Main();
+		maingame.input = new BufferedReader(new InputStreamReader(System.in));
+		
+		System.out.println("(L)OCAL or (N)ETWORK?");
+		String userInput = maingame.input.readLine();
+		userInput = userInput.toUpperCase();
+		
+		if(userInput.compareTo("LOCAL") == 0 || userInput.compareTo("L") == 0) {
+			maingame.createLocalGame(5);
+		} else if(userInput.compareTo("NETWORK") == 0 || userInput.compareTo("N") == 0) {
+			maingame.createNetworkGame();
+		} else {
+			System.out.println("UNKNOWN COMMAND");
+			System.exit(-1);
+		}
 	}
 	
 	public void createLocalGame(int minimaxDepth) throws IOException, GameException {
@@ -75,7 +75,7 @@ public class Main {
 			bothCPU = false;
 		} else if(userInput.compareTo("CPU") == 0 || userInput.compareTo("C") == 0) {
 //			p2 = new RandomIAPlayer(Token.PLAYER_2,Game.NUM_PIECES_PER_PLAYER);
-			p2 = new MinimaxIAPlayer(Token.PLAYER_2,Game.NUM_PIECES_PER_PLAYER, minimaxDepth);
+			p2 = new MinimaxIAPlayer(Token.PLAYER_2,Game.NUM_PIECES_PER_PLAYER, minimaxDepth-2);
 		} else {
 			System.out.println("Command unknown");
 			System.exit(-1);
@@ -95,7 +95,7 @@ public class Main {
 		
 		long gamesStart = System.nanoTime();
 		while(numberGames > 0) {
-			if((numberGames-- % 2) == 0){
+			if((numberGames-- % 100) == 0){
 				System.out.println("Games left: "+numberGames);
 			}
 			
@@ -106,14 +106,14 @@ public class Main {
 					int boardIndex;
 
 					if(p.isAI()) {
-//						long startTime = System.nanoTime();
+						long startTime = System.nanoTime();
 //						System.out.println("AI THINKING");
 						boardIndex = ((IAPlayer)p).getIndexToPlacePiece(game.gameBoard);
-//						long endTime = System.nanoTime();
+						long endTime = System.nanoTime();
 						//					game.printGameBoard();
-						//System.out.println("Number of moves: "+((IAPlayer)p).numberOfMoves);
-						//System.out.println("Moves that removed: "+((MinimaxIAPlayer)p).movesThatRemove);
-//						System.out.println("It took: "+ (endTime - startTime)/1000000+" miliseconds");
+						System.out.println("Number of moves: "+((IAPlayer)p).numberOfMoves);
+						System.out.println("Moves that removed: "+((IAPlayer)p).movesThatRemove);
+						System.out.println("It took: "+ (endTime - startTime)/1000000+" miliseconds");
 //						System.out.println(p.getName()+" placed piece on "+boardIndex);
 
 					} else {

@@ -5,6 +5,8 @@ import java.util.Random;
 public abstract class IAPlayer extends Player {
 	
 	protected Random rand;
+	public int numberOfMoves = 0; // TODO TESTING
+	public int movesThatRemove = 0;
 	private static String[] randomNames = { "Albert Einstein",
 		"Stephen Hawking", "Sheldon Cooper", "Dr.House", "Michael Jackson",
 		"Michael Bay", "Mark Zuckerberg", "Alfred Hitchcock", "Amy Whinehouse",
@@ -21,11 +23,11 @@ public abstract class IAPlayer extends Player {
 	
 	public IAPlayer(Token player, int numPiecesPerPlayer) throws GameException {
 		super(player, numPiecesPerPlayer);
+		rand = new Random();
 		setName();
 	}
 	
 	private void setName() {
-		rand = new Random();
 		name = randomNames[rand.nextInt(randomNames.length)];
 		System.out.println("Name of CPU: "+name);
 	}

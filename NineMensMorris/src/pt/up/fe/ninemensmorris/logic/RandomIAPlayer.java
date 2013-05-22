@@ -27,7 +27,6 @@ public class RandomIAPlayer extends IAPlayer {
 				int index = rand.nextInt(Board.NUM_POSITIONS_OF_BOARD);
 				Token playerOccupying = gameBoard.getPosition(index).getPlayerOccupyingIt();
 				if(playerOccupying != Token.NO_PLAYER && playerOccupying != this.playerToken) {
-					
 					return index;
 				}
 			} catch (GameException e) {

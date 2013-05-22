@@ -8,6 +8,7 @@ public class Move {
 	
 	public int srcIndex, destIndex, removePieceOnIndex;
 	public final int typeOfMove;
+	public int score;
 	
 	public Move(int src, int dest, int remove, int type) throws GameException {
 		if(type != PLACING && type != MOVING && type != REMOVING) {

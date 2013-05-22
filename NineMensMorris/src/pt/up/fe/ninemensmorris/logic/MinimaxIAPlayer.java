@@ -1,15 +1,16 @@
 package pt.up.fe.ninemensmorris.logic;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+
+import com.esotericsoftware.minlog.Log;
 
 public class MinimaxIAPlayer extends IAPlayer {
 	private int depth;
 	private Token opponentPlayer;
 	private Move bestMove;
-
-	public int numberOfMoves = 0; // TODO TESTING
-	public int movesThatRemove = 0;
 	public int bestScore = 0;
 
 	public MinimaxIAPlayer(Token player, int numPiecesPerPlayer, int depth) throws GameException {
@@ -21,19 +22,153 @@ public class MinimaxIAPlayer extends IAPlayer {
 		opponentPlayer = (player == Token.PLAYER_1) ? Token.PLAYER_2 : Token.PLAYER_1;
 	}
 
+//	@Override
+//	public int getIndexToPlacePiece(Board gameBoard) {
+//		numberOfMoves = 0; // TODO TESTING
+//		movesThatRemove = 0; // TODO TESTING
+//		try {
+//			bestMove = new Move(-1, -1, -1, Move.PLACING);
+//		} catch (GameException e) {
+//			e.printStackTrace();
+//			System.exit(-1);
+//		}
+//		
+//		bestScore = minimax(playerToken,depth, gameBoard, Integer.MIN_VALUE, Integer.MAX_VALUE);
+//		System.out.println("BEST SCORE: "+bestScore);
+//		return bestMove.destIndex;
+//	}
+	
+	/**
+	 * V.0.2 =>
+	 */
+	
 	@Override
 	public int getIndexToPlacePiece(Board gameBoard) {
 		numberOfMoves = 0; // TODO TESTING
 		movesThatRemove = 0; // TODO TESTING
+		
 		try {
 			bestMove = new Move(-1, -1, -1, Move.PLACING);
+			List<Move> moves = generateMoves(gameBoard, playerToken, Game.PLACING_PHASE); // sorted already
+			
+			for(Move move : moves) { // update score with child moves ?
+				move.score += alphaBeta(playerToken, gameBoard, depth-1, Integer.MIN_VALUE, Integer.MAX_VALUE);
+			}
+			Collections.sort(moves, new HeuristicComparatorMax());
+			
+			for(Move move : moves) {
+				System.out.println("Dest: "+move.destIndex+" Score: "+move.score);
+			}
+			
+			// if there are different moves with the same score it returns one of them randomly
+			List<Move> bestMoves = new ArrayList<Move>();
+			int bestScore = moves.get(0).score;
+			bestMoves.add(moves.get(0));
+			for(int i = 1; i < moves.size(); i++) {
+				if(moves.get(i).score == bestScore) {
+					bestMoves.add(moves.get(i));
+				} else {
+					break;
+				}
+			}
+			
+			return bestMoves.get(rand.nextInt(bestMoves.size())).destIndex;
 		} catch (GameException e) {
 			e.printStackTrace();
 			System.exit(-1);
 		}
-		bestScore = minimax(playerToken,depth, gameBoard, Integer.MIN_VALUE, Integer.MAX_VALUE);
-		return bestMove.destIndex;
+		Log.error("Should not get here");
+		return -1;
 	}
+	
+	private int alphaBeta(Token player, Board gameBoard, int depth, int alpha, int beta) {
+		
+		int gameOver;
+		List<Move> childMoves;
+		Token removedPlayer = Token.NO_PLAYER;
+		
+		try {
+			int gamePhase = getGamePhase(gameBoard, player);
+
+			if (depth == 0) { // depth reached, evaluate score
+				return evaluate(gameBoard, gamePhase);
+			} else if((gameOver = checkGameOver(gameBoard)) != 0) { // gameover
+				return gameOver;
+			} else if((childMoves = generateMoves(gameBoard, player, gamePhase)).isEmpty()) {
+				if(player == playerToken) { // IT SHOULD RETURN DIFFERENT VALUES RIGHT? IF THE BOT DOESN'T HAVE ANY POSSIBLE MOVES, THEN THE PLAYER WINS, AND RETURNS MAX VALUE???
+					return Integer.MIN_VALUE;
+				} else {
+					return Integer.MAX_VALUE;
+				}
+			}  else {
+				numberOfMoves += childMoves.size();
+
+				for (Move move : childMoves) {
+					Position position = gameBoard.getPosition(move.destIndex);
+
+					// Try this move for the current player
+					position.setAsOccupied(player);
+
+					if(gamePhase == Game.PLACING_PHASE) {
+						gameBoard.incNumPiecesOfPlayer(player);
+					} else {
+						gameBoard.getPosition(move.srcIndex).setAsUnoccupied();
+					}
+
+					if(move.removePieceOnIndex != -1) { // this move removed a piece from opponent
+						Position removed = gameBoard.getPosition(move.removePieceOnIndex);
+						removedPlayer = removed.getPlayerOccupyingIt();
+						removed.setAsUnoccupied();
+						gameBoard.decNumPiecesOfPlayer(removedPlayer);
+					}
+
+					if (player == playerToken) {  // maximizing player
+						alpha = Math.max(alpha, alphaBeta(player, gameBoard, depth - 1, alpha, beta));
+
+		                if (beta <= alpha) {
+		                	System.out.println("ALLLLLLLLLLLLPPPPPPPPPPPPPPHHHHHHHHHHHHHHHHHHHHHAAAAAAAAA!");
+		                    break; // cutoff
+		                }
+					} else {  //  minimizing player
+						beta = Math.min(beta, alphaBeta(player, gameBoard, depth - 1, alpha, beta));
+		                if (beta <= alpha) {
+		                	System.out.println("BETTTAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA!");
+		                    break; // cutoff
+		                }
+					}
+
+					// Undo move
+					position.setAsUnoccupied();
+
+					if(gamePhase == Game.PLACING_PHASE) {
+						gameBoard.decNumPiecesOfPlayer(player);
+					} else {
+						gameBoard.getPosition(move.srcIndex).setAsOccupied(player);
+					}
+
+					if(move.removePieceOnIndex != -1) {
+						gameBoard.getPosition(move.removePieceOnIndex).setAsOccupied(removedPlayer);
+						gameBoard.incNumPiecesOfPlayer(removedPlayer);
+					}
+				}
+				
+				if(player == playerToken) {
+					return alpha;
+				} else {
+					return beta;
+				}
+			}
+		} catch (GameException e) {
+			e.printStackTrace();
+			System.exit(-1);
+		}
+		Log.error("SHOULD NOT GET HERE!");
+		return -1;
+	}
+
+	/**
+	 * V.0.2 <=
+	 */
 
 	@Override
 	public int getIndexToRemovePieceOfOpponent(Board gameBoard) {
@@ -147,7 +282,6 @@ public class MinimaxIAPlayer extends IAPlayer {
 	
 	private void checkMove(Board gameBoard, Token player, List<Move> moves, Move move) throws GameException {
 		boolean madeMill = false;
-		
 		for(int i = 0; i < Board.NUM_MILL_COMBINATIONS; i++) { //check if piece made a mill
 			int playerPieces = 0; 
 			boolean selectedPiece = false;
@@ -162,14 +296,16 @@ public class MinimaxIAPlayer extends IAPlayer {
 					selectedPiece = true;
 				}
 			}
-			if(playerPieces==3 && selectedPiece) { // made a mill - select piece to remove
+			
+			if(playerPieces == 3 && selectedPiece) { // made a mill - select piece to remove
 				madeMill = true;
+				
 				for(int l = 0; l < Board.NUM_POSITIONS_OF_BOARD; l++) {
 					Position pos = gameBoard.getPosition(l);
 					
 					if(pos.getPlayerOccupyingIt() != player && pos.getPlayerOccupyingIt() != Token.NO_PLAYER) {
 						move.removePieceOnIndex = l;
-
+						
 						// add a move for each piece that can be removed, this way it will check what's the best one to remove
 						moves.add(move);
 						movesThatRemove++; // TODO TESTING
@@ -186,8 +322,8 @@ public class MinimaxIAPlayer extends IAPlayer {
 		}
 	}
 
-	private  List<Move> generateMoves(Board gameBoard, Token player, int gamePhase) {
-		List<Move> nextMoves = new ArrayList<Move>();
+	private  List<Move> generateMoves(Board gameBoard, Token player, int gamePhase) throws GameException {
+		List<Move> moves = new ArrayList<Move>();
 		Position position, adjacentPos;
 		
 		try {
@@ -198,7 +334,7 @@ public class MinimaxIAPlayer extends IAPlayer {
 					if(!(position = gameBoard.getPosition(i)).isOccupied())	{
 						position.setAsOccupied(player);
 						move.destIndex = i;
-						checkMove(gameBoard, player, nextMoves, move);
+						checkMove(gameBoard, player, moves, move);
 						position.setAsUnoccupied();
 					}
 				}
@@ -216,7 +352,7 @@ public class MinimaxIAPlayer extends IAPlayer {
 								adjacentPos.setAsOccupied(player);
 								move.destIndex = adjacent[j];
 								position.setAsUnoccupied();
-								checkMove(gameBoard, player, nextMoves, move);
+								checkMove(gameBoard, player, moves, move);
 								position.setAsOccupied(player);
 								adjacentPos.setAsUnoccupied();
 							}
@@ -246,7 +382,7 @@ public class MinimaxIAPlayer extends IAPlayer {
 						Position destPos = gameBoard.getPosition(freeSpaces.get(j));
 						destPos.setAsOccupied(player);
 						move.destIndex = freeSpaces.get(j);
-						checkMove(gameBoard, player, nextMoves, move);
+						checkMove(gameBoard, player, moves, move);
 						destPos.setAsUnoccupied();
 					}
 					srcPos.setAsOccupied(player);
@@ -256,8 +392,75 @@ public class MinimaxIAPlayer extends IAPlayer {
 			e.printStackTrace();
 			System.exit(-1);
 		}
-		return nextMoves;
+		
+		/**
+		 * => V.0.2
+		 */
+		// rate the moves and sort them!
+		for(Move move : moves) {
+			Token removedPlayer = Token.NO_PLAYER;
+			position = gameBoard.getPosition(move.destIndex);
+
+			// Try this move for the current player
+			position.setAsOccupied(player);
+
+			if(gamePhase == Game.PLACING_PHASE) {
+				gameBoard.incNumPiecesOfPlayer(player);
+			} else {
+				gameBoard.getPosition(move.srcIndex).setAsUnoccupied();
+			}
+
+			if(move.removePieceOnIndex != -1) { // this move removed a piece from opponent
+				Position removed = gameBoard.getPosition(move.removePieceOnIndex);
+				removedPlayer = removed.getPlayerOccupyingIt();
+				removed.setAsUnoccupied();
+				gameBoard.decNumPiecesOfPlayer(removedPlayer);
+			}
+			
+			move.score = evaluate(gameBoard, gamePhase);
+			
+			// Undo move
+			position.setAsUnoccupied();
+
+			if(gamePhase == Game.PLACING_PHASE) {
+				gameBoard.decNumPiecesOfPlayer(player);
+			} else {
+				gameBoard.getPosition(move.srcIndex).setAsOccupied(player);
+			}
+
+			if(move.removePieceOnIndex != -1) {
+				gameBoard.getPosition(move.removePieceOnIndex).setAsOccupied(removedPlayer);
+				gameBoard.incNumPiecesOfPlayer(removedPlayer);
+			}
+		}
+		
+		if(player == playerToken) {
+			Collections.sort(moves, new HeuristicComparatorMax());
+		} else {
+			Collections.sort(moves, new HeuristicComparatorMin());
+		}
+		
+		/**
+		 * V.0.2 <=
+		 */
+		return moves;
 	}
+	
+    private class HeuristicComparatorMax implements Comparator<Move> {
+
+        @Override
+        public int compare(Move t, Move t1) {
+            return t1.score - t.score;
+        }
+    }
+    
+    private class HeuristicComparatorMin implements Comparator<Move> {
+
+        @Override
+        public int compare(Move t, Move t1) {
+            return t.score - t1.score;
+        }
+    }
 
 	public int minimax(Token player, int depth, Board gameBoard, int alpha, int beta) {
 
@@ -319,36 +522,6 @@ public class MinimaxIAPlayer extends IAPlayer {
 							removePos = move.removePieceOnIndex;
 						}
 					}
-
-					/*
-					if(player == playerToken) { // maximizing player
-						currentScore = minimax(opponentPlayer, depth-1, gameBoard, alpha, beta)[0];
-
-						if(currentScore > alpha) { // we have found a better best move
-							bestScore = currentScore;
-							alpha = currentScore;
-							bestPosDest = move.destIndex;
-							bestPosSrc = move.srcIndex;
-							removePos = move.removePieceOnIndex;
-						}
-						if(alpha >= beta) {
-							break;
-						}
-					} else {
-						currentScore = minimax(playerToken, depth-1, gameBoard, alpha, beta)[0];
-
-						if(currentScore < beta) {
-							bestScore = currentScore;
-							beta = currentScore;
-							bestPosDest = move.destIndex;
-							bestPosSrc = move.srcIndex;
-							removePos = move.removePieceOnIndex;
-						}
-						if(beta <= alpha) {
-							break;
-						}
-					}
-					 */
 
 					// Undo move
 					position.setAsUnoccupied();
