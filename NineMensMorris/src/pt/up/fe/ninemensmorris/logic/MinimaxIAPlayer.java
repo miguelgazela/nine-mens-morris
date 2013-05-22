@@ -82,9 +82,9 @@ public class MinimaxIAPlayer extends IAPlayer {
 			}
 			Collections.sort(moves, new HeuristicComparatorMax());
 
-			for(Move move : moves) {
-				System.out.println("Dest: "+move.destIndex+" Score: "+move.score);
-			}
+//			for(Move move : moves) {
+//				System.out.println("Dest: "+move.destIndex+" Score: "+move.score);
+//			}
 
 			// if there are different moves with the same score it returns one of them randomly
 			List<Move> bestMoves = new ArrayList<Move>();
@@ -97,7 +97,7 @@ public class MinimaxIAPlayer extends IAPlayer {
 					break;
 				}
 			}
-			System.out.println("Best Moves Size: "+bestMoves.size());
+//			System.out.println("Best Moves Size: "+bestMoves.size());
 			currentBestMove = bestMoves.get(rand.nextInt(bestMoves.size()));
 			return currentBestMove.destIndex;
 		} catch (GameException e) {

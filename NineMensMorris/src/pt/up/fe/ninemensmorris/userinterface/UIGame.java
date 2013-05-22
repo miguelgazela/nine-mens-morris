@@ -555,6 +555,7 @@ public class UIGame extends JFrame {
 		private Game game;
 		private Image turnPlayer = null;
 		private Thread bgGameCheckThread;
+		private int numberAImoves = 0;
 		
 		public UIGamePanel() {
 			uiResourcesLoader = UIResourcesLoader.getInstanceLoader();
@@ -649,6 +650,7 @@ public class UIGame extends JFrame {
 			winner = "";
 			gServer = null;
 			gClient = null;
+			numberAImoves = 0;
 			boardPositions = new Token[Board.NUM_POSITIONS_OF_BOARD];
 			for(int i = 0; i < boardPositions.length; i++) {
 				boardPositions[i] = Token.NO_PLAYER; 
@@ -796,6 +798,7 @@ public class UIGame extends JFrame {
 		}
 		
 		private void makeAiMove() {
+			System.out.println("Making AI move: "+numberAImoves++);
 			Player p = game.getPlayer();
 			int indexToTest = -1;
 			
