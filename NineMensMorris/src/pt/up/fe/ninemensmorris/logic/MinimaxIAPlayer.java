@@ -303,6 +303,14 @@ public class MinimaxIAPlayer extends IAPlayer {
 		}
 		score += coef*R2_numPlayerTwoPieceConf;
 		score -= coef*R2_numOppTwoPieceConf;
+		
+		if(gamePhase == Game.PLACING_PHASE) {
+			coef = 10;
+		} else {
+			coef = 25;
+		}
+	
+		score += coef*(gameBoard.getNumberOfPiecesOfPlayer(playerToken)-gameBoard.getNumberOfPiecesOfPlayer(opponentPlayer));
 
 		return score;
 	}
