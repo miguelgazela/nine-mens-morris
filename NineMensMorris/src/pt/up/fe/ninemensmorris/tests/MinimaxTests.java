@@ -122,14 +122,33 @@ public class MinimaxTests {
 //	}
 	
 	@Test
-	public void testSmartMove() {
+	public void testGameOver() {
 		try {
-			IAPlayer player2 = new MinimaxIAPlayer(Token.PLAYER_2, Game.NUM_PIECES_PER_PLAYER, 6);
-			IAPlayer player1 = new MinimaxIAPlayer(Token.PLAYER_1, Game.NUM_PIECES_PER_PLAYER, 6);
+			IAPlayer player2 = new MinimaxIAPlayer(Token.PLAYER_2, Game.NUM_PIECES_PER_PLAYER, 5);
 			Board board = new Board();
 			for(int i=0;i<Game.NUM_PIECES_PER_PLAYER*2;i++) {
 				board.incNumTotalPiecesPlaced();
 			}
+			
+			/*board.setPositionAsPlayer(0, Token.PLAYER_1);
+			board.incNumPiecesOfPlayer(Token.PLAYER_1);
+>>>>>>> 8ec224d8da2c764e42c0d7da3a59d22594ecc494
+			board.setPositionAsPlayer(2, Token.PLAYER_1);
+			board.setPositionAsPlayer(9, Token.PLAYER_1);
+			board.incNumPiecesOfPlayer(Token.PLAYER_1);
+			board.incNumPiecesOfPlayer(Token.PLAYER_1);
+			board.incNumPiecesOfPlayer(Token.PLAYER_1);
+			
+			board.setPositionAsPlayer(10, Token.PLAYER_2);
+			board.setPositionAsPlayer(12, Token.PLAYER_2);
+			board.setPositionAsPlayer(13, Token.PLAYER_2);
+			board.setPositionAsPlayer(14, Token.PLAYER_2);
+			board.incNumPiecesOfPlayer(Token.PLAYER_2);
+			board.incNumPiecesOfPlayer(Token.PLAYER_2);
+<<<<<<< HEAD
+=======
+			board.setPositionAsPlayer(9, Token.PLAYER_2);
+			board.incNumPiecesOfPlayer(Token.PLAYER_2);*/
 			
 			board.setPositionAsPlayer(0, Token.PLAYER_1);
 			board.setPositionAsPlayer(2, Token.PLAYER_1);
@@ -146,19 +165,16 @@ public class MinimaxTests {
 			board.incNumPiecesOfPlayer(Token.PLAYER_2);
 			board.incNumPiecesOfPlayer(Token.PLAYER_2);
 			board.incNumPiecesOfPlayer(Token.PLAYER_2);
+			board.incNumPiecesOfPlayer(Token.PLAYER_2);
 			
 			
 			//assertSame(Game.FLYING_PHASE,((MinimaxIAPlayer) player1).getGamePhase(board, Token.PLAYER_1));
 			board.printBoard();
 			Move move = player2.getPieceMove(board, Game.MOVING_PHASE);
-			applyMove(move, Token.PLAYER_2, board, Game.MOVING_PHASE);
-			board.printBoard();
-			Move move2 = player1.getPieceMove(board, Game.FLYING_PHASE);
-			applyMove(move2, Token.PLAYER_1, board, Game.FLYING_PHASE);
-			board.printBoard();
-			Move move3 = player2.getPieceMove(board, Game.FLYING_PHASE);
-			applyMove(move3, Token.PLAYER_2, board, Game.FLYING_PHASE);
-			board.printBoard();
+			assertSame(4, move.srcIndex);
+			assertSame(1, move.destIndex);
+			assertTrue(move.removePieceOnIndex != -1);
+
 		} catch (GameException e) {
 			e.printStackTrace();
 			System.exit(-1);

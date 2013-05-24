@@ -675,6 +675,7 @@ public class UIGame extends JFrame {
 			} else if(uiNewGamePanel.players_type == UIResourcesLoader.HUM_CPU_GAME) {
 				System.out.println("Creating new HUM-CPU game!");
 				p1 = new HumanPlayer("Player 1", Token.PLAYER_1, Game.NUM_PIECES_PER_PLAYER);
+				
 				p2 = createAIPlayer(Token.PLAYER_2, uiSettingsPanel.gameLevelCPU1);
 			} else if(uiNewGamePanel.players_type == UIResourcesLoader.CPU_CPU_GAME) {
 				p1 = createAIPlayer(Token.PLAYER_1, uiSettingsPanel.gameLevelCPU1);
@@ -693,11 +694,20 @@ public class UIGame extends JFrame {
 		}
 		
 		private IAPlayer createAIPlayer(Token player, int playerLevel) {
+			
+			if(playerLevel == UISettingsPanel.EASY || playerLevel == UISettingsPanel.NORMAL) {
+				playerLevel++;
+			} else if(playerLevel == UISettingsPanel.HARD) {
+				playerLevel += 2;
+			} else if(playerLevel == UISettingsPanel.VERY_HARD) {
+				playerLevel += 3;
+			}
+			
 			try {
 				if(playerLevel == UISettingsPanel.VERY_EASY) {
 					return new RandomIAPlayer(player, Game.NUM_PIECES_PER_PLAYER);
 				} else {
-					return new MinimaxIAPlayer(player, Game.NUM_PIECES_PER_PLAYER, playerLevel+2); // TODO temporary
+					return new MinimaxIAPlayer(player, Game.NUM_PIECES_PER_PLAYER, playerLevel);
 				}
 			} catch(GameException e) {
 				e.printStackTrace();

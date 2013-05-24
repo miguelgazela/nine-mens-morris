@@ -21,7 +21,7 @@ import aurelienribon.slidinglayout.SLAnimator;
 public class Main {
 	public Game game;
 	public BufferedReader input;
-	public static final int MAX_MOVES = 100;
+	public static final int MAX_MOVES = 120;
 	
 	public static void main(String []args) throws Exception {
 		
@@ -75,7 +75,7 @@ public class Main {
 			bothCPU = false;
 		} else if(userInput.compareTo("CPU") == 0 || userInput.compareTo("C") == 0) {
 //			p2 = new RandomIAPlayer(Token.PLAYER_2,Game.NUM_PIECES_PER_PLAYER);
-			p2 = new MinimaxIAPlayer(Token.PLAYER_2,Game.NUM_PIECES_PER_PLAYER, minimaxDepth-1);
+			p2 = new MinimaxIAPlayer(Token.PLAYER_2,Game.NUM_PIECES_PER_PLAYER, minimaxDepth-2);
 		} else {
 			System.out.println("Command unknown");
 			System.exit(-1);
