@@ -25,26 +25,26 @@ public class Main {
 	
 	public static void main(String []args) throws Exception {
 		
-//		SLAnimator.start();
-//		new UIGame();
+		SLAnimator.start();
+		new UIGame();
 		
-		System.out.println("Nine Men's Morris starting...");
-		Log.set(Log.LEVEL_ERROR);
-		Main maingame = new Main();
-		maingame.input = new BufferedReader(new InputStreamReader(System.in));
-		
-		System.out.println("(L)OCAL or (N)ETWORK?");
-		String userInput = maingame.input.readLine();
-		userInput = userInput.toUpperCase();
-		
-		if(userInput.compareTo("LOCAL") == 0 || userInput.compareTo("L") == 0) {
-			maingame.createLocalGame(5);
-		} else if(userInput.compareTo("NETWORK") == 0 || userInput.compareTo("N") == 0) {
-			maingame.createNetworkGame();
-		} else {
-			System.out.println("UNKNOWN COMMAND");
-			System.exit(-1);
-		}
+//		System.out.println("Nine Men's Morris starting...");
+//		Log.set(Log.LEVEL_ERROR);
+//		Main maingame = new Main();
+//		maingame.input = new BufferedReader(new InputStreamReader(System.in));
+//		
+//		System.out.println("(L)OCAL or (N)ETWORK?");
+//		String userInput = maingame.input.readLine();
+//		userInput = userInput.toUpperCase();
+//		
+//		if(userInput.compareTo("LOCAL") == 0 || userInput.compareTo("L") == 0) {
+//			maingame.createLocalGame(5);
+//		} else if(userInput.compareTo("NETWORK") == 0 || userInput.compareTo("N") == 0) {
+//			maingame.createNetworkGame();
+//		} else {
+//			System.out.println("UNKNOWN COMMAND");
+//			System.exit(-1);
+//		}
 	}
 	
 	public void createLocalGame(int minimaxDepth) throws IOException, GameException {

@@ -309,9 +309,6 @@ public class MinimaxIAPlayer extends IAPlayer {
 		} else {
 			coef = 25;
 		}
-	
-		score += coef*(gameBoard.getNumberOfPiecesOfPlayer(playerToken)-gameBoard.getNumberOfPiecesOfPlayer(opponentPlayer));
-
 		return score;
 	}
 
