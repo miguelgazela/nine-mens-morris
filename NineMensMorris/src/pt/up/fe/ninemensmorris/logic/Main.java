@@ -22,6 +22,7 @@ public class Main {
 	public Game game;
 	public BufferedReader input;
 	public static final int MAX_MOVES = 150;
+	public static int totalMoves = 0;
 	
 	public static void main(String []args) throws Exception {
 		
@@ -75,7 +76,7 @@ public class Main {
 			bothCPU = false;
 		} else if(userInput.compareTo("CPU") == 0 || userInput.compareTo("C") == 0) {
 //			p2 = new RandomIAPlayer(Token.PLAYER_2,Game.NUM_PIECES_PER_PLAYER);
-			p2 = new MinimaxIAPlayer(Token.PLAYER_2,Game.NUM_PIECES_PER_PLAYER, minimaxDepth);
+			p2 = new MinimaxIAPlayer(Token.PLAYER_2,Game.NUM_PIECES_PER_PLAYER, minimaxDepth-2);
 		} else {
 			System.out.println("Command unknown");
 			System.exit(-1);
@@ -125,8 +126,9 @@ public class Main {
 					}
 
 					if(game.placePieceOfPlayer(boardIndex, p.getPlayerToken())) {
-						numberMoves++;
-						p.raiseNumPiecesOnBoard(); // TODO the game should do this
+						numberMoves++; // TODO testing
+						totalMoves++;
+						p.raiseNumPiecesOnBoard();
 
 						if(game.madeAMill(boardIndex, p.getPlayerToken())) {
 							Token opponentPlayer = (p.getPlayerToken() == Token.PLAYER_1) ? Token.PLAYER_2 : Token.PLAYER_1;
@@ -191,7 +193,8 @@ public class Main {
 
 					int result;
 					if((result = game.movePieceFromTo(srcIndex, destIndex, p.getPlayerToken())) == Game.VALID_MOVE) {
-						numberMoves++;
+						numberMoves++; // TODO testing
+						totalMoves++;
 						if(game.madeAMill(destIndex, p.getPlayerToken())) {
 							Token opponentPlayerToken = (p.getPlayerToken() == Token.PLAYER_1) ? Token.PLAYER_2 : Token.PLAYER_1;
 							int boardIndex;
@@ -245,6 +248,7 @@ public class Main {
 		}
 		long gamesEnd = System.nanoTime();
 		System.out.println(fixedNumberGames+" games completed in: "+ (gamesEnd - gamesStart)/1000000000+" seconds");
+		System.out.println("Average number of ply: "+(totalMoves/fixedNumberGames));
 		System.out.println("Draws: "+draws+" ("+((float)draws/fixedNumberGames)*100+"%)");
 		System.out.println("P1 Wins: "+p1Wins+" ("+((float)p1Wins/fixedNumberGames)*100+"%)");
 		System.out.println("P2 Wins: "+p2Wins+" ("+((float)p2Wins/fixedNumberGames)*100+"%)");

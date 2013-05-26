@@ -22,6 +22,7 @@ public class GameClient extends Network {
 	private boolean responseFromServer;
 	private boolean thisPlayerTurn;
 	private ArrayList<Move> opponentMoves;
+	private long startedWaitingForServerResponse;
 	
 	public GameClient(Token player) throws GameException {
 		
@@ -119,12 +120,6 @@ public class GameClient extends Network {
 					}
 				}
 				
-				/*
-				if(object instanceof GameOver) {
-					logThisMessage("You've won! Congrats.");
-					System.exit(-1); // TODO what to do here?
-				}
-				*/
 			}
 			
 			public void connected(Connection connection) {
@@ -186,7 +181,6 @@ public class GameClient extends Network {
 	 * @return
 	 */
 	public boolean validatePieceRemoving(int boardIndex) {
-		Log.info("HERE");
 		PieceRemoving pieceRemoving = new PieceRemoving();
 		pieceRemoving.player = (playerToken == Token.PLAYER_1 ? Token.PLAYER_2 : Token.PLAYER_1);
 		pieceRemoving.boardIndex = boardIndex;
@@ -225,9 +219,14 @@ public class GameClient extends Network {
 	 * 
 	 */
 	private void waitForServerResponse() {
+		startedWaitingForServerResponse = System.currentTimeMillis();
 		while(waitingForServerResponse) {
 			logThisMessage("GAMECLIENT WAITING FOR VALIDATION FROM GAMESERVER");
 			try { Thread.sleep(25); } catch (InterruptedException e) { e.printStackTrace(); }
+			if((System.currentTimeMillis() - startedWaitingForServerResponse) > 8000) {
+				logThisMessage("Server must be down!");
+				waitingForServerResponse = false;
+			}
 		}
 	}
 	
