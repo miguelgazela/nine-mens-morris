@@ -597,12 +597,12 @@ public class UIGame extends JFrame {
 									Log.info("Game Over! "+opp+" won!");
 									gameIsOver = true;
 									winner = (opp == Token.PLAYER_1) ? "p1" : "p2";
+									gClient.stop();
+									if(gServer != null) {
+										gServer.stop();
+									}
 								}
 								repaint();
-								gClient.stop();
-								if(gServer != null) {
-									gServer.stop();
-								}
 							} catch (GameException e) {
 								e.printStackTrace();
 								System.exit(-1);
