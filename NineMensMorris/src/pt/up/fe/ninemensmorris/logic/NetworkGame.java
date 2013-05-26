@@ -2,8 +2,6 @@ package pt.up.fe.ninemensmorris.logic;
 
 import java.util.ArrayList;
 
-import com.esotericsoftware.minlog.Log;
-
 
 public class NetworkGame extends Game {
 	
